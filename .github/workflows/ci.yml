@@ -62,6 +62,11 @@ jobs:
       - name: Build shared package
         run: pnpm --filter @serveflow/shared build
 
+      # Der Prisma-Client (inkl. aller Enums/Typen) wird generiert, nicht
+      # installiert – ohne generate scheitert der API-Typecheck
+      - name: Generate Prisma client
+        run: pnpm --filter @serveflow/api exec prisma generate
+
       - name: Format check (Prettier)
         run: pnpm format:check
 
