@@ -1,0 +1,29 @@
+# Caddy-Konfiguration für Produktion.
+# {$DOMAIN} kommt aus der Umgebung (docker-compose.yml) – Caddy holt
+# automatisch ein Let's-Encrypt-Zertifikat und erneuert es selbst.
+{$DOMAIN} {
+	# Security-Header zentral am Proxy – gilt für SPA und API.
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "same-origin"
+		# CSP: SPA lädt nur eigene Assets; API liefert ohnehin nur JSON.
+		Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'"
+		-Server
+	}
+
+	# API-Requests an den API-Container weiterreichen
+	handle /api/* {
+		reverse_proxy api:3000
+	}
+
+	# Alles andere: SPA-Bundle (Client-Side-Routing → Fallback auf index.html)
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+
+	encode gzip
+}

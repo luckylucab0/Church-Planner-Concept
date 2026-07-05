@@ -1,0 +1,23 @@
+# Dependabot: wöchentliche, gruppierte Dependency-Updates für npm und
+# GitHub Actions. Gruppierung reduziert PR-Lärm für die Ehrenamtlichen,
+# die das Projekt warten.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      minor-and-patch:
+        update-types: ['minor', 'patch']
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns: ['*']

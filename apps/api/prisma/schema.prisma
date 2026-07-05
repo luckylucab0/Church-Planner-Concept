@@ -1,0 +1,539 @@
+// ============================================================
+// ServeFlow Datenmodell
+//
+// Grundprinzipien:
+// - UUIDs statt inkrementeller IDs (verhindert Enumeration durch
+//   neugierige Mitglieder, siehe docs/security.md)
+// - Person und UserAccount sind getrennt: Personen können ohne Login
+//   existieren (z. B. frisch importiert), Login ist optional
+// - Sensible Freitexte (Notizen) werden applikationsseitig
+//   AES-256-GCM-verschlüsselt gespeichert (Bytes-Felder)
+// - Tokens (Zusage/Absage, iCal, Passwort-Reset) liegen NUR als
+//   SHA-256-Hash in der DB – ein DB-Leak verrät keine gültigen Links
+// - Phase-2-Tabellen (Ablaufplan, Songs, Räume) sind bereits im Schema,
+//   damit spätere Features ohne Umbau des Kernmodells andocken können
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Personen & Konten ------------------------------
+
+enum PersonStatus {
+  ACTIVE
+  ARCHIVED
+  // Anonymisiert statt gelöscht: Planhistorie bleibt erhalten,
+  // alle personenbezogenen Felder sind entfernt (Recht auf Vergessen)
+  ANONYMIZED
+}
+
+model Person {
+  id        String       @id @default(uuid()) @db.Uuid
+  firstName String
+  lastName  String
+  // E-Mail optional: nicht jede Person (z. B. Kind im Kinderdienst-Team)
+  // hat eine – Datenminimierung: nur erheben, was nötig ist
+  email     String?      @unique
+  phone     String?
+  birthday  DateTime?    @db.Date
+  address   String?
+  photoUrl  String?
+  status    PersonStatus @default(ACTIVE)
+  locale    String       @default("de")
+  // Nicht abbildbare Felder aus Elvanto/PCO-Importen landen hier,
+  // statt verworfen zu werden
+  importNotes  String?
+  anonymizedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  account           UserAccount?
+  privacySettings   PrivacySettings?
+  notes             Note[]                    @relation("NotesAboutPerson")
+  authoredNotes     Note[]                    @relation("NotesByAuthor")
+  memberships       TeamMembership[]
+  positionSkills    PositionSkill[]
+  absences          Absence[]
+  recurringUnavailabilities RecurringUnavailability[]
+  assignments       Assignment[]
+  calendarFeedToken CalendarFeedToken?
+  authTokens        AuthToken[]
+  notifications     NotificationLog[]
+}
+
+enum GlobalRole {
+  ADMIN
+  MEMBER
+}
+
+model UserAccount {
+  id           String     @id @default(uuid()) @db.Uuid
+  personId     String     @unique @db.Uuid
+  person       Person     @relation(fields: [personId], references: [id], onDelete: Cascade)
+  passwordHash String // argon2id
+  globalRole   GlobalRole @default(MEMBER)
+  // TOTP-Secret verschlüsselt (AES-256-GCM), nicht im Klartext
+  totpSecretEncrypted Bytes?
+  totpEnabled         Boolean   @default(false)
+  // Brute-Force-Schutz: Zähler + Sperre mit exponentiellem Backoff
+  failedLoginCount    Int       @default(0)
+  lockedUntil         DateTime?
+  lastLoginAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+// Jede Person steuert selbst, welche Kontaktdaten Mitglieder ihrer
+// eigenen Teams sehen dürfen (Least Privilege, Selbstbestimmung).
+// Teamleiter des eigenen Teams sehen Kontaktdaten unabhängig davon –
+// sie brauchen sie für die Einteilung (dokumentierter Zweck).
+model PrivacySettings {
+  personId              String  @id @db.Uuid
+  person                Person  @relation(fields: [personId], references: [id], onDelete: Cascade)
+  emailVisibleToTeam    Boolean @default(false)
+  phoneVisibleToTeam    Boolean @default(false)
+  birthdayVisibleToTeam Boolean @default(false)
+  photoVisibleToMembers Boolean @default(true)
+}
+
+enum NoteKind {
+  GENERAL
+  // Seelsorgerliche Notizen: eigene Berechtigungsstufe,
+  // nur Admin bzw. explizit berechtigte Rollen
+  PASTORAL
+}
+
+model Note {
+  id       String   @id @default(uuid()) @db.Uuid
+  personId String   @db.Uuid
+  person   Person   @relation("NotesAboutPerson", fields: [personId], references: [id], onDelete: Cascade)
+  kind     NoteKind @default(GENERAL)
+  // AES-256-GCM: [keyVersion|iv|ciphertext|authTag] – siehe common/crypto
+  contentEncrypted Bytes
+  authorId         String?  @db.Uuid
+  author           Person?  @relation("NotesByAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([personId])
+}
+
+// ---------- Teams & Positionen -----------------------------
+
+model Team {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique
+  color     String   @default("#6366f1")
+  createdAt DateTime @default(now())
+
+  memberships TeamMembership[]
+  positions   Position[]
+}
+
+model TeamMembership {
+  id       String  @id @default(uuid()) @db.Uuid
+  teamId   String  @db.Uuid
+  team     Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  personId String  @db.Uuid
+  person   Person  @relation(fields: [personId], references: [id], onDelete: Cascade)
+  // Teamleiter ist eine Beziehung pro Team, keine globale Rolle –
+  // ein kompromittiertes Leiter-Konto reicht nie über das eigene Team hinaus
+  isLeader Boolean @default(false)
+
+  @@unique([teamId, personId])
+  @@index([personId])
+}
+
+model Position {
+  id     String @id @default(uuid()) @db.Uuid
+  teamId String @db.Uuid
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  name   String
+
+  skills               PositionSkill[]
+  serviceTypePositions ServiceTypePosition[]
+  eventSlots           EventPositionSlot[]
+
+  @@unique([teamId, name])
+}
+
+enum SkillLevel {
+  BEGINNER
+  SOLID
+  EXPERT
+}
+
+model PositionSkill {
+  id         String     @id @default(uuid()) @db.Uuid
+  positionId String     @db.Uuid
+  position   Position   @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  personId   String     @db.Uuid
+  person     Person     @relation(fields: [personId], references: [id], onDelete: Cascade)
+  skillLevel SkillLevel @default(SOLID)
+
+  @@unique([positionId, personId])
+  @@index([personId])
+}
+
+// ---------- Gottesdienste & Dienstpläne --------------------
+
+model ServiceType {
+  id   String @id @default(uuid()) @db.Uuid
+  name String @unique
+  // Wiederkehrende Termine als RFC-5545-RRULE (z. B. FREQ=WEEKLY;BYDAY=SU).
+  // Termine werden daraus materialisiert (Event-Zeilen), damit sie
+  // einzeln bearbeitbar/absagbar sind.
+  rrule           String?
+  startTime       String? // "HH:MM" lokale Zeit der Gemeinde
+  durationMinutes Int     @default(90)
+  location        String?
+  createdAt       DateTime @default(now())
+
+  // Template: welche Positionen werden pro Termin standardmäßig benötigt
+  positionTemplate ServiceTypePosition[]
+  events           Event[]
+}
+
+model ServiceTypePosition {
+  id            String      @id @default(uuid()) @db.Uuid
+  serviceTypeId String      @db.Uuid
+  serviceType   ServiceType @relation(fields: [serviceTypeId], references: [id], onDelete: Cascade)
+  positionId    String      @db.Uuid
+  position      Position    @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  requiredCount Int         @default(1)
+
+  @@unique([serviceTypeId, positionId])
+}
+
+enum EventStatus {
+  PLANNED
+  PUBLISHED
+  CANCELLED
+}
+
+model Event {
+  id            String       @id @default(uuid()) @db.Uuid
+  // Nullable: Einzeltermine ohne Serie sind erlaubt
+  serviceTypeId String?      @db.Uuid
+  serviceType   ServiceType? @relation(fields: [serviceTypeId], references: [id], onDelete: SetNull)
+  title         String
+  startsAt      DateTime
+  endsAt        DateTime
+  location      String?
+  status        EventStatus  @default(PLANNED)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  slots         EventPositionSlot[]
+  planItems     ServicePlanItem[]
+  resourceBookings ResourceBooking[]
+
+  @@index([startsAt])
+}
+
+model EventPositionSlot {
+  id            String   @id @default(uuid()) @db.Uuid
+  eventId       String   @db.Uuid
+  event         Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  positionId    String   @db.Uuid
+  position      Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  requiredCount Int      @default(1)
+
+  assignments Assignment[]
+
+  @@unique([eventId, positionId])
+}
+
+enum AssignmentStatus {
+  REQUESTED
+  ACCEPTED
+  DECLINED
+}
+
+model Assignment {
+  id       String            @id @default(uuid()) @db.Uuid
+  slotId   String            @db.Uuid
+  slot     EventPositionSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  personId String            @db.Uuid
+  person   Person            @relation(fields: [personId], references: [id], onDelete: Cascade)
+  status   AssignmentStatus  @default(REQUESTED)
+  // Wer hat eingeteilt (Nachvollziehbarkeit; SetNull statt Cascade,
+  // damit die Einteilung beim Löschen des Einteilers bestehen bleibt)
+  assignedById String?   @db.Uuid
+  respondedAt  DateTime?
+  declineReason String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  responseTokens ResponseToken[]
+  notifications  NotificationLog[]
+
+  @@unique([slotId, personId])
+  @@index([personId])
+}
+
+// ---------- Tokens -----------------------------------------
+
+// Zusage/Absage per Mail-Link ohne Login: kurzlebig, single-use,
+// kryptografisch zufällig. In der DB liegt nur der SHA-256-Hash.
+model ResponseToken {
+  id           String     @id @default(uuid()) @db.Uuid
+  assignmentId String     @db.Uuid
+  assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  tokenHash    String     @unique
+  expiresAt    DateTime
+  usedAt       DateTime?
+  createdAt    DateTime   @default(now())
+}
+
+enum AuthTokenPurpose {
+  PASSWORD_RESET
+}
+
+model AuthToken {
+  id        String           @id @default(uuid()) @db.Uuid
+  personId  String           @db.Uuid
+  person    Person           @relation(fields: [personId], references: [id], onDelete: Cascade)
+  purpose   AuthTokenPurpose
+  tokenHash String           @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime         @default(now())
+}
+
+// Persönlicher iCal-Feed: geheime Abo-URL, von der Person rotierbar
+model CalendarFeedToken {
+  personId  String   @id @db.Uuid
+  person    Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  rotatedAt DateTime @default(now())
+}
+
+// ---------- Verfügbarkeiten --------------------------------
+
+model Absence {
+  id       String   @id @default(uuid()) @db.Uuid
+  personId String   @db.Uuid
+  person   Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  fromDate DateTime @db.Date
+  toDate   DateTime @db.Date
+  // Grund ist optional (Datenminimierung) und nur für die Person
+  // selbst und Admins sichtbar
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@index([personId])
+}
+
+// Wiederkehrende Nichtverfügbarkeit, z. B. "jeden 1. Sonntag im Monat
+// nicht" → RRULE FREQ=MONTHLY;BYDAY=1SU
+model RecurringUnavailability {
+  id        String   @id @default(uuid()) @db.Uuid
+  personId  String   @db.Uuid
+  person    Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  rrule     String
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([personId])
+}
+
+// ---------- Benachrichtigungen -----------------------------
+
+enum NotificationChannelType {
+  EMAIL
+}
+
+enum NotificationKind {
+  ASSIGNED
+  REMINDER
+  DECLINED_ALERT
+}
+
+model NotificationLog {
+  id           String                  @id @default(uuid()) @db.Uuid
+  personId     String                  @db.Uuid
+  person       Person                  @relation(fields: [personId], references: [id], onDelete: Cascade)
+  assignmentId String?                 @db.Uuid
+  assignment   Assignment?             @relation(fields: [assignmentId], references: [id], onDelete: SetNull)
+  channel      NotificationChannelType @default(EMAIL)
+  kind         NotificationKind
+  sentAt       DateTime                @default(now())
+
+  @@index([assignmentId, kind])
+}
+
+// ---------- Audit-Log (append-only) ------------------------
+
+enum AuditAction {
+  VIEW
+  CREATE
+  UPDATE
+  DELETE
+  EXPORT
+  ANONYMIZE
+  IMPORT
+  LOGIN
+  LOGIN_FAILED
+}
+
+// Append-only: Die Migration entzieht dem App-DB-User UPDATE/DELETE
+// auf dieser Tabelle per Trigger – Einträge sind nicht manipulierbar.
+model AuditLog {
+  id         BigInt      @id @default(autoincrement())
+  // Kein FK auf Person: Audit-Einträge müssen die Löschung des
+  // Akteurs überleben
+  actorId    String?     @db.Uuid
+  action     AuditAction
+  entityType String
+  entityId   String?
+  // Nur Feldnamen, nie Werte sensibler Felder (sonst wäre das
+  // Audit-Log selbst ein Datenleck)
+  changedFields Json?
+  ip            String?
+  createdAt     DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorId])
+}
+
+// ---------- Import (Elvanto / Planning Center) -------------
+
+enum ImportSource {
+  ELVANTO_CSV
+  PCO_CSV
+  PCO_API
+}
+
+enum ImportStatus {
+  MAPPING
+  DRY_RUN
+  CONFIRMED
+  DONE
+  FAILED
+}
+
+enum ImportOutcome {
+  CREATED
+  UPDATED
+  MERGED
+  SKIPPED
+  ERROR
+}
+
+model ImportJob {
+  id     String       @id @default(uuid()) @db.Uuid
+  source ImportSource
+  status ImportStatus @default(MAPPING)
+  // Quellspalte → Zielfeld, vom Admin in der Mapping-UI bestätigt
+  columnMapping Json?
+  // Vorschau des Dry-Runs: was würde angelegt/aktualisiert/übersprungen
+  dryRunSummary Json?
+  fileName      String?
+  startedById   String?  @db.Uuid
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  rows ImportRow[]
+}
+
+model ImportRow {
+  id           String        @id @default(uuid()) @db.Uuid
+  jobId        String        @db.Uuid
+  job          ImportJob     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  rowNumber    Int
+  outcome      ImportOutcome
+  personId     String?       @db.Uuid
+  errorMessage String?
+  // Roh-Daten der Zeile für den herunterladbaren Fehlerreport
+  rawData Json?
+
+  @@index([jobId])
+}
+
+// ---------- Instanz-Einstellungen --------------------------
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+// Phase 2 – Datenmodell vorbereitet, Features folgen später
+// ============================================================
+
+// Gottesdienstablauf (Order of Service)
+model ServicePlanItem {
+  id              String  @id @default(uuid()) @db.Uuid
+  eventId         String  @db.Uuid
+  event           Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  sortOrder       Int
+  title           String
+  durationMinutes Int     @default(5)
+  responsiblePersonId String? @db.Uuid
+  notes           String?
+  songId          String? @db.Uuid
+  song            Song?   @relation(fields: [songId], references: [id], onDelete: SetNull)
+
+  @@index([eventId])
+}
+
+// Liederdatenbank
+model Song {
+  id         String  @id @default(uuid()) @db.Uuid
+  title      String
+  defaultKey String?
+  tempoBpm   Int?
+  ccliNumber String?
+  createdAt  DateTime @default(now())
+
+  arrangements SongArrangement[]
+  planItems    ServicePlanItem[]
+}
+
+model SongArrangement {
+  id     String  @id @default(uuid()) @db.Uuid
+  songId String  @db.Uuid
+  song   Song    @relation(fields: [songId], references: [id], onDelete: Cascade)
+  name   String
+  key    String?
+}
+
+// Datei-Anhänge (Noten, Slides) – polymorph über entityType/entityId
+model Attachment {
+  id         String   @id @default(uuid()) @db.Uuid
+  entityType String
+  entityId   String   @db.Uuid
+  fileName   String
+  mimeType   String
+  storagePath String
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+}
+
+// Räume & Ressourcen mit Buchung pro Termin
+model Resource {
+  id   String @id @default(uuid()) @db.Uuid
+  name String @unique
+  kind String @default("ROOM")
+
+  bookings ResourceBooking[]
+}
+
+model ResourceBooking {
+  id         String   @id @default(uuid()) @db.Uuid
+  resourceId String   @db.Uuid
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  eventId    String   @db.Uuid
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([resourceId, eventId])
+}

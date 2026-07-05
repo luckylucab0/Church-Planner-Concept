@@ -1,0 +1,80 @@
+# Produktions-Deployment auf einem einzelnen Linux-Server.
+#
+# Setup:
+#   1. .env neben diese Datei legen (Vorlage: .env.example im Repo-Root)
+#   2. docker compose up -d
+# Update:
+#   docker compose pull && docker compose up -d
+#
+# Die Images kommen aus der GitHub Container Registry (GHCR) und werden vom
+# Release-Workflow gebaut, signiert (cosign) und mit Version+Digest getaggt.
+# Für reproduzierbare Deployments den Digest pinnen, z. B.:
+#   image: ghcr.io/OWNER/serveflow-api:1.2.3@sha256:<digest>
+name: serveflow
+
+services:
+  # Caddy: automatisches TLS (Let's Encrypt), HSTS + Security-Header,
+  # liefert das SPA-Bundle aus und proxied /api an die API.
+  # Das Web-Image basiert auf caddy:2-alpine und enthält Bundle + Caddyfile.
+  web:
+    image: ghcr.io/luckylucab0/serveflow-web:latest
+    restart: unless-stopped
+    ports:
+      - '80:80' # HTTP→HTTPS-Redirect + ACME-Challenge
+      - '443:443'
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - caddy-data:/data # TLS-Zertifikate
+      - caddy-config:/config
+    depends_on:
+      - api
+
+  api:
+    image: ghcr.io/luckylucab0/serveflow-api:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Im Compose-Netz gelten die Service-Namen als Hosts
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  db-data:
+  redis-data:
+  uploads:
+  caddy-data:
+  caddy-config:

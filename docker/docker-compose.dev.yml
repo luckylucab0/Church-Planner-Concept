@@ -1,0 +1,41 @@
+# Lokale Entwicklung: nur die Infrastruktur-Container.
+# API und Web laufen auf dem Host via `pnpm dev` (Hot Reload).
+name: serveflow-dev
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: serveflow
+      POSTGRES_PASSWORD: serveflow
+      POSTGRES_DB: serveflow
+    ports:
+      - '5432:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U serveflow']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Fängt alle Mails ab und zeigt sie im Web-UI (http://localhost:8025) –
+  # so lässt sich der Zusage/Absage-Flow lokal ohne echten SMTP-Server testen.
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - '1025:1025' # SMTP
+      - '8025:8025' # Web-UI
+
+volumes:
+  db-data:

@@ -1,0 +1,12 @@
+packages:
+  - apps/*
+  - packages/*
+
+# argon2 und Prisma brauchen native Build-/Postinstall-Schritte;
+# pnpm >=10 blockiert diese standardmäßig, daher explizit erlauben.
+onlyBuiltDependencies:
+  - argon2
+  - '@prisma/client'
+  - '@prisma/engines'
+  - prisma
+  - esbuild

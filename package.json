@@ -1,0 +1,27 @@
+{
+  "name": "serveflow",
+  "version": "0.1.0",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "description": "ServeFlow – self-hosted Diensteinteilung und Gottesdienstplanung für Kirchgemeinden",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel -r dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.26.0",
+    "eslint": "^9.26.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.31.1"
+  }
+}
