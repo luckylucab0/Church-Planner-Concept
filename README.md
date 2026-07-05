@@ -1,5 +1,9 @@
 # ServeFlow
 
+[![CI](https://github.com/luckylucab0/ICF-Planner-Concept/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/luckylucab0/ICF-Planner-Concept/actions/workflows/ci.yml)
+[![Security](https://github.com/luckylucab0/ICF-Planner-Concept/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/luckylucab0/ICF-Planner-Concept/actions/workflows/security.yml)
+[![Lizenz: AGPL-3.0](https://img.shields.io/badge/Lizenz-AGPL--3.0-blue.svg)](LICENSE)
+
 **Self-hosted Diensteinteilung und Gottesdienstplanung für Kirchgemeinden** – eine
 Open-Source-Alternative zu Elvanto und Planning Center Services.
 
