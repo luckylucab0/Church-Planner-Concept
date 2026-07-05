@@ -41,6 +41,13 @@ export const de = {
     decline: 'Absagen',
     myAssignments: 'Meine Dienste',
   },
+  plans: {
+    staffed: 'besetzt',
+    draft: 'Entwurf',
+    cancelled: 'abgesagt',
+    empty: 'Keine anstehenden Termine.',
+    nobodyAssigned: 'Noch niemand eingeteilt.',
+  },
   teams: {
     members: 'Mitglieder',
     positions: 'Positionen',

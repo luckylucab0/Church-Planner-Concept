@@ -40,6 +40,13 @@ export const en = {
     decline: 'Decline',
     myAssignments: 'My assignments',
   },
+  plans: {
+    staffed: 'staffed',
+    draft: 'draft',
+    cancelled: 'cancelled',
+    empty: 'No upcoming services.',
+    nobodyAssigned: 'Nobody assigned yet.',
+  },
   teams: {
     members: 'Members',
     positions: 'Positions',

@@ -6,6 +6,8 @@ import LoginPage from './features/auth/LoginPage';
 import { SessionProvider, useSession } from './features/auth/SessionContext';
 import PeopleListPage from './features/people/PeopleListPage';
 import ProfilePage from './features/people/ProfilePage';
+import EventDetailPage from './features/plans/EventDetailPage';
+import PlansPage from './features/plans/PlansPage';
 import TeamsPage from './features/teams/TeamsPage';
 
 // Leitet nicht eingeloggte Nutzer zum Login um. Das ist reine UX –
@@ -50,6 +52,22 @@ export default function App() {
           element={
             <RequireAuth>
               <PeopleListPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/plans"
+          element={
+            <RequireAuth>
+              <PlansPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/plans/:eventId"
+          element={
+            <RequireAuth>
+              <EventDetailPage />
             </RequireAuth>
           }
         />
