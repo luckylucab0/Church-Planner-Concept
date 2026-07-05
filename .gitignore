@@ -1,0 +1,27 @@
+# Abhängigkeiten
+node_modules/
+
+# Builds
+dist/
+build/
+*.tsbuildinfo
+
+# Umgebungsvariablen: niemals echte Secrets committen (.env.example ist die Vorlage)
+.env
+.env.*
+!.env.example
+
+# Prisma generierter Client (wird bei Install/Build erzeugt)
+apps/api/src/generated/
+
+# Test- und Coverage-Artefakte
+coverage/
+playwright-report/
+test-results/
+
+# Logs & OS-Müll
+*.log
+.DS_Store
+
+# Uploads bei lokaler Entwicklung
+uploads/

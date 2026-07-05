@@ -1,0 +1,97 @@
+# CI: läuft bei jedem PR und jedem Push auf main.
+# Merges auf main sind nur bei grünem CI erlaubt (Branch Protection,
+# Setup-Schritt siehe README).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Verhindert parallele Doppel-Runs desselben Branches (spart Runner-Minuten,
+# vermeidet Race Conditions bei Status-Checks).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Lint, Format, Typecheck, Unit- & Integrationstests, Migrationscheck.
+  # Postgres und Redis laufen als Service-Container, damit Integrationstests
+  # gegen echte Infrastruktur statt Mocks laufen.
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: serveflow
+          POSTGRES_PASSWORD: serveflow
+          POSTGRES_DB: serveflow_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U serveflow"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+      redis:
+        image: redis:8-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://serveflow:serveflow@localhost:5432/serveflow_test
+      REDIS_URL: redis://localhost:6379
+    steps:
+      - uses: actions/checkout@v4
+
+      # corepack installiert exakt die pnpm-Version aus package.json
+      # ("packageManager") – dadurch brauchen wir keine Third-Party-Action.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Format check (Prettier)
+        run: pnpm format:check
+
+      - name: Lint (ESLint)
+        run: pnpm lint
+
+      - name: Typecheck (tsc --noEmit)
+        run: pnpm typecheck
+
+      # Migrationscheck: alle Migrationen müssen auf einer leeren DB sauber
+      # durchlaufen – fängt kaputte/handeditierte Migrationen früh ab.
+      - name: Prisma migrations on empty DB
+        run: pnpm --filter @serveflow/api exec prisma migrate deploy
+
+      - name: Unit & integration tests
+        run: pnpm test
+
+  # Produktions-Builds müssen fehlerfrei sein (API-Bundle, Web-Bundle,
+  # Docker-Images). Läuft parallel zu den Checks.
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: corepack enable
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build all packages
+        run: pnpm build
+      # Docker-Builds ohne Push: stellt sicher, dass die Dockerfiles
+      # jederzeit release-fähig sind (Release-Workflow pusht später zu GHCR).
+      - name: Docker build api
+        run: docker build -f apps/api/Dockerfile -t serveflow-api:ci .
+      - name: Docker build web
+        run: docker build -f apps/web/Dockerfile -t serveflow-web:ci .

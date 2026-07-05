@@ -1,0 +1,73 @@
+# Security-Scans: CodeQL (statische Analyse) und Trivy (Container-Images +
+# Dockerfile-/Compose-Misconfigurations). Läuft bei PRs, Pushes auf main und
+# wöchentlich (fängt neu veröffentlichte CVEs in unveränderten Dependencies).
+#
+# Zusätzlich (einmalig in den Repo-Settings, siehe README):
+# GitHub Secret Scanning + Push Protection aktivieren.
+name: Security
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '30 4 * * 1' # montags 04:30 UTC
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  codeql:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      security-events: write # Ergebnisse ins Security-Tab hochladen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+      - uses: github/codeql-action/analyze@v3
+
+  # Misconfiguration-Scan der Dockerfiles und Compose-Dateien
+  # (z. B. Container als root, fehlende Healthchecks, gefährliche Mounts).
+  trivy-config:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      # Third-Party-Action → SHA-gepinnt (Supply-Chain-Schutz), Tag als Kommentar
+      - uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0
+        with:
+          scan-type: config
+          scan-ref: .
+          exit-code: '1'
+          severity: HIGH,CRITICAL
+
+  # CVE-Scan der gebauten Images. Fail nur bei HIGH/CRITICAL, für die bereits
+  # ein Fix existiert – ungefixte CVEs würden die Pipeline dauerhaft blockieren.
+  trivy-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      matrix:
+        include:
+          - name: api
+            dockerfile: apps/api/Dockerfile
+          - name: web
+            dockerfile: apps/web/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -f ${{ matrix.dockerfile }} -t serveflow-${{ matrix.name }}:scan .
+      - uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0
+        with:
+          scan-type: image
+          image-ref: serveflow-${{ matrix.name }}:scan
+          exit-code: '1'
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
