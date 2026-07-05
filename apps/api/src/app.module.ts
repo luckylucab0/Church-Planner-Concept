@@ -13,6 +13,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { PeopleModule } from './people/people.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
+import { TeamsModule } from './teams/teams.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { RedisModule } from './redis/redis.module';
     NotificationsModule,
     AuthModule,
     PeopleModule,
+    TeamsModule,
     HealthModule,
     // Basis-Rate-Limit für alle Endpoints; Auth-Routen setzen per
     // @Throttle deutlich engere Limits. In Tests deaktiviert – die

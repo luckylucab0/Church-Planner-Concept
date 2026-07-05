@@ -6,6 +6,7 @@ import LoginPage from './features/auth/LoginPage';
 import { SessionProvider, useSession } from './features/auth/SessionContext';
 import PeopleListPage from './features/people/PeopleListPage';
 import ProfilePage from './features/people/ProfilePage';
+import TeamsPage from './features/teams/TeamsPage';
 
 // Leitet nicht eingeloggte Nutzer zum Login um. Das ist reine UX –
 // die eigentliche Zugriffskontrolle passiert serverseitig.
@@ -49,6 +50,14 @@ export default function App() {
           element={
             <RequireAuth>
               <PeopleListPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/teams"
+          element={
+            <RequireAuth>
+              <TeamsPage />
             </RequireAuth>
           }
         />

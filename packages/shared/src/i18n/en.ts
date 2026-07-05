@@ -40,6 +40,11 @@ export const en = {
     decline: 'Decline',
     myAssignments: 'My assignments',
   },
+  teams: {
+    members: 'Members',
+    positions: 'Positions',
+    leader: 'Leader',
+  },
   profile: {
     contactData: 'Contact details',
     email: 'Email',

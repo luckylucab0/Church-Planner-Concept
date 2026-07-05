@@ -12,6 +12,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   const links = [
     { to: '/', label: t('nav.dashboard') },
     { to: '/people', label: t('nav.people') },
+    { to: '/teams', label: t('nav.teams') },
     { to: '/profile', label: t('nav.profile') },
   ];
 

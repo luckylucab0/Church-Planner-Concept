@@ -41,6 +41,11 @@ export const de = {
     decline: 'Absagen',
     myAssignments: 'Meine Dienste',
   },
+  teams: {
+    members: 'Mitglieder',
+    positions: 'Positionen',
+    leader: 'Leitung',
+  },
   profile: {
     contactData: 'Kontaktdaten',
     email: 'E-Mail',
