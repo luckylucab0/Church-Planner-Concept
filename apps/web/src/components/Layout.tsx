@@ -14,6 +14,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     { to: '/plans', label: t('nav.plans') },
     { to: '/people', label: t('nav.people') },
     { to: '/teams', label: t('nav.teams') },
+    { to: '/availability', label: t('nav.availability') },
     { to: '/profile', label: t('nav.profile') },
   ];
 

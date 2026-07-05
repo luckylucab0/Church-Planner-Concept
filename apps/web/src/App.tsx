@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
 import LoginPage from './features/auth/LoginPage';
+import AvailabilityPage from './features/availability/AvailabilityPage';
 import { SessionProvider, useSession } from './features/auth/SessionContext';
 import PeopleListPage from './features/people/PeopleListPage';
 import ProfilePage from './features/people/ProfilePage';
@@ -82,6 +83,14 @@ export default function App() {
           element={
             <RequireAuth>
               <TeamsPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/availability"
+          element={
+            <RequireAuth>
+              <AvailabilityPage />
             </RequireAuth>
           }
         />

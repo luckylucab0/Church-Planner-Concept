@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
+import { AvailabilityController } from './availability.controller';
 import { AvailabilityService } from './availability.service';
 
-// Modul 7 ergänzt hier die Self-Service-Endpoints für Abwesenheiten;
-// der Service wird schon jetzt von der Vorschlags-Engine genutzt.
 @Module({
+  controllers: [AvailabilityController],
   providers: [AvailabilityService],
   exports: [AvailabilityService],
 })

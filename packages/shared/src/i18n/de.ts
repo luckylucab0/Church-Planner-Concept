@@ -60,6 +60,23 @@ export const de = {
     expired: 'Dieser Link ist abgelaufen. Melde dich bei deinem Teamleiter.',
     invalid: 'Dieser Link ist ungültig.',
   },
+  availability: {
+    absencesTitle: 'Abwesenheiten',
+    noAbsences: 'Keine Abwesenheiten eingetragen.',
+    from: 'Von',
+    to: 'Bis',
+    reason: 'Grund',
+    add: 'Hinzufügen',
+    recurringTitle: 'Wiederkehrend nicht verfügbar',
+    recurringHint: 'Zum Beispiel, wenn du an bestimmten Sonntagen grundsätzlich nicht kannst.',
+    presets: {
+      firstSunday: 'Jeden 1. Sonntag im Monat',
+      secondSunday: 'Jeden 2. Sonntag im Monat',
+      thirdSunday: 'Jeden 3. Sonntag im Monat',
+      fourthSunday: 'Jeden 4. Sonntag im Monat',
+      everySaturday: 'Jeden Samstag',
+    },
+  },
   plans: {
     staffed: 'besetzt',
     draft: 'Entwurf',

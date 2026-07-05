@@ -59,6 +59,23 @@ export const en = {
     expired: 'This link has expired. Please contact your team leader.',
     invalid: 'This link is invalid.',
   },
+  availability: {
+    absencesTitle: 'Absences',
+    noAbsences: 'No absences recorded.',
+    from: 'From',
+    to: 'Until',
+    reason: 'Reason',
+    add: 'Add',
+    recurringTitle: 'Recurring unavailability',
+    recurringHint: 'For example if you are generally unavailable on certain Sundays.',
+    presets: {
+      firstSunday: 'Every 1st Sunday of the month',
+      secondSunday: 'Every 2nd Sunday of the month',
+      thirdSunday: 'Every 3rd Sunday of the month',
+      fourthSunday: 'Every 4th Sunday of the month',
+      everySaturday: 'Every Saturday',
+    },
+  },
   plans: {
     staffed: 'staffed',
     draft: 'draft',
