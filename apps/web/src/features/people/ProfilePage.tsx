@@ -24,6 +24,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [privacy, setPrivacy] = useState<Privacy | null>(null);
   const [saved, setSaved] = useState(false);
+  const [icalUrl, setIcalUrl] = useState<string | null>(null);
 
   useEffect(() => {
     void api.get<Profile>('/me').then(setProfile);
@@ -110,6 +111,30 @@ export default function ProfilePage() {
             <span className="text-sm">{privacyLabels[key]}</span>
           </label>
         ))}
+      </section>
+
+      <section className="rounded-xl bg-white p-4 shadow">
+        <h2 className="font-semibold">{t('profile.icalTitle')}</h2>
+        <p className="mb-2 text-sm text-gray-500">{t('profile.icalHint')}</p>
+        {icalUrl ? (
+          <input
+            readOnly
+            value={icalUrl}
+            onFocus={(e) => e.target.select()}
+            className="w-full rounded-lg border border-gray-300 p-2 text-sm"
+          />
+        ) : (
+          <button
+            onClick={() =>
+              void api
+                .post<{ url: string }>('/me/ical-token')
+                .then((response) => setIcalUrl(response.url))
+            }
+            className="rounded-lg border border-indigo-600 px-4 py-2 text-sm font-medium text-indigo-600"
+          >
+            {t('profile.icalGenerate')}
+          </button>
+        )}
       </section>
 
       <section className="rounded-xl bg-white p-4 shadow">

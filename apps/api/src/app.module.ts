@@ -5,6 +5,7 @@ import { AssignmentsModule } from './assignments/assignments.module';
 import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { AvailabilityModule } from './availability/availability.module';
+import { CalendarModule } from './calendar/calendar.module';
 import { AdminGuard } from './auth/guards/admin.guard';
 import { OriginCheckGuard } from './auth/guards/origin-check.guard';
 import { SessionAuthGuard } from './auth/guards/session-auth.guard';
@@ -31,6 +32,7 @@ import { TeamsModule } from './teams/teams.module';
     SchedulingModule,
     AvailabilityModule,
     AssignmentsModule,
+    CalendarModule,
     HealthModule,
     // Basis-Rate-Limit für alle Endpoints; Auth-Routen setzen per
     // @Throttle deutlich engere Limits. In Tests deaktiviert – die

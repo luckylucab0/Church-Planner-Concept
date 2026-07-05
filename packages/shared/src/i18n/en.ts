@@ -100,6 +100,10 @@ export const en = {
     sharePhone: 'Phone visible to team members',
     shareBirthday: 'Birthday visible to team members',
     sharePhoto: 'Photo visible to all members',
+    icalTitle: 'Calendar subscription (iCal)',
+    icalHint:
+      'Subscribe to your assignments in Google/Apple Calendar. The URL is secret – regenerating invalidates the old one.',
+    icalGenerate: 'Generate calendar URL',
     dataExportTitle: 'My data',
     dataExportHint: 'Download all data stored about you as JSON (GDPR).',
     downloadExport: 'Download data export',

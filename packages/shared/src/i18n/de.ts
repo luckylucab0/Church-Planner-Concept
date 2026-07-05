@@ -101,6 +101,10 @@ export const de = {
     sharePhone: 'Telefon für Teammitglieder sichtbar',
     shareBirthday: 'Geburtstag für Teammitglieder sichtbar',
     sharePhoto: 'Foto für alle Mitglieder sichtbar',
+    icalTitle: 'Kalender-Abo (iCal)',
+    icalHint:
+      'Abonniere deine Dienste in Google/Apple Calendar. Die URL ist geheim – neu erzeugen macht die alte ungültig.',
+    icalGenerate: 'Kalender-URL erzeugen',
     dataExportTitle: 'Meine Daten',
     dataExportHint: 'Lade alle über dich gespeicherten Daten als JSON herunter (DSGVO/DSG).',
     downloadExport: 'Datenexport herunterladen',
