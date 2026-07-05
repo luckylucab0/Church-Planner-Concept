@@ -1,0 +1,31 @@
+# VORLAGE – bewusst deaktiviert (Dateiendung .disabled).
+#
+# ServeFlow ist self-hosted: die offizielle Pipeline deployt nie auf
+# fremde Server. Wer sein Deployment trotzdem automatisieren will,
+# kann diese Vorlage nach deploy.yml kopieren und anpassen.
+#
+# Benötigte GitHub Actions Secrets (Settings → Secrets and variables):
+#   DEPLOY_HOST     z. B. serveflow.example.org
+#   DEPLOY_USER     SSH-Benutzer mit Docker-Rechten
+#   DEPLOY_SSH_KEY  privater SSH-Key (nur für dieses Deployment erzeugen!)
+name: Deploy (Beispiel)
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Pull & restart via SSH
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=accept-new \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            'cd /opt/serveflow && docker compose pull && docker compose up -d && docker system prune -f'

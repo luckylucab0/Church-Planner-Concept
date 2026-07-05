@@ -95,3 +95,29 @@ jobs:
         run: docker build -f apps/api/Dockerfile -t serveflow-api:ci .
       - name: Docker build web
         run: docker build -f apps/web/Dockerfile -t serveflow-web:ci .
+
+  # E2E-Smoke: der komplette Zusage/Absage-Flow gegen das per Docker
+  # Compose hochgefahrene Gesamtsystem (Caddy, API, Postgres, Redis,
+  # Mailpit) – exakt die Container, die auch produktiv laufen.
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build images
+        run: |
+          docker build -f apps/api/Dockerfile -t serveflow-api:e2e .
+          docker build -f apps/web/Dockerfile -t serveflow-web:e2e .
+      - name: Start full stack
+        run: docker compose -f docker/docker-compose.e2e.yml up -d --wait
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run smoke test (Einteilung → Mail → Zusage → Plan)
+        run: node scripts/e2e-smoke.mjs
+      - name: Dump logs on failure
+        if: failure()
+        run: docker compose -f docker/docker-compose.e2e.yml logs --tail 200
+      - name: Tear down
+        if: always()
+        run: docker compose -f docker/docker-compose.e2e.yml down -v

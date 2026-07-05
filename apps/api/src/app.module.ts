@@ -6,6 +6,7 @@ import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { AvailabilityModule } from './availability/availability.module';
 import { CalendarModule } from './calendar/calendar.module';
+import { BootstrapAdminService } from './common/bootstrap-admin.service';
 import { AdminGuard } from './auth/guards/admin.guard';
 import { OriginCheckGuard } from './auth/guards/origin-check.guard';
 import { SessionAuthGuard } from './auth/guards/session-auth.guard';
@@ -50,6 +51,7 @@ import { TeamsModule } from './teams/teams.module';
     // 2. CSRF-Origin-Check für zustandsändernde Requests
     // 3. Session-Auth (secure by default, @Public() als Ausnahme)
     // 4. Admin-Check für @RequireAdmin()-Routen
+    BootstrapAdminService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: OriginCheckGuard },
     { provide: APP_GUARD, useClass: SessionAuthGuard },

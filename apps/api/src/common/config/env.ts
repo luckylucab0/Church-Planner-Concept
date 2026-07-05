@@ -59,6 +59,11 @@ export const env = {
   SMTP_PASS: optional('SMTP_PASS', ''),
   SMTP_FROM: optional('SMTP_FROM', 'ServeFlow <noreply@example.org>'),
 
+  // Erst-Einrichtung: legt beim Start EIN Admin-Konto an, falls noch
+  // kein Konto existiert (siehe bootstrap-admin.service.ts)
+  SEED_ADMIN_EMAIL: optional('SEED_ADMIN_EMAIL', ''),
+  SEED_ADMIN_PASSWORD: optional('SEED_ADMIN_PASSWORD', ''),
+
   REMINDER_DAYS_BEFORE: optional('REMINDER_DAYS_BEFORE', '7,1')
     .split(',')
     .map((d) => Number.parseInt(d.trim(), 10))

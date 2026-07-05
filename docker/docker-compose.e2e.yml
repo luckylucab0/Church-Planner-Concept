@@ -1,0 +1,61 @@
+# E2E-Smoke-Stack: das komplette System aus lokal gebauten Images,
+# wie es auch in Produktion läuft – plus Mailpit als SMTP-Fänger.
+# Wird von scripts/e2e-smoke.mjs (CI-Job "e2e") gegen Port 8080 getestet.
+name: serveflow-e2e
+
+services:
+  web:
+    image: serveflow-web:e2e
+    environment:
+      # ":80" statt Domain → Caddy serviert plain HTTP (kein TLS im CI)
+      DOMAIN: ':80'
+    ports:
+      - '8080:80'
+    depends_on:
+      - api
+
+  api:
+    image: serveflow-api:e2e
+    environment:
+      DATABASE_URL: postgresql://serveflow:serveflow@db:5432/serveflow
+      REDIS_URL: redis://redis:6379
+      APP_URL: http://localhost:8080
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      SMTP_FROM: 'ServeFlow E2E <e2e@example.org>'
+      # Nur für den E2E-Lauf – niemals echte Werte committen
+      COOKIE_SECRET: 'e2e-only-cookie-secret-not-for-production'
+      FIELD_ENCRYPTION_KEY: 'AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE='
+      SEED_ADMIN_EMAIL: admin@e2e.local
+      SEED_ADMIN_PASSWORD: e2e-admin-passwort-1!
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: serveflow
+      POSTGRES_PASSWORD: serveflow
+      POSTGRES_DB: serveflow
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U serveflow']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      # 8026, damit der E2E-Stack neben dem dev-Stack (8025) laufen kann
+      - '8026:8025'

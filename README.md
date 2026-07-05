@@ -3,7 +3,9 @@
 **Self-hosted Diensteinteilung und Gottesdienstplanung für Kirchgemeinden** – eine
 Open-Source-Alternative zu Elvanto und Planning Center Services.
 
-> ⚠️ Status: in aktiver Entwicklung (Phase 1 / MVP). Noch nicht produktionsreif.
+> Status: Phase 1 (MVP) ist funktional komplett – Personen, Teams, Dienstpläne,
+> Zusage/Absage per Mail-Link, Erinnerungen, iCal, Import aus Elvanto/Planning
+> Center. Roadmap: [docs/roadmap.md](docs/roadmap.md)
 
 ## Warum ServeFlow?
 
@@ -64,17 +66,45 @@ pnpm dev                                                # API :3000 + Web :5173
 - API-Doku (Swagger): http://localhost:3000/api/docs
 - Mailpit (abgefangene Mails): http://localhost:8025
 
-## Produktion (Docker Compose)
-
-Siehe [`docker/docker-compose.yml`](docker/docker-compose.yml) – referenziert
-versionierte Images aus der GitHub Container Registry. Update auf dem Server:
+## Produktion (Docker Compose, ein Linux-Server)
 
 ```bash
-docker compose pull && docker compose up -d
+mkdir -p /opt/serveflow && cd /opt/serveflow
+curl -O https://raw.githubusercontent.com/luckylucab0/ICF-Planner-Concept/main/docker/docker-compose.yml
+curl -o .env https://raw.githubusercontent.com/luckylucab0/ICF-Planner-Concept/main/.env.example
+nano .env    # DOMAIN, Secrets (openssl rand -base64 32), SMTP, SEED_ADMIN_*
+docker compose up -d
 ```
 
-Details, Env-Var-Referenz und Backup/Restore: [docs/](docs/)
-– wird mit dem Release-Workflow (Modul 10) finalisiert.
+- Caddy holt automatisch ein Let's-Encrypt-Zertifikat für `DOMAIN` (Ports 80+443 offen lassen).
+- `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` legen beim ersten Start das Admin-Konto an –
+  nach dem ersten Login aus der `.env` entfernen.
+- Migrationen laufen beim Container-Start automatisch.
+
+**Update:** `docker compose pull && docker compose up -d`
+
+**Reproduzierbare Deployments:** Statt `latest` die Version pinnen, idealerweise
+per Digest: `image: ghcr.io/luckylucab0/serveflow-api:1.2.3@sha256:<digest>`.
+Die Digests stehen auf der Release-Seite; Images sind mit cosign (keyless)
+signiert und lassen sich verifizieren:
+
+```bash
+cosign verify ghcr.io/luckylucab0/serveflow-api:1.2.3 \
+  --certificate-identity-regexp 'https://github.com/luckylucab0/.*' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+```
+
+Backup/Restore (verschlüsselt mit `pg_dump` + `age`): [docs/backup-restore.md](docs/backup-restore.md)
+
+## Releases & CI
+
+- **CI** (`ci.yml`): Lint, Typecheck, Format, Unit-/Integrationstests gegen echte
+  Postgres/Redis-Service-Container, Migrationscheck auf leerer DB, Builds sowie
+  ein E2E-Smoke-Test des Zusage-Flows gegen das komplette Compose-System.
+- **Security** (`security.yml`): CodeQL, Trivy-Image- und Config-Scans, Dependabot.
+- **Release** (`release.yml`): release-please pflegt Changelog/Version per PR
+  (Conventional Commits); beim Veröffentlichen werden Multi-Arch-Images
+  (amd64+arm64) nach GHCR gebaut, mit cosign signiert und mit SBOM versehen.
 
 ## Env-Var-Referenz
 
