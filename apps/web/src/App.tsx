@@ -1,8 +1,11 @@
 import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import Layout from './components/Layout';
 import LoginPage from './features/auth/LoginPage';
 import { SessionProvider, useSession } from './features/auth/SessionContext';
+import PeopleListPage from './features/people/PeopleListPage';
+import ProfilePage from './features/people/ProfilePage';
 
 // Leitet nicht eingeloggte Nutzer zum Login um. Das ist reine UX –
 // die eigentliche Zugriffskontrolle passiert serverseitig.
@@ -11,25 +14,20 @@ function RequireAuth({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
   if (loading) return <p className="p-4 text-gray-500">{t('common.loading')}</p>;
   if (!session) return <Navigate to="/login" replace />;
-  return <>{children}</>;
+  return <Layout>{children}</Layout>;
 }
 
-// Platzhalter-Dashboard – wird mit den Feature-Modulen ausgebaut
+// Platzhalter – wird mit den Plan-Modulen ausgebaut
 function Dashboard() {
-  const { session, logout } = useSession();
+  const { session } = useSession();
   const { t } = useTranslation();
   return (
-    <main className="mx-auto max-w-3xl p-4">
-      <header className="flex items-center justify-between border-b pb-3">
-        <h1 className="text-xl font-bold">{t('common.appName')}</h1>
-        <button onClick={() => void logout()} className="text-sm text-indigo-600">
-          {t('auth.logout')}
-        </button>
-      </header>
-      <p className="mt-4">
+    <div>
+      <h1 className="text-xl font-bold">{t('nav.dashboard')}</h1>
+      <p className="mt-2 text-gray-600">
         {session?.firstName} {session?.lastName} · {session?.globalRole}
       </p>
-    </main>
+    </div>
   );
 }
 
@@ -43,6 +41,22 @@ export default function App() {
           element={
             <RequireAuth>
               <Dashboard />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/people"
+          element={
+            <RequireAuth>
+              <PeopleListPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <RequireAuth>
+              <ProfilePage />
             </RequireAuth>
           }
         />
