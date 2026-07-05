@@ -60,7 +60,7 @@ jobs:
           - name: web
             dockerfile: apps/web/Dockerfile
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # QEMU + Buildx für Multi-Arch (amd64 für x86-Server, arm64 für
       # z. B. Hetzner-ARM oder Raspberry Pi)
