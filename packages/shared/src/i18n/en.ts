@@ -40,6 +40,22 @@ export const en = {
     decline: 'Decline',
     myAssignments: 'My assignments',
   },
+  profile: {
+    contactData: 'Contact details',
+    email: 'Email',
+    phone: 'Phone',
+    address: 'Address',
+    privacyTitle: 'Visibility of my data',
+    privacyHint:
+      'You decide which of your contact details members of your teams can see. Leaders of your teams always see your contact details, admins see everything.',
+    shareEmail: 'Email visible to team members',
+    sharePhone: 'Phone visible to team members',
+    shareBirthday: 'Birthday visible to team members',
+    sharePhoto: 'Photo visible to all members',
+    dataExportTitle: 'My data',
+    dataExportHint: 'Download all data stored about you as JSON (GDPR).',
+    downloadExport: 'Download data export',
+  },
   mail: {
     assignedSubject: 'You are scheduled: {{eventTitle}} on {{date}}',
     assignedBody:

@@ -41,6 +41,22 @@ export const de = {
     decline: 'Absagen',
     myAssignments: 'Meine Dienste',
   },
+  profile: {
+    contactData: 'Kontaktdaten',
+    email: 'E-Mail',
+    phone: 'Telefon',
+    address: 'Adresse',
+    privacyTitle: 'Sichtbarkeit meiner Daten',
+    privacyHint:
+      'Du bestimmst, welche deiner Kontaktdaten Mitglieder deiner Teams sehen. Teamleitende deiner Teams sehen deine Kontaktdaten immer, Admins alles.',
+    shareEmail: 'E-Mail für Teammitglieder sichtbar',
+    sharePhone: 'Telefon für Teammitglieder sichtbar',
+    shareBirthday: 'Geburtstag für Teammitglieder sichtbar',
+    sharePhoto: 'Foto für alle Mitglieder sichtbar',
+    dataExportTitle: 'Meine Daten',
+    dataExportHint: 'Lade alle über dich gespeicherten Daten als JSON herunter (DSGVO/DSG).',
+    downloadExport: 'Datenexport herunterladen',
+  },
   mail: {
     assignedSubject: 'Du bist eingeteilt: {{eventTitle}} am {{date}}',
     assignedBody:

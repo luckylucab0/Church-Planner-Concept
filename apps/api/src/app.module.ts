@@ -10,6 +10,7 @@ import { AuthzModule } from './authz/authz.module';
 import { env } from './common/config/env';
 import { HealthModule } from './health/health.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { PeopleModule } from './people/people.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 
@@ -21,6 +22,7 @@ import { RedisModule } from './redis/redis.module';
     AuthzModule,
     NotificationsModule,
     AuthModule,
+    PeopleModule,
     HealthModule,
     // Basis-Rate-Limit für alle Endpoints; Auth-Routen setzen per
     // @Throttle deutlich engere Limits. In Tests deaktiviert – die
