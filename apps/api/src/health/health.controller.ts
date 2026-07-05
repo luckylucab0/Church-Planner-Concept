@@ -1,10 +1,12 @@
 import { Controller, Get, ServiceUnavailableException, VERSION_NEUTRAL } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Public } from '../auth/decorators';
 import { PrismaService } from '../prisma/prisma.service';
 
 // Version-neutral (/api/health statt /api/v1/health): Docker-Healthchecks
 // und Monitoring sollen nicht an API-Versionen hängen.
 @ApiTags('health')
+@Public()
 @Controller({ path: 'health', version: VERSION_NEUTRAL })
 export class HealthController {
   constructor(private readonly prisma: PrismaService) {}
