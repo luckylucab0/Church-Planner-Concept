@@ -57,6 +57,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # apps/api und apps/web referenzieren die gebauten Typen des
+      # Workspace-Pakets – ohne diesen Schritt schlägt der Typecheck fehl
+      - name: Build shared package
+        run: pnpm --filter @serveflow/shared build
+
       - name: Format check (Prettier)
         run: pnpm format:check
 

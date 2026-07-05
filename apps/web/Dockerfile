@@ -21,3 +21,11 @@ RUN pnpm --filter @serveflow/shared build && pnpm --filter @serveflow/web build
 FROM caddy:2-alpine
 COPY docker/caddy/Caddyfile /etc/caddy/Caddyfile
 COPY --from=build /repo/apps/web/dist /srv
+# Nicht als root laufen (Least Privilege): setcap erlaubt dem Caddy-Binary
+# das Binden von Port 80/443 auch ohne root; /data und /config gehören dem
+# Nutzer, damit TLS-Zertifikate geschrieben werden können.
+RUN apk add --no-cache libcap \
+  && setcap cap_net_bind_service=+ep /usr/bin/caddy \
+  && adduser -S -D -H -u 1000 caddyuser \
+  && chown -R caddyuser /data /config /srv
+USER caddyuser

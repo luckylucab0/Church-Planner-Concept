@@ -71,3 +71,5 @@ jobs:
           exit-code: '1'
           severity: HIGH,CRITICAL
           ignore-unfixed: true
+          # Begründete, befristete Ausnahmen (siehe Kommentare in der Datei)
+          trivyignores: .trivyignore

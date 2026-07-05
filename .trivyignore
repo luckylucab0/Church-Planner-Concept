@@ -1,0 +1,9 @@
+# Temporäre, begründete Ausnahmen für den Trivy-Scan.
+# Regel: immer mit Ablaufdatum (exp) und Begründung – abgelaufene
+# Einträge lassen den Scan wieder fehlschlagen, nichts bleibt ewig ignoriert.
+
+# Go-stdlib-CVEs im Upstream-Binary von caddy:2-alpine (DoS-Klasse).
+# Fix existiert in Go 1.26.4, aber noch kein neu gebautes offizielles
+# Caddy-Image. Entfernen, sobald Upstream aktualisiert hat.
+CVE-2026-27145 exp:2026-09-30
+CVE-2026-42504 exp:2026-09-30
