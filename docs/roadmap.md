@@ -13,18 +13,19 @@
 - Import aus Elvanto/Planning Center (CSV + PCO-API) mit Dry-Run und Fehlerreport
 - CI/CD: Lint/Tests/E2E-Smoke, CodeQL, Trivy, release-please, GHCR, cosign, SBOM
 
-## Phase 2 – Gottesdienst-Inhalte (Datenmodell vorbereitet)
+## Phase 2 – Gottesdienst-Inhalte (teilweise implementiert)
 
-Die Tabellen existieren bereits im Prisma-Schema (`ServicePlanItem`, `Song`,
-`SongArrangement`, `Attachment`, `Resource`, `ResourceBooking`) – Features docken
-ohne Umbau des Kernmodells an:
-
-- **Gottesdienstablauf (Order of Service):** Ablaufplan pro Termin mit Dauer,
-  Verantwortlichem und Notizen; Drag&Drop-Sortierung, Druck-/PDF-Export,
-  Datei-Anhänge (Noten, Slides) pro Element
-- **Liederdatenbank:** Songs mit Tonart, Tempo, CCLI-Nummer, Arrangements,
-  Anhängen; Verknüpfung mit Ablaufplan, Historie („wann zuletzt gespielt“)
-- **Räume & Ressourcen:** Buchung pro Termin mit Konfliktprüfung
+- **Gottesdienstablauf (Order of Service)** ✅: Ablaufplan pro Termin mit
+  berechneten Uhrzeiten, Dauer, Verantwortlichen, Notizen und Liedern;
+  Sortierung im Editor, druckfreundliche Ansicht (Browser-Druck/PDF).
+  Bearbeitung durch Admins und Teamleitende.
+- **Liederdatenbank** ✅: Songs mit Tonart, Tempo, CCLI-Nummer und
+  Arrangements; Suche nach Titel/CCLI; Verknüpfung mit dem Ablaufplan.
+- Noch offen (Tabellen existieren bereits im Prisma-Schema):
+  - **Datei-Anhänge** (Noten, Slides) pro Lied/Ablaufpunkt (`Attachment`)
+  - **Lied-Historie** („wann zuletzt gespielt“)
+  - **Räume & Ressourcen:** Buchung pro Termin mit Konfliktprüfung
+    (`Resource`, `ResourceBooking`)
 
 ## Phase 3 – Ausbau
 

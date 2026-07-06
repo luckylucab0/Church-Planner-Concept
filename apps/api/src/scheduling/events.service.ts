@@ -1,6 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { EventStatus, Prisma } from '@prisma/client';
-import { CreateEventDto, SetSlotsDto, UpdateEventDto } from './dto/scheduling.dto';
+import { CreateEventDto, SetPlanDto, SetSlotsDto, UpdateEventDto } from './dto/scheduling.dto';
 import { AuditService } from '../audit/audit.service';
 import { AuthUser } from '../auth/auth.types';
 import { PermissionsService } from '../authz/permissions.service';
@@ -79,11 +84,13 @@ export class EventsService {
             },
           },
         },
+        planItems: { include: planItemInclude, orderBy: { sortOrder: 'asc' } },
       },
     });
     if (!event) throw new NotFoundException();
 
-    const ledTeamIds = this.permissions.isAdmin(user)
+    const isAdmin = this.permissions.isAdmin(user);
+    const ledTeamIds = isAdmin
       ? event.slots.map((s) => s.position.team.id)
       : await this.permissions.getLedTeamIds(user.personId);
 
@@ -94,6 +101,9 @@ export class EventsService {
       endsAt: event.endsAt,
       location: event.location,
       status: event.status,
+      // canEditPlan steuert nur die UI – setPlan() prüft serverseitig selbst
+      canEditPlan: isAdmin || (await this.permissions.isAnyTeamLeader(user.personId)),
+      planItems: event.planItems.map(mapPlanItem),
       slots: event.slots.map((slot) => ({
         id: slot.id,
         requiredCount: slot.requiredCount,
@@ -214,6 +224,63 @@ export class EventsService {
     });
   }
 
+  // Ablaufplan komplett ersetzen: der Editor arbeitet auf der ganzen
+  // Liste (Reorder, Einfügen, Löschen), ein transaktionales Replace ist
+  // robuster als Einzel-Operationen mit Sortier-Arithmetik.
+  async setPlan(user: AuthUser, eventId: string, dto: SetPlanDto) {
+    await this.ensureExists(eventId);
+    if (!this.permissions.isAdmin(user)) {
+      const isLeader = await this.permissions.isAnyTeamLeader(user.personId);
+      if (!isLeader) throw new ForbiddenException('Nur Admins oder Teamleiter');
+    }
+
+    // Arrangement muss zum gewählten Lied gehören – sonst stünde im Plan
+    // eine Tonart, die es für dieses Lied gar nicht gibt
+    const arrangementIds = dto.items.map((i) => i.arrangementId).filter(Boolean) as string[];
+    if (arrangementIds.length > 0) {
+      const arrangements = await this.prisma.songArrangement.findMany({
+        where: { id: { in: arrangementIds } },
+        select: { id: true, songId: true },
+      });
+      const songByArrangement = new Map(arrangements.map((a) => [a.id, a.songId]));
+      for (const item of dto.items) {
+        if (item.arrangementId && songByArrangement.get(item.arrangementId) !== item.songId) {
+          throw new BadRequestException('Arrangement gehört nicht zum gewählten Lied');
+        }
+      }
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.servicePlanItem.deleteMany({ where: { eventId } }),
+      this.prisma.servicePlanItem.createMany({
+        data: dto.items.map((item, index) => ({
+          eventId,
+          sortOrder: index,
+          title: item.title,
+          durationMinutes: item.durationMinutes,
+          songId: item.songId ?? null,
+          arrangementId: item.arrangementId ?? null,
+          responsiblePersonId: item.responsiblePersonId ?? null,
+          notes: item.notes ?? null,
+        })),
+      }),
+    ]);
+    this.audit.log({
+      actorId: user.personId,
+      action: 'UPDATE',
+      entityType: 'Event',
+      entityId: eventId,
+      changedFields: ['planItems'],
+    });
+
+    const items = await this.prisma.servicePlanItem.findMany({
+      where: { eventId },
+      include: planItemInclude,
+      orderBy: { sortOrder: 'asc' },
+    });
+    return items.map(mapPlanItem);
+  }
+
   private async ensureExists(eventId: string): Promise<void> {
     const exists = await this.prisma.event.findUnique({
       where: { id: eventId },
@@ -221,4 +288,31 @@ export class EventsService {
     });
     if (!exists) throw new NotFoundException();
   }
+}
+
+// Include + Mapping für Ablaufpunkte an einer Stelle – get() und
+// setPlan() liefern exakt dieselbe Struktur an die UI.
+const planItemInclude = {
+  song: { select: { id: true, title: true, defaultKey: true, tempoBpm: true, ccliNumber: true } },
+  arrangement: { select: { id: true, name: true, key: true } },
+  responsiblePerson: { select: { id: true, firstName: true, lastName: true } },
+} satisfies Prisma.ServicePlanItemInclude;
+
+type PlanItemWithRelations = Prisma.ServicePlanItemGetPayload<{ include: typeof planItemInclude }>;
+
+function mapPlanItem(item: PlanItemWithRelations) {
+  return {
+    id: item.id,
+    title: item.title,
+    durationMinutes: item.durationMinutes,
+    notes: item.notes,
+    song: item.song,
+    arrangement: item.arrangement,
+    responsiblePerson: item.responsiblePerson
+      ? {
+          id: item.responsiblePerson.id,
+          name: `${item.responsiblePerson.firstName} ${item.responsiblePerson.lastName}`,
+        }
+      : null,
+  };
 }

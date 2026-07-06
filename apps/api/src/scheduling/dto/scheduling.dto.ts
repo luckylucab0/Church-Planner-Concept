@@ -139,3 +139,48 @@ export class SetSlotsDto {
   @Type(() => TemplateItemDto)
   items: TemplateItemDto[];
 }
+
+// Ein Programmpunkt im Gottesdienstablauf; die Reihenfolge ergibt sich
+// aus der Array-Position (sortOrder = Index), Uhrzeiten berechnet die
+// UI kumulativ aus startsAt + durationMinutes.
+export class PlanItemDto {
+  @ApiProperty({ example: 'Worship-Block' })
+  @IsString()
+  @MaxLength(200)
+  title: string;
+
+  @ApiProperty({ example: 15 })
+  @IsInt()
+  @Min(0)
+  @Max(10 * 60)
+  durationMinutes: number;
+
+  @ApiPropertyOptional({ description: 'Lied aus der Liederdatenbank' })
+  @IsOptional()
+  @IsUUID()
+  songId?: string;
+
+  @ApiPropertyOptional({ description: 'Arrangement des gewählten Lieds' })
+  @IsOptional()
+  @IsUUID()
+  arrangementId?: string;
+
+  @ApiPropertyOptional({ description: 'Verantwortliche Person' })
+  @IsOptional()
+  @IsUUID()
+  responsiblePersonId?: string;
+
+  @ApiPropertyOptional({ example: 'Übergang direkt in Gebet' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  notes?: string;
+}
+
+export class SetPlanDto {
+  @ApiProperty({ type: [PlanItemDto], description: 'Kompletter Ablauf in Reihenfolge' })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PlanItemDto)
+  items: PlanItemDto[];
+}

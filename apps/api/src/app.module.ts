@@ -19,6 +19,7 @@ import { PeopleModule } from './people/people.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 import { SchedulingModule } from './scheduling/scheduling.module';
+import { SongsModule } from './songs/songs.module';
 import { TeamsModule } from './teams/teams.module';
 
 @Module({
@@ -32,6 +33,7 @@ import { TeamsModule } from './teams/teams.module';
     PeopleModule,
     TeamsModule,
     SchedulingModule,
+    SongsModule,
     AvailabilityModule,
     AssignmentsModule,
     CalendarModule,

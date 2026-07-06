@@ -16,6 +16,7 @@ import {
   CreateEventDto,
   CreateServiceTypeDto,
   GenerateEventsDto,
+  SetPlanDto,
   SetSlotsDto,
   SetTemplateDto,
   UpdateEventDto,
@@ -136,5 +137,15 @@ export class EventsController {
   @ApiOperation({ summary: 'Benötigte Positionen dieses Termins anpassen' })
   setSlots(@Param('id', ParseUUIDPipe) id: string, @Body() dto: SetSlotsDto) {
     return this.events.setSlots(id, dto);
+  }
+
+  @Put(':id/plan')
+  @ApiOperation({ summary: 'Ablaufplan dieses Termins ersetzen (Admin oder Teamleiter)' })
+  setPlan(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: SetPlanDto,
+  ) {
+    return this.events.setPlan(user, id, dto);
   }
 }

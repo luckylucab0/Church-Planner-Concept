@@ -65,6 +65,7 @@ model Person {
   calendarFeedToken CalendarFeedToken?
   authTokens        AuthToken[]
   notifications     NotificationLog[]
+  planResponsibilities ServicePlanItem[] @relation("PlanResponsibilities")
 }
 
 enum GlobalRole {
@@ -466,7 +467,7 @@ model Setting {
 }
 
 // ============================================================
-// Phase 2 – Datenmodell vorbereitet, Features folgen später
+// Ablaufplan & Lieder (Phase 2, seit Modul 11 aktiv)
 // ============================================================
 
 // Gottesdienstablauf (Order of Service)
@@ -478,9 +479,12 @@ model ServicePlanItem {
   title           String
   durationMinutes Int     @default(5)
   responsiblePersonId String? @db.Uuid
+  responsiblePerson   Person? @relation("PlanResponsibilities", fields: [responsiblePersonId], references: [id], onDelete: SetNull)
   notes           String?
   songId          String? @db.Uuid
   song            Song?   @relation(fields: [songId], references: [id], onDelete: SetNull)
+  arrangementId   String? @db.Uuid
+  arrangement     SongArrangement? @relation(fields: [arrangementId], references: [id], onDelete: SetNull)
 
   @@index([eventId])
 }
@@ -504,6 +508,8 @@ model SongArrangement {
   song   Song    @relation(fields: [songId], references: [id], onDelete: Cascade)
   name   String
   key    String?
+
+  planItems ServicePlanItem[]
 }
 
 // Datei-Anhänge (Noten, Slides) – polymorph über entityType/entityId

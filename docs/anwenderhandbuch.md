@@ -10,12 +10,13 @@ nicht nötig.
 2. [Übersicht: Meine Dienste](#2-übersicht-meine-dienste)
 3. [Auf eine Einteilung antworten (Zusagen/Absagen)](#3-auf-eine-einteilung-antworten-zusagenabsagen)
 4. [Dienstpläne ansehen](#4-dienstpläne-ansehen)
-5. [Abwesenheiten pflegen](#5-abwesenheiten-pflegen)
-6. [Profil, Privatsphäre und Kalender-Abo](#6-profil-privatsphäre-und-kalender-abo)
-7. [Für Teamleitende: Personen einteilen](#7-für-teamleitende-personen-einteilen)
-8. [Für Teamleitende: Teams und Positionen](#8-für-teamleitende-teams-und-positionen)
-9. [Für Admins: Datenimport aus Elvanto/Planning Center](#9-für-admins-datenimport-aus-elvantoplanning-center)
-10. [Häufige Fragen](#10-häufige-fragen)
+5. [Ablaufplan und Lieder](#5-ablaufplan-und-lieder)
+6. [Abwesenheiten pflegen](#6-abwesenheiten-pflegen)
+7. [Profil, Privatsphäre und Kalender-Abo](#7-profil-privatsphäre-und-kalender-abo)
+8. [Für Teamleitende: Personen einteilen](#8-für-teamleitende-personen-einteilen)
+9. [Für Teamleitende: Teams und Positionen](#9-für-teamleitende-teams-und-positionen)
+10. [Für Admins: Datenimport aus Elvanto/Planning Center](#10-für-admins-datenimport-aus-elvantoplanning-center)
+11. [Häufige Fragen](#11-häufige-fragen)
 
 ---
 
@@ -73,10 +74,59 @@ Besetzungsstand (z. B. „5/9 besetzt").
 
 ![Terminliste](screenshots/03-dienstplaene.png)
 
-Ein Klick auf einen Termin öffnet den Plan: Wer ist wofür eingeteilt, und wer
-hat schon zu- oder abgesagt.
+Ein Klick auf einen Termin öffnet den Plan: oben der **Ablauf** des
+Gottesdienstes (siehe Kapitel 5), darunter die **Besetzung** – wer ist wofür
+eingeteilt, und wer hat schon zu- oder abgesagt.
 
-## 5. Abwesenheiten pflegen
+## 5. Ablaufplan und Lieder
+
+Zu jedem Termin gibt es einen **Ablaufplan** (Order of Service): die
+Programmpunkte des Gottesdienstes mit Uhrzeit, Dauer, Liedern und
+Verantwortlichen. Alle können ihn sehen – so weiß die Technik, wann welches
+Lied kommt, und die Moderation, wer nach der Predigt dran ist.
+
+![Ablaufplan](screenshots/11-ablaufplan.png)
+
+- Die **Uhrzeiten** berechnet ServeFlow automatisch aus der Startzeit des
+  Termins und den Dauern der Punkte – änderst du eine Dauer, verschieben sich
+  alle folgenden Zeiten mit. Oben steht die **Gesamtdauer**.
+- Bei Liedern zeigt der Plan alles, was das Team braucht: **Titel, Arrangement,
+  Tonart, Tempo und CCLI-Nummer** (z. B. für die Lizenz-Meldung).
+- Über **„Drucken"** bekommst du eine aufgeräumte Druckansicht nur mit dem
+  Ablauf – als Papier für Moderation/Technik oder als PDF (im Druckdialog
+  „Als PDF speichern" wählen).
+
+### Ablauf bearbeiten (Teamleitende und Admins)
+
+Als Teamleitung oder Admin kannst du den Ablauf über **„Ablauf bearbeiten"**
+direkt im Termin pflegen:
+
+![Ablauf-Editor](screenshots/12-ablauf-editor.png)
+
+- **Programmpunkte** hinzufügen, umbenennen, löschen und mit den Pfeilen ↑/↓
+  umsortieren; Dauer in Minuten je Punkt.
+- Jedem Punkt kannst du ein **Lied** aus der Liederdatenbank zuordnen (inkl.
+  Arrangement), eine **verantwortliche Person** und eine **Notiz** (z. B.
+  „Übergang direkt ins Gebet").
+- Fehlt ein Lied, legst du es mit **„+ Lied anlegen"** an, ohne den Editor zu
+  verlassen.
+- **Speichern** ersetzt den kompletten Ablauf – alle sehen sofort den neuen
+  Stand.
+
+### Die Liederdatenbank
+
+Unter **Lieder** findest du alle Lieder deiner Gemeinde – durchsuchbar nach
+Titel oder CCLI-Nummer:
+
+![Liederdatenbank](screenshots/13-lieder.png)
+
+- Pro Lied: **Standard-Tonart, Tempo (BPM), CCLI-Nummer** und beliebig viele
+  **Arrangements** (z. B. „Akustik in C", „Band in A").
+- Ansehen dürfen alle; anlegen und ändern können Teamleitende und Admins.
+- Wird ein Lied gelöscht, bleiben alte Ablaufpläne erhalten – nur die
+  Verknüpfung verschwindet.
+
+## 6. Abwesenheiten pflegen
 
 Damit du nicht eingeteilt wirst, wenn du nicht kannst: Trage unter
 **Abwesenheiten** deine Ferien und Blockzeiten ein.
@@ -91,7 +141,7 @@ Damit du nicht eingeteilt wirst, wenn du nicht kannst: Trage unter
 Die Einteilungs-Vorschläge überspringen dich in diesen Zeiten automatisch, und
 Teamleitende bekommen eine Warnung, falls sie dich trotzdem einteilen wollen.
 
-## 6. Profil, Privatsphäre und Kalender-Abo
+## 7. Profil, Privatsphäre und Kalender-Abo
 
 Unter **Profil** verwaltest du deine eigenen Daten:
 
@@ -111,7 +161,7 @@ Unter **Profil** verwaltest du deine eigenen Daten:
 - **Meine Daten:** Lade jederzeit alle über dich gespeicherten Daten als Datei
   herunter (Datenschutz-Auskunft).
 
-## 7. Für Teamleitende: Personen einteilen
+## 8. Für Teamleitende: Personen einteilen
 
 Als Teamleitung öffnest du unter **Dienstpläne** einen Termin. Bei den
 Positionen deiner Teams erscheint der Link **„+ Vorschläge"**:
@@ -134,7 +184,7 @@ So funktioniert die Einteilung:
 
 Über **„Entfernen"** nimmst du eine Einteilung wieder heraus.
 
-## 8. Für Teamleitende: Teams und Positionen
+## 9. Für Teamleitende: Teams und Positionen
 
 Unter **Teams** siehst du alle Teams mit ihren Positionen und Mitgliedern:
 
@@ -149,7 +199,7 @@ Als Teamleitung kannst du in **deinem eigenen Team**:
 
 Neue Teams anlegen und das Teamleiter-Recht vergeben kann nur ein Admin.
 
-## 9. Für Admins: Datenimport aus Elvanto/Planning Center
+## 10. Für Admins: Datenimport aus Elvanto/Planning Center
 
 Für den Umstieg von Elvanto oder Planning Center gibt es den Import-Assistenten
 unter **Datenimport** (nur für Admins sichtbar). Nichts wird ohne Vorschau
@@ -183,7 +233,7 @@ Wichtig zu wissen:
 Weitere Admin-Themen (Erst-Einrichtung, Betrieb, Backups) sind in der
 [technischen Dokumentation](../README.md) beschrieben.
 
-## 10. Häufige Fragen
+## 11. Häufige Fragen
 
 **Ich habe die Einteilungs-Mail gelöscht – wie antworte ich jetzt?**
 Melde dich an; unter „Meine Dienste" kannst du jederzeit zu- oder absagen.

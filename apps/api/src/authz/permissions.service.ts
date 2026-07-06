@@ -23,6 +23,16 @@ export class PermissionsService {
     return memberships.map((m) => m.teamId);
   }
 
+  // Leitet die Person irgendein Team? Grundlage für Rechte, die nicht an
+  // EIN Team gebunden sind (Liederdatenbank, Ablaufplan) – der Ablauf
+  // eines Gottesdienstes entsteht teamübergreifend.
+  async isAnyTeamLeader(personId: string): Promise<boolean> {
+    const count = await this.prisma.teamMembership.count({
+      where: { personId, isLeader: true },
+    });
+    return count > 0;
+  }
+
   async getTeamIds(personId: string): Promise<string[]> {
     const memberships = await this.prisma.teamMembership.findMany({
       where: { personId },
