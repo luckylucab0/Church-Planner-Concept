@@ -2,6 +2,15 @@
 # {$DOMAIN} kommt aus der Umgebung (docker-compose.yml) – Caddy holt
 # automatisch ein Let's-Encrypt-Zertifikat und erneuert es selbst.
 {$DOMAIN} {
+	# Access-Logs als JSON auf stdout. Landen so im Docker-json-Log des
+	# web-Containers und werden von CrowdSec (HTTP-Bruteforce/Scan-Erkennung)
+	# sowie Promtail/Loki ausgewertet. Ohne dies gibt es am Edge keine
+	# HTTP-Angriffserkennung und keine Request-Logs in Grafana.
+	log {
+		output stdout
+		format json
+	}
+
 	# Security-Header zentral am Proxy – gilt für SPA und API.
 	header {
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
