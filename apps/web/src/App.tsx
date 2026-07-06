@@ -22,7 +22,7 @@ import TeamsPage from './features/teams/TeamsPage';
 function RequireAuth({ children }: { children: ReactNode }) {
   const { session, loading } = useSession();
   const { t } = useTranslation();
-  if (loading) return <p className="p-4 text-gray-500">{t('common.loading')}</p>;
+  if (loading) return <p className="p-4 text-muted">{t('common.loading')}</p>;
   if (!session) return <Navigate to="/login" replace />;
   return <Layout>{children}</Layout>;
 }
@@ -33,10 +33,10 @@ function Dashboard() {
   // Nach einer Selbst-Eintragung "Meine Dienste" neu laden (remount)
   const [refresh, setRefresh] = useState(0);
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold">{t('nav.dashboard')}</h1>
-        <p className="mt-1 text-gray-600">
+        <h1 className="text-[26px] font-bold tracking-tight text-paper">{t('nav.dashboard')}</h1>
+        <p className="mt-1 text-sm text-muted">
           {session?.firstName} {session?.lastName}
         </p>
       </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useSearchParams } from 'react-router-dom';
+import { Logo } from '../../components/Logo';
 import { api, ApiError } from '../../api/client';
 
 interface RespondInfo {
@@ -20,12 +21,12 @@ export default function RespondPage() {
   const { t, i18n } = useTranslation();
   const { token } = useParams<{ token: string }>();
   const [searchParams] = useSearchParams();
-  const intent = searchParams.get('action'); // preselektiert den Button
   const [info, setInfo] = useState<RespondInfo | null>(null);
   const [result, setResult] = useState<'ACCEPTED' | 'DECLINED' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reason, setReason] = useState('');
-  const [showReason, setShowReason] = useState(false);
+  // Der Mail-Link kann Zusagen/Absagen vorselektieren (?action=decline)
+  const [showReason, setShowReason] = useState(searchParams.get('action') === 'decline');
 
   useEffect(() => {
     if (!token) return;
@@ -53,13 +54,16 @@ export default function RespondPage() {
     }
   }
 
-  const card = 'w-full max-w-md rounded-xl bg-white p-6 shadow text-center space-y-4';
+  const card = 'card w-full max-w-md p-6 text-center space-y-4';
 
   if (error) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+      <main className="flex min-h-screen items-center justify-center bg-ink p-4">
         <div className={card}>
-          <p className="text-gray-700">{error}</p>
+          <div className="flex justify-center pb-1">
+            <Logo iconSize={26} wordmarkSize={18} />
+          </div>
+          <p className="text-secondary">{error}</p>
         </div>
       </main>
     );
@@ -67,9 +71,12 @@ export default function RespondPage() {
 
   if (result) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+      <main className="flex min-h-screen items-center justify-center bg-ink p-4">
         <div className={card}>
-          <p className="text-lg">
+          <div className="flex justify-center pb-1">
+            <Logo iconSize={26} wordmarkSize={18} />
+          </div>
+          <p className="text-lg text-paper">
             {result === 'ACCEPTED' ? t('respond.accepted') : t('respond.declined')}
           </p>
         </div>
@@ -78,7 +85,7 @@ export default function RespondPage() {
   }
 
   if (!info) {
-    return <p className="p-4 text-gray-500">{t('common.loading')}</p>;
+    return <p className="p-4 text-muted">{t('common.loading')}</p>;
   }
 
   const date = new Date(info.startsAt).toLocaleString(i18n.language, {
@@ -90,32 +97,33 @@ export default function RespondPage() {
   });
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+    <main className="flex min-h-screen items-center justify-center bg-ink p-4">
       <div className={card}>
-        <h1 className="text-xl font-bold">{t('respond.heading', { firstName: info.firstName })}</h1>
-        <p className="text-gray-700">
+        <div className="flex justify-center pb-1">
+          <Logo iconSize={26} wordmarkSize={18} />
+        </div>
+        <h1 className="text-xl font-bold text-paper">
+          {t('respond.heading', { firstName: info.firstName })}
+        </h1>
+        <p className="text-secondary">
           {t('respond.question', {
             date,
             position: info.position,
             eventTitle: info.eventTitle,
           })}
         </p>
-        {info.location && <p className="text-sm text-gray-500">📍 {info.location}</p>}
+        {info.location && <p className="text-sm text-muted">📍 {info.location}</p>}
 
         <div className="flex flex-col gap-2">
           <button
             onClick={() => void respond('accept')}
-            className={`rounded-lg p-3 font-medium text-white ${
-              intent === 'decline' ? 'bg-green-500' : 'bg-green-600'
-            }`}
+            className="rounded-[10px] p-3 font-semibold text-ink"
+            style={{ backgroundColor: 'var(--color-success)' }}
           >
             ✓ {t('assignments.accept')}
           </button>
           {!showReason ? (
-            <button
-              onClick={() => setShowReason(true)}
-              className="rounded-lg border border-red-300 p-3 font-medium text-red-600"
-            >
+            <button onClick={() => setShowReason(true)} className="btn-ghost p-3">
               ✕ {t('assignments.decline')}
             </button>
           ) : (
@@ -124,12 +132,9 @@ export default function RespondPage() {
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder={t('assignments.declineReason')}
-                className="w-full rounded-lg border border-gray-300 p-2"
+                className="input"
               />
-              <button
-                onClick={() => void respond('decline')}
-                className="w-full rounded-lg bg-red-600 p-3 font-medium text-white"
-              >
+              <button onClick={() => void respond('decline')} className="btn-ghost w-full p-3">
                 ✕ {t('assignments.decline')}
               </button>
             </div>

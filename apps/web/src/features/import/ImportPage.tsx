@@ -73,15 +73,15 @@ export default function ImportPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold">{t('import.title')}</h1>
-      <p className="text-sm text-gray-500">{t('import.hint')}</p>
+      <h1 className="text-[26px] font-bold tracking-tight text-paper">{t('import.title')}</h1>
+      <p className="text-sm text-muted">{t('import.hint')}</p>
 
-      <section className="space-y-3 rounded-xl bg-white p-4 shadow">
+      <section className="card space-y-3 p-4">
         <div className="flex flex-wrap items-center gap-3">
           <select
             value={source}
             onChange={(e) => setSource(e.target.value as typeof source)}
-            className="rounded-lg border border-gray-300 p-2 text-sm"
+            className="input text-sm"
           >
             <option value="ELVANTO_CSV">{t('import.sourceElvanto')}</option>
             <option value="PCO_CSV">{t('import.sourcePco')}</option>
@@ -93,28 +93,28 @@ export default function ImportPage() {
             className="text-sm"
           />
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
       </section>
 
       {upload && !done && (
-        <section className="space-y-3 rounded-xl bg-white p-4 shadow">
-          <h2 className="font-semibold">
+        <section className="card space-y-3 p-4">
+          <h2 className="font-semibold text-paper">
             {t('import.mappingTitle')} · {upload.rowCount} {t('import.rows')}
           </h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <tbody>
                 {upload.headers.map((header) => (
-                  <tr key={header} className="border-t">
-                    <td className="py-1.5 pr-3 font-medium">{header}</td>
-                    <td className="py-1.5 pr-3 text-gray-400">
+                  <tr key={header} className="border-t border-line">
+                    <td className="py-1.5 pr-3 font-medium text-paper">{header}</td>
+                    <td className="py-1.5 pr-3 text-faint">
                       {upload.sampleRows[0]?.[header] ?? ''}
                     </td>
                     <td>
                       <select
                         value={mapping[header] ?? 'notes'}
                         onChange={(e) => setMapping({ ...mapping, [header]: e.target.value })}
-                        className="rounded border border-gray-300 p-1"
+                        className="rounded-[10px] border border-line bg-ink px-2 py-1"
                       >
                         {TARGET_FIELDS.map((field) => (
                           <option key={field} value={field}>
@@ -128,25 +128,22 @@ export default function ImportPage() {
               </tbody>
             </table>
           </div>
-          <button
-            onClick={() => void runDryRun()}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white"
-          >
+          <button onClick={() => void runDryRun()} className="btn-primary text-sm">
             {t('import.dryRun')}
           </button>
         </section>
       )}
 
       {dryRun && (
-        <section className="space-y-3 rounded-xl bg-white p-4 shadow">
-          <h2 className="font-semibold">{t('import.previewTitle')}</h2>
+        <section className="card space-y-3 p-4">
+          <h2 className="font-semibold text-paper">{t('import.previewTitle')}</h2>
           <p className="text-sm">
             ➕ {dryRun.summary.CREATED ?? 0} {t('import.created')} · 🔄{' '}
             {(dryRun.summary.UPDATED ?? 0) + (dryRun.summary.MERGED ?? 0)} {t('import.updated')} · ⏭{' '}
             {dryRun.summary.SKIPPED ?? 0} {t('import.skipped')} · ⚠ {dryRun.summary.ERROR ?? 0}{' '}
             {t('import.errors')}
           </p>
-          <ul className="max-h-48 space-y-1 overflow-y-auto text-sm text-gray-600">
+          <ul className="max-h-48 space-y-1 overflow-y-auto text-sm text-muted">
             {dryRun.rows.map((row) => (
               <li key={row.rowNumber}>
                 #{row.rowNumber}: {row.outcome} {row.name ?? ''} {row.error ?? ''}
@@ -155,7 +152,8 @@ export default function ImportPage() {
           </ul>
           <button
             onClick={() => void confirm()}
-            className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white"
+            className="rounded-[10px] font-semibold text-ink px-4 py-2 text-sm"
+            style={{ backgroundColor: 'var(--color-success)' }}
           >
             {t('import.confirm')}
           </button>
@@ -163,8 +161,8 @@ export default function ImportPage() {
       )}
 
       {done && upload && (
-        <section className="space-y-2 rounded-xl bg-white p-4 shadow">
-          <h2 className="font-semibold">{t('import.doneTitle')}</h2>
+        <section className="card space-y-2 p-4">
+          <h2 className="font-semibold text-paper">{t('import.doneTitle')}</h2>
           <p className="text-sm">
             ➕ {done.CREATED ?? 0} {t('import.created')} · 🔄{' '}
             {(done.UPDATED ?? 0) + (done.MERGED ?? 0)} {t('import.updated')} · ⏭ {done.SKIPPED ?? 0}{' '}
@@ -173,7 +171,7 @@ export default function ImportPage() {
           {((done.ERROR ?? 0) > 0 || (done.SKIPPED ?? 0) > 0) && (
             <a
               href={`/api/v1/admin/import/${upload.id}/errors.csv`}
-              className="text-sm font-medium text-indigo-600"
+              className="link-gold text-sm"
               download
             >
               ⬇ {t('import.downloadErrors')}

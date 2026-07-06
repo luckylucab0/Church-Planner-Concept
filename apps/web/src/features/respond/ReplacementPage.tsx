@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useSearchParams } from 'react-router-dom';
+import { Logo } from '../../components/Logo';
 import { api, ApiError } from '../../api/client';
 
 interface ReplacementInfo {
@@ -18,8 +19,7 @@ interface ReplacementInfo {
 export default function ReplacementPage() {
   const { t, i18n } = useTranslation();
   const { token } = useParams<{ token: string }>();
-  const [searchParams] = useSearchParams();
-  const intent = searchParams.get('action');
+  useSearchParams(); // action-Param wird hier nicht vorselektiert
   const [info, setInfo] = useState<ReplacementInfo | null>(null);
   const [result, setResult] = useState<'ACCEPTED' | 'DECLINED' | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -50,13 +50,19 @@ export default function ReplacementPage() {
     }
   }
 
-  const card = 'w-full max-w-md rounded-xl bg-white p-6 shadow text-center space-y-4';
+  const card = 'card w-full max-w-md p-6 text-center space-y-4';
+  const logo = (
+    <div className="flex justify-center pb-1">
+      <Logo iconSize={26} wordmarkSize={18} />
+    </div>
+  );
 
   if (error) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+      <main className="flex min-h-screen items-center justify-center bg-ink p-4">
         <div className={card}>
-          <p className="text-gray-700">{error}</p>
+          {logo}
+          <p className="text-secondary">{error}</p>
         </div>
       </main>
     );
@@ -64,9 +70,10 @@ export default function ReplacementPage() {
 
   if (result) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+      <main className="flex min-h-screen items-center justify-center bg-ink p-4">
         <div className={card}>
-          <p className="text-lg">
+          {logo}
+          <p className="text-lg text-paper">
             {result === 'ACCEPTED'
               ? t('replacement.accepted')
               : t('replacement.declined', { requesterFirstName: info?.requesterFirstName })}
@@ -77,7 +84,7 @@ export default function ReplacementPage() {
   }
 
   if (!info) {
-    return <p className="p-4 text-gray-500">{t('common.loading')}</p>;
+    return <p className="p-4 text-muted">{t('common.loading')}</p>;
   }
 
   const date = new Date(info.startsAt).toLocaleString(i18n.language, {
@@ -89,12 +96,13 @@ export default function ReplacementPage() {
   });
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+    <main className="flex min-h-screen items-center justify-center bg-ink p-4">
       <div className={card}>
-        <h1 className="text-xl font-bold">
+        {logo}
+        <h1 className="text-xl font-bold text-paper">
           {t('replacement.heading', { firstName: info.firstName })}
         </h1>
-        <p className="text-gray-700">
+        <p className="text-secondary">
           {t('replacement.question', {
             requesterFirstName: info.requesterFirstName,
             date,
@@ -102,21 +110,17 @@ export default function ReplacementPage() {
             eventTitle: info.eventTitle,
           })}
         </p>
-        {info.location && <p className="text-sm text-gray-500">📍 {info.location}</p>}
+        {info.location && <p className="text-sm text-muted">📍 {info.location}</p>}
 
         <div className="flex flex-col gap-2">
           <button
             onClick={() => void respond('accept')}
-            className={`rounded-lg p-3 font-medium text-white ${
-              intent === 'decline' ? 'bg-green-500' : 'bg-green-600'
-            }`}
+            className="rounded-[10px] p-3 font-semibold text-ink"
+            style={{ backgroundColor: 'var(--color-success)' }}
           >
             ✓ {t('replacement.accept')}
           </button>
-          <button
-            onClick={() => void respond('decline')}
-            className="rounded-lg border border-red-300 p-3 font-medium text-red-600"
-          >
+          <button onClick={() => void respond('decline')} className="btn-ghost p-3">
             ✕ {t('replacement.decline')}
           </button>
         </div>

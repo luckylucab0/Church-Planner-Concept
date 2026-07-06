@@ -32,6 +32,7 @@ export const de = {
     availability: 'Abwesenheiten',
     profile: 'Profil',
     admin: 'Administration',
+    more: 'Mehr',
   },
   assignments: {
     requested: 'angefragt',

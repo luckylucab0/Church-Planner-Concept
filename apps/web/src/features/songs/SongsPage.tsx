@@ -103,13 +103,13 @@ export default function SongsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2">
-        <h1 className="text-xl font-bold">{t('songs.title')}</h1>
+        <h1 className="text-[26px] font-bold tracking-tight text-paper">{t('songs.title')}</h1>
         <input
           type="search"
           placeholder={t('songs.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-48 rounded-lg border px-3 py-1.5 text-sm sm:w-64"
+          className="input w-48 sm:w-64"
         />
       </div>
 
@@ -120,69 +120,69 @@ export default function SongsPage() {
             setForm(emptyForm);
             setShowForm(true);
           }}
-          className="text-sm font-medium text-indigo-600"
+          className="text-sm font-medium link-gold"
         >
           + {t('songs.addSong')}
         </button>
       )}
 
       {showForm && (
-        <section className="rounded-xl bg-white p-4 shadow">
+        <section className="card p-4">
           <div className="grid gap-2 sm:grid-cols-4">
             <input
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               placeholder={t('songs.song')}
-              className="rounded border px-2 py-1.5 text-sm sm:col-span-2"
+              className="input sm:col-span-2"
               autoFocus
             />
             <input
               value={form.defaultKey}
               onChange={(e) => setForm({ ...form, defaultKey: e.target.value })}
               placeholder={t('songs.key')}
-              className="rounded border px-2 py-1.5 text-sm"
+              className="input"
             />
             <input
               type="number"
               value={form.tempoBpm}
               onChange={(e) => setForm({ ...form, tempoBpm: e.target.value })}
               placeholder={`${t('songs.tempo')} (${t('songs.bpm')})`}
-              className="rounded border px-2 py-1.5 text-sm"
+              className="input"
             />
             <input
               value={form.ccliNumber}
               onChange={(e) => setForm({ ...form, ccliNumber: e.target.value })}
               placeholder={t('songs.ccli')}
-              className="rounded border px-2 py-1.5 text-sm sm:col-span-2"
+              className="input sm:col-span-2"
             />
           </div>
           <div className="mt-3 flex gap-3">
             <button
               onClick={() => void submitSong()}
               disabled={!form.title.trim()}
-              className="rounded bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+              className="btn-primary px-3 py-1.5 text-sm disabled:opacity-50"
             >
               {t('common.save')}
             </button>
-            <button onClick={() => setShowForm(false)} className="text-sm text-gray-500">
+            <button onClick={() => setShowForm(false)} className="text-sm text-muted">
               {t('common.cancel')}
             </button>
           </div>
         </section>
       )}
 
-      {loading && <p className="text-sm text-gray-500">{t('common.loading')}</p>}
+      {loading && <p className="text-sm text-muted">{t('common.loading')}</p>}
       {!loading && data.songs.length === 0 && (
-        <p className="text-sm text-gray-400">{search ? t('songs.noResults') : t('songs.empty')}</p>
+        <p className="text-sm text-faint">{search ? t('songs.noResults') : t('songs.empty')}</p>
       )}
 
       <div className="space-y-2">
         {data.songs.map((song) => (
-          <section key={song.id} className="rounded-xl bg-white p-4 shadow">
+          <section key={song.id} className="card p-4">
             <div className="flex items-start gap-2">
               <div className="min-w-0 flex-1">
-                <p className="font-semibold">♪ {song.title}</p>
-                <p className="text-sm text-gray-500">
+                <p className="font-semibold text-paper">♪ {song.title}</p>
+                <p className="text-sm text-muted">
                   {[
                     song.defaultKey ? `${t('songs.key')} ${song.defaultKey}` : null,
                     song.tempoBpm ? `${song.tempoBpm} ${t('songs.bpm')}` : null,
@@ -194,13 +194,10 @@ export default function SongsPage() {
               </div>
               {data.canManage && (
                 <span className="flex shrink-0 gap-3 text-sm">
-                  <button onClick={() => startEdit(song)} className="text-indigo-600">
+                  <button onClick={() => startEdit(song)} className="text-gold">
                     {t('common.edit')}
                   </button>
-                  <button
-                    onClick={() => void removeSong(song.id)}
-                    className="text-gray-400 hover:text-red-600"
-                  >
+                  <button onClick={() => void removeSong(song.id)} className="text-faint">
                     {t('common.delete')}
                   </button>
                 </span>
@@ -209,18 +206,18 @@ export default function SongsPage() {
 
             {(song.arrangements.length > 0 || data.canManage) && (
               <div className="mt-2 text-sm">
-                <span className="font-medium text-gray-700">{t('songs.arrangements')}:</span>{' '}
+                <span className="font-medium text-secondary">{t('songs.arrangements')}:</span>{' '}
                 {song.arrangements.map((arrangement) => (
                   <span
                     key={arrangement.id}
-                    className="mr-2 inline-flex items-center gap-1 rounded bg-gray-100 px-1.5 py-0.5"
+                    className="mr-2 inline-flex items-center gap-1 rounded bg-avatar px-1.5 py-0.5 border border-line"
                   >
                     {arrangement.name}
                     {arrangement.key ? ` (${arrangement.key})` : ''}
                     {data.canManage && (
                       <button
                         onClick={() => void removeArrangement(song.id, arrangement.id)}
-                        className="text-gray-400 hover:text-red-600"
+                        className="text-faint"
                         aria-label={t('common.delete')}
                       >
                         ✕
@@ -228,14 +225,14 @@ export default function SongsPage() {
                     )}
                   </span>
                 ))}
-                {song.arrangements.length === 0 && <span className="text-gray-400">—</span>}
+                {song.arrangements.length === 0 && <span className="text-faint">—</span>}
                 {data.canManage && arrangementFor !== song.id && (
                   <button
                     onClick={() => {
                       setArrangementFor(song.id);
                       setArrangementForm({ name: '', key: '' });
                     }}
-                    className="ml-1 text-indigo-600"
+                    className="ml-1 text-gold"
                   >
                     + {t('songs.addArrangement')}
                   </button>
@@ -248,7 +245,7 @@ export default function SongsPage() {
                         setArrangementForm({ ...arrangementForm, name: e.target.value })
                       }
                       placeholder={t('songs.arrangementName')}
-                      className="w-32 rounded border px-2 py-0.5"
+                      className="w-32 rounded-[10px] border border-line bg-ink px-2 py-1"
                       autoFocus
                     />
                     <input
@@ -257,19 +254,16 @@ export default function SongsPage() {
                         setArrangementForm({ ...arrangementForm, key: e.target.value })
                       }
                       placeholder={t('songs.key')}
-                      className="w-16 rounded border px-2 py-0.5"
+                      className="w-16 rounded-[10px] border border-line bg-ink px-2 py-1"
                     />
                     <button
                       onClick={() => void submitArrangement(song.id)}
                       disabled={!arrangementForm.name.trim()}
-                      className="rounded bg-indigo-600 px-2 text-xs font-medium text-white disabled:opacity-50"
+                      className="btn-primary px-2 text-xs disabled:opacity-50"
                     >
                       {t('common.save')}
                     </button>
-                    <button
-                      onClick={() => setArrangementFor(null)}
-                      className="text-xs text-gray-500"
-                    >
+                    <button onClick={() => setArrangementFor(null)} className="text-xs text-muted">
                       {t('common.cancel')}
                     </button>
                   </span>

@@ -1,6 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { Logo } from '../../components/Logo';
 import { ApiError } from '../../api/client';
 import { useSession } from './SessionContext';
 
@@ -35,40 +36,39 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-      <form
-        onSubmit={onSubmit}
-        className="w-full max-w-sm space-y-4 rounded-xl bg-white p-6 shadow"
-      >
-        <h1 className="text-center text-2xl font-bold">{t('common.appName')}</h1>
+    <main className="flex min-h-screen items-center justify-center bg-ink p-4">
+      <form onSubmit={onSubmit} className="card w-full max-w-sm space-y-5 p-6">
+        <div className="flex justify-center py-2">
+          <Logo iconSize={30} wordmarkSize={22} />
+        </div>
 
         <label className="block">
-          <span className="text-sm text-gray-700">{t('auth.email')}</span>
+          <span className="text-sm text-secondary">{t('auth.email')}</span>
           <input
             type="email"
             required
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-gray-300 p-2"
+            className="input mt-1.5"
           />
         </label>
 
         <label className="block">
-          <span className="text-sm text-gray-700">{t('auth.password')}</span>
+          <span className="text-sm text-secondary">{t('auth.password')}</span>
           <input
             type="password"
             required
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-gray-300 p-2"
+            className="input mt-1.5"
           />
         </label>
 
         {needsTotp && (
           <label className="block">
-            <span className="text-sm text-gray-700">{t('auth.twoFactorCode')}</span>
+            <span className="text-sm text-secondary">{t('auth.twoFactorCode')}</span>
             <input
               type="text"
               inputMode="numeric"
@@ -76,18 +76,14 @@ export default function LoginPage() {
               required
               value={totpCode}
               onChange={(e) => setTotpCode(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 p-2"
+              className="input mt-1.5"
             />
           </label>
         )}
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full rounded-lg bg-indigo-600 p-2 font-medium text-white disabled:opacity-50"
-        >
+        <button type="submit" disabled={submitting} className="btn-primary w-full">
           {t('auth.login')}
         </button>
       </form>

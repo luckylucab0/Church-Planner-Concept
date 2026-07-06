@@ -48,21 +48,17 @@ export default function TeamsPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold">{t('nav.teams')}</h1>
+      <h1 className="text-[26px] font-bold tracking-tight text-paper">{t('nav.teams')}</h1>
 
       <div className="grid gap-3 sm:grid-cols-2">
         {teams.map((team) => (
-          <button
-            key={team.id}
-            onClick={() => openDetail(team.id)}
-            className="rounded-xl bg-white p-4 text-left shadow"
-          >
+          <button key={team.id} onClick={() => openDetail(team.id)} className="card p-4 text-left">
             <div className="flex items-center gap-2">
               <span className="h-3 w-3 rounded-full" style={{ backgroundColor: team.color }} />
-              <span className="font-semibold">{team.name}</span>
-              <span className="ml-auto text-sm text-gray-500">{team.memberCount} 👤</span>
+              <span className="font-semibold text-paper">{team.name}</span>
+              <span className="ml-auto text-sm text-muted">{team.memberCount} 👤</span>
             </div>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-muted">
               {team.positions.map((p) => p.name).join(' · ') || '—'}
             </p>
           </button>
@@ -70,28 +66,26 @@ export default function TeamsPage() {
       </div>
 
       {openTeam && (
-        <section className="rounded-xl bg-white p-4 shadow">
+        <section className="card p-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold">{openTeam.name}</h2>
-            <button onClick={() => setOpenTeam(null)} className="text-sm text-gray-400">
+            <h2 className="font-semibold text-paper">{openTeam.name}</h2>
+            <button onClick={() => setOpenTeam(null)} className="text-sm text-faint">
               ✕
             </button>
           </div>
 
-          <h3 className="mt-3 text-sm font-medium text-gray-700">{t('teams.members')}</h3>
-          <ul className="mt-1 divide-y">
+          <h3 className="mt-3 text-sm font-medium text-secondary">{t('teams.members')}</h3>
+          <ul className="mt-1 divide-y divide-line">
             {openTeam.members.map((member) => (
               <li key={member.id} className="flex items-center gap-2 py-1.5 text-sm">
                 <span>
                   {member.firstName} {member.lastName}
                   {member.isLeader && (
-                    <span className="ml-1 rounded bg-indigo-100 px-1 text-xs text-indigo-700">
-                      {t('teams.leader')}
-                    </span>
+                    <span className="ml-1 badge badge-gold">{t('teams.leader')}</span>
                   )}
                 </span>
                 {(member.email || member.phone) && (
-                  <span className="ml-auto truncate text-gray-500">
+                  <span className="ml-auto truncate text-muted">
                     {[member.email, member.phone].filter(Boolean).join(' · ')}
                   </span>
                 )}
@@ -99,12 +93,12 @@ export default function TeamsPage() {
             ))}
           </ul>
 
-          <h3 className="mt-3 text-sm font-medium text-gray-700">{t('teams.positions')}</h3>
+          <h3 className="mt-3 text-sm font-medium text-secondary">{t('teams.positions')}</h3>
           <ul className="mt-1 space-y-1">
             {openTeam.positions.map((position) => (
               <li key={position.id} className="text-sm">
                 <span className="font-medium">{position.name}:</span>{' '}
-                <span className="text-gray-600">
+                <span className="text-muted">
                   {position.people.map((p) => p.name).join(', ') || '—'}
                 </span>
               </li>

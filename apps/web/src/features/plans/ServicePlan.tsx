@@ -177,22 +177,22 @@ export default function ServicePlan({
   );
 
   return (
-    <section className="rounded-xl bg-white p-4 shadow print:p-0 print:shadow-none">
+    <section className="card p-4 print:p-0 print:shadow-none">
       <div className="flex items-center gap-2">
-        <h2 className="font-semibold">{t('plan.title')}</h2>
+        <h2 className="font-semibold text-paper">{t('plan.title')}</h2>
         {(editing ? draft : items).length > 0 && (
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-muted">
             {t('plan.totalDuration')}: {totalMinutes} {t('plan.minutesShort')}
           </span>
         )}
         <span className="ml-auto flex gap-3 print:hidden">
           {items.length > 0 && !editing && (
-            <button onClick={() => window.print()} className="text-sm text-gray-500">
+            <button onClick={() => window.print()} className="text-sm text-muted">
               🖨 {t('plan.print')}
             </button>
           )}
           {canEdit && !editing && (
-            <button onClick={startEditing} className="text-sm font-medium text-indigo-600">
+            <button onClick={startEditing} className="text-sm link-gold">
               {t('plan.editPlan')}
             </button>
           )}
@@ -200,25 +200,25 @@ export default function ServicePlan({
       </div>
 
       {!editing && items.length === 0 && (
-        <p className="mt-2 text-sm text-gray-400">{t('plan.empty')}</p>
+        <p className="mt-2 text-sm text-faint">{t('plan.empty')}</p>
       )}
 
       {/* Lese-Ansicht: kompakte Zeitleiste, druckfreundlich */}
       {!editing && items.length > 0 && (
-        <ol className="mt-3 divide-y">
+        <ol className="mt-3 divide-y divide-line">
           {items.map((item, index) => (
             <li key={item.id} className="flex gap-3 py-2 text-sm">
-              <span className="w-12 shrink-0 font-mono text-gray-500">
+              <span className="w-12 shrink-0 font-mono text-muted">
                 {formatTime(startTimes[index])}
               </span>
               <div className="min-w-0 flex-1">
                 <p className="font-medium">{item.title}</p>
                 {item.song && (
-                  <p className="text-gray-600">♪ {songLine(item.song, item.arrangement)}</p>
+                  <p className="text-muted">♪ {songLine(item.song, item.arrangement)}</p>
                 )}
-                {item.notes && <p className="text-gray-500">{item.notes}</p>}
+                {item.notes && <p className="text-muted">{item.notes}</p>}
               </div>
-              <div className="shrink-0 text-right text-gray-500">
+              <div className="shrink-0 text-right text-muted">
                 <p>
                   {item.durationMinutes} {t('plan.minutesShort')}
                 </p>
@@ -235,16 +235,16 @@ export default function ServicePlan({
           {draft.map((item, index) => {
             const song = songs.find((s) => s.id === item.songId);
             return (
-              <div key={index} className="rounded-lg border border-gray-200 p-3">
+              <div key={index} className="rounded-lg border border-line p-3">
                 <div className="flex items-center gap-2">
-                  <span className="w-12 shrink-0 font-mono text-sm text-gray-500">
+                  <span className="w-12 shrink-0 font-mono text-sm text-muted">
                     {formatTime(startTimes[index])}
                   </span>
                   <input
                     value={item.title}
                     onChange={(e) => updateItem(index, { title: e.target.value })}
                     placeholder={t('plan.itemTitle')}
-                    className="min-w-0 flex-1 rounded border px-2 py-1 text-sm"
+                    className="min-w-0 flex-1 input text-sm"
                   />
                   <input
                     type="number"
@@ -253,14 +253,14 @@ export default function ServicePlan({
                     onChange={(e) =>
                       updateItem(index, { durationMinutes: Number(e.target.value) || 0 })
                     }
-                    className="w-16 rounded border px-2 py-1 text-sm"
+                    className="w-16 rounded-[10px] border border-line bg-ink px-2 py-1 text-sm"
                     aria-label={t('plan.duration')}
                   />
-                  <span className="text-xs text-gray-500">{t('plan.minutesShort')}</span>
+                  <span className="text-xs text-muted">{t('plan.minutesShort')}</span>
                   <button
                     onClick={() => move(index, -1)}
                     disabled={index === 0}
-                    className="px-1 text-gray-400 disabled:opacity-30"
+                    className="px-1 text-faint disabled:opacity-30"
                     aria-label={t('plan.moveUp')}
                   >
                     ↑
@@ -268,14 +268,14 @@ export default function ServicePlan({
                   <button
                     onClick={() => move(index, 1)}
                     disabled={index === draft.length - 1}
-                    className="px-1 text-gray-400 disabled:opacity-30"
+                    className="px-1 text-faint disabled:opacity-30"
                     aria-label={t('plan.moveDown')}
                   >
                     ↓
                   </button>
                   <button
                     onClick={() => setDraft((c) => c.filter((_, i) => i !== index))}
-                    className="px-1 text-gray-400 hover:text-red-600"
+                    className="px-1 text-faint"
                     aria-label={t('common.delete')}
                   >
                     ✕
@@ -296,7 +296,7 @@ export default function ServicePlan({
                         });
                       }
                     }}
-                    className="rounded border px-2 py-1 text-sm"
+                    className="input text-sm"
                     aria-label={t('plan.song')}
                   >
                     <option value="">{t('plan.noSong')}</option>
@@ -313,7 +313,7 @@ export default function ServicePlan({
                     <select
                       value={item.arrangementId ?? ''}
                       onChange={(e) => updateItem(index, { arrangementId: e.target.value || null })}
-                      className="rounded border px-2 py-1 text-sm"
+                      className="input text-sm"
                       aria-label={t('songs.arrangementName')}
                     >
                       <option value="">{t('songs.arrangementName')} —</option>
@@ -331,7 +331,7 @@ export default function ServicePlan({
                     onChange={(e) =>
                       updateItem(index, { responsiblePersonId: e.target.value || null })
                     }
-                    className="rounded border px-2 py-1 text-sm"
+                    className="input text-sm"
                     aria-label={t('plan.responsible')}
                   >
                     <option value="">{t('plan.responsible')} —</option>
@@ -349,16 +349,16 @@ export default function ServicePlan({
                       value={newSongTitle}
                       onChange={(e) => setNewSongTitle(e.target.value)}
                       placeholder={t('songs.song')}
-                      className="min-w-0 flex-1 rounded border px-2 py-1 text-sm"
+                      className="min-w-0 flex-1 input text-sm"
                       autoFocus
                     />
                     <button
                       onClick={() => void createSong(index)}
-                      className="rounded bg-indigo-600 px-2 py-1 text-xs font-medium text-white"
+                      className="btn-primary px-2 py-1 text-xs"
                     >
                       {t('songs.addSong')}
                     </button>
-                    <button onClick={() => setNewSongFor(null)} className="text-xs text-gray-500">
+                    <button onClick={() => setNewSongFor(null)} className="text-xs text-muted">
                       {t('common.cancel')}
                     </button>
                   </div>
@@ -368,7 +368,7 @@ export default function ServicePlan({
                   value={item.notes}
                   onChange={(e) => updateItem(index, { notes: e.target.value })}
                   placeholder={t('plan.notes')}
-                  className="mt-2 w-full rounded border px-2 py-1 text-sm"
+                  className="mt-2 w-full input text-sm"
                 />
               </div>
             );
@@ -389,18 +389,18 @@ export default function ServicePlan({
                   },
                 ])
               }
-              className="text-sm font-medium text-indigo-600"
+              className="text-sm link-gold"
             >
               + {t('plan.addItem')}
             </button>
             <button
               onClick={() => void save()}
               disabled={saving || draft.some((item) => !item.title.trim())}
-              className="ml-auto rounded bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+              className="ml-auto btn-primary px-3 py-1.5 text-sm"
             >
               {t('plan.savePlan')}
             </button>
-            <button onClick={() => setEditing(false)} className="text-sm text-gray-500">
+            <button onClick={() => setEditing(false)} className="text-sm text-muted">
               {t('common.cancel')}
             </button>
           </div>

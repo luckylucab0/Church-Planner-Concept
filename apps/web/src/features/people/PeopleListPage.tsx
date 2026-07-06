@@ -34,36 +34,36 @@ export default function PeopleListPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">{t('nav.people')}</h1>
+        <h1 className="text-[26px] font-bold tracking-tight text-paper">{t('nav.people')}</h1>
         <input
           type="search"
           placeholder={t('common.search')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="rounded-lg border border-gray-300 p-2 text-sm"
+          className="input text-sm"
         />
       </div>
 
       {loading ? (
-        <p className="text-gray-500">{t('common.loading')}</p>
+        <p className="text-muted">{t('common.loading')}</p>
       ) : (
-        <ul className="divide-y rounded-xl bg-white shadow">
+        <ul className="card divide-y divide-line">
           {people.map((person) => (
             <li key={person.id} className="flex items-center gap-3 p-3">
               {person.photoUrl ? (
                 <img src={person.photoUrl} alt="" className="h-10 w-10 rounded-full object-cover" />
               ) : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 font-medium text-indigo-700">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-avatar font-medium text-secondary">
                   {person.firstName[0]}
                   {person.lastName[0]}
                 </div>
               )}
               <div className="min-w-0">
-                <p className="font-medium">
+                <p className="font-medium text-paper">
                   {person.firstName} {person.lastName}
                 </p>
                 {(person.email || person.phone) && (
-                  <p className="truncate text-sm text-gray-500">
+                  <p className="truncate text-sm text-muted">
                     {[person.email, person.phone].filter(Boolean).join(' · ')}
                   </p>
                 )}

@@ -45,13 +45,13 @@ export default function OpenSignups({ onJoined }: { onJoined?: () => void }) {
 
   return (
     <section className="space-y-2">
-      <h2 className="font-semibold">{t('signup.title')}</h2>
-      {joined && <p className="text-sm text-green-700">{t('signup.joined')}</p>}
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      {slots.length === 0 && <p className="text-sm text-gray-500">{t('signup.none')}</p>}
+      <h2 className="font-semibold text-paper">{t('signup.title')}</h2>
+      {joined && <p className="text-sm text-success">{t('signup.joined')}</p>}
+      {error && <p className="text-sm text-red-400">{error}</p>}
+      {slots.length === 0 && <p className="text-sm text-muted">{t('signup.none')}</p>}
       <ul className="space-y-2">
         {slots.map((slot) => (
-          <li key={slot.slotId} className="flex items-center gap-2 rounded-xl bg-white p-3 shadow">
+          <li key={slot.slotId} className="flex items-center gap-2 card p-3">
             <span
               className="h-2.5 w-2.5 shrink-0 rounded-full"
               style={{ backgroundColor: slot.team.color }}
@@ -60,7 +60,7 @@ export default function OpenSignups({ onJoined }: { onJoined?: () => void }) {
               <p className="truncate text-sm font-medium">
                 {slot.eventTitle} · {slot.team.name} · {slot.position}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted">
                 {new Date(slot.startsAt).toLocaleString(i18n.language, {
                   weekday: 'short',
                   day: '2-digit',
@@ -74,7 +74,7 @@ export default function OpenSignups({ onJoined }: { onJoined?: () => void }) {
             </div>
             <button
               onClick={() => void join(slot.slotId)}
-              className="shrink-0 rounded bg-indigo-600 px-3 py-1 text-xs font-medium text-white"
+              className="shrink-0 btn-primary px-3 py-1 text-xs"
             >
               {t('signup.join')}
             </button>

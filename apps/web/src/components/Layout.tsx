@@ -1,66 +1,200 @@
-import { ReactNode } from 'react';
+import { ComponentType, ReactNode, SVGProps, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
+import { Logo } from './Logo';
+import {
+  IconAvailability,
+  IconCalendar,
+  IconDashboard,
+  IconImport,
+  IconLogout,
+  IconMore,
+  IconMusic,
+  IconPeople,
+  IconProfile,
+  IconTeams,
+} from './icons';
 import { useSession } from '../features/auth/SessionContext';
 
-// App-Shell mit Mobile-First-Navigation: unten auf dem Handy erreichbar,
-// oben auf größeren Screens.
+interface NavItem {
+  to: string;
+  labelKey: string;
+  en: string;
+  icon: ComponentType<SVGProps<SVGSVGElement>>;
+  adminOnly?: boolean;
+  primary?: boolean; // erscheint in der mobilen Tab-Bar (max. 4 + „Mehr")
+}
+
+// Ein Nav-Modell für Desktop-Sidebar und Mobile-Tab-Bar. `primary`
+// markiert die vier wichtigsten Ziele für die Bottom-Tab-Bar; der Rest
+// landet unter „Mehr".
+const NAV: NavItem[] = [
+  { to: '/', labelKey: 'nav.dashboard', en: 'Dashboard', icon: IconDashboard, primary: true },
+  { to: '/plans', labelKey: 'nav.plans', en: 'Schedule', icon: IconCalendar, primary: true },
+  { to: '/teams', labelKey: 'nav.teams', en: 'Teams', icon: IconTeams, primary: true },
+  { to: '/songs', labelKey: 'songs.title', en: 'Songs', icon: IconMusic, primary: true },
+  { to: '/people', labelKey: 'nav.people', en: 'People', icon: IconPeople },
+  { to: '/availability', labelKey: 'nav.availability', en: 'Availability', icon: IconAvailability },
+  { to: '/profile', labelKey: 'nav.profile', en: 'Profile', icon: IconProfile },
+  {
+    to: '/admin/import',
+    labelKey: 'import.title',
+    en: 'Import',
+    icon: IconImport,
+    adminOnly: true,
+  },
+];
+
+function Avatar({ name, size = 34 }: { name: string; size?: number }) {
+  const initials = name
+    .split(' ')
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+  return (
+    <span
+      className="inline-flex shrink-0 items-center justify-center rounded-full bg-avatar font-semibold text-secondary"
+      style={{ width: size, height: size, fontSize: size * 0.4 }}
+    >
+      {initials}
+    </span>
+  );
+}
+
+// App-Shell mit responsivem Navigationsmodell:
+// ≥1024px feste Sidebar links, darunter Bottom-Tab-Bar + „Mehr"-Sheet.
 export default function Layout({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
   const { session, logout } = useSession();
+  const [moreOpen, setMoreOpen] = useState(false);
 
-  const links = [
-    { to: '/', label: t('nav.dashboard') },
-    { to: '/plans', label: t('nav.plans') },
-    { to: '/songs', label: t('songs.title') },
-    { to: '/people', label: t('nav.people') },
-    { to: '/teams', label: t('nav.teams') },
-    { to: '/availability', label: t('nav.availability') },
-    { to: '/profile', label: t('nav.profile') },
-    // Nur für Admins sichtbar (Zugriff wird serverseitig erzwungen)
-    ...(session?.globalRole === 'ADMIN' ? [{ to: '/admin/import', label: t('import.title') }] : []),
-  ];
+  const isAdmin = session?.globalRole === 'ADMIN';
+  const visible = NAV.filter((item) => !item.adminOnly || isAdmin);
+  const primary = visible.filter((item) => item.primary);
+  const overflow = visible.filter((item) => !item.primary);
+  const fullName = `${session?.firstName ?? ''} ${session?.lastName ?? ''}`.trim();
+
+  const activeClass = ({ isActive }: { isActive: boolean }) =>
+    [
+      'flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-sm transition-colors',
+      isActive
+        ? 'bg-surface-hover font-semibold text-gold'
+        : 'text-secondary hover:bg-surface hover:text-paper',
+    ].join(' ');
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16 sm:pb-0">
-      <header className="sticky top-0 z-10 border-b bg-white print:hidden">
-        <div className="mx-auto flex max-w-4xl items-center justify-between p-3">
-          <span className="font-bold text-indigo-700">{t('common.appName')}</span>
-          <nav className="hidden gap-4 sm:flex">
-            {links.map((link) => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                className={({ isActive }) =>
-                  `text-sm ${isActive ? 'font-semibold text-indigo-700' : 'text-gray-600'}`
-                }
-              >
-                {link.label}
-              </NavLink>
-            ))}
-          </nav>
-          <button onClick={() => void logout()} className="text-sm text-gray-500">
-            {t('auth.logout')} ({session?.firstName})
+    <div className="min-h-screen bg-ink text-paper lg:flex">
+      {/* Desktop-Sidebar */}
+      <aside className="hidden w-60 shrink-0 flex-col border-r border-line bg-ink-deep p-4 lg:flex print:hidden">
+        <div className="px-2 py-3">
+          <Logo iconSize={24} wordmarkSize={17} />
+        </div>
+        <nav className="mt-4 flex flex-1 flex-col gap-1">
+          {visible.map((item) => (
+            <NavLink key={item.to} to={item.to} end={item.to === '/'} className={activeClass}>
+              <item.icon className="shrink-0" />
+              <span className="flex flex-col leading-tight">
+                <span>{t(item.labelKey)}</span>
+                <span className="text-[11px] font-normal text-faint">{item.en}</span>
+              </span>
+            </NavLink>
+          ))}
+        </nav>
+        {/* User-Chip unten */}
+        <div className="mt-auto flex items-center gap-3 rounded-xl border border-line bg-surface p-2.5">
+          <Avatar name={fullName || 'S F'} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-paper">{fullName}</p>
+            <p className="truncate text-xs text-muted">{isAdmin ? 'Admin' : t('nav.profile')}</p>
+          </div>
+          <button
+            onClick={() => void logout()}
+            className="rounded-lg p-1.5 text-muted transition-colors hover:bg-ink hover:text-paper"
+            aria-label={t('auth.logout')}
+            title={t('auth.logout')}
+          >
+            <IconLogout />
           </button>
         </div>
+      </aside>
+
+      {/* Mobile-Top-Bar */}
+      <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-line bg-ink-deep px-4 lg:hidden print:hidden">
+        <Logo iconSize={22} wordmarkSize={16} />
+        <Avatar name={fullName || 'S F'} />
       </header>
 
-      <main className="mx-auto max-w-4xl p-4">{children}</main>
+      {/* Hauptinhalt */}
+      <main className="mx-auto w-full max-w-5xl flex-1 p-4 pb-24 sm:p-6 lg:p-8 lg:pb-8">
+        {children}
+      </main>
 
-      {/* Mobile: Bottom-Navigation */}
-      <nav className="fixed inset-x-0 bottom-0 flex justify-around border-t bg-white p-2 sm:hidden print:hidden">
-        {links.map((link) => (
+      {/* Mobile-Bottom-Tab-Bar */}
+      <nav
+        className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t border-line bg-ink-deep px-1 pt-1 lg:hidden print:hidden"
+        style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
+      >
+        {primary.map((item) => (
           <NavLink
-            key={link.to}
-            to={link.to}
+            key={item.to}
+            to={item.to}
+            end={item.to === '/'}
             className={({ isActive }) =>
-              `px-3 py-1 text-sm ${isActive ? 'font-semibold text-indigo-700' : 'text-gray-600'}`
+              [
+                'flex min-h-[44px] flex-col items-center justify-center gap-1 rounded-lg py-1.5 text-[11px]',
+                isActive ? 'font-semibold text-gold' : 'text-muted',
+              ].join(' ')
             }
           >
-            {link.label}
+            <item.icon />
+            <span>{t(item.labelKey)}</span>
           </NavLink>
         ))}
+        <button
+          onClick={() => setMoreOpen(true)}
+          className="flex min-h-[44px] flex-col items-center justify-center gap-1 rounded-lg py-1.5 text-[11px] text-muted"
+        >
+          <IconMore />
+          <span>{t('nav.more')}</span>
+        </button>
       </nav>
+
+      {/* „Mehr"-Sheet (Overflow-Navigation + Logout) */}
+      {moreOpen && (
+        <div
+          className="fixed inset-0 z-30 flex flex-col justify-end bg-black/60 lg:hidden"
+          onClick={() => setMoreOpen(false)}
+        >
+          <div
+            className="rounded-t-2xl border-t border-line bg-surface p-4"
+            style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-line-strong" />
+            <div className="flex flex-col gap-1">
+              {overflow.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setMoreOpen(false)}
+                  className={activeClass}
+                >
+                  <item.icon className="shrink-0" />
+                  <span>{t(item.labelKey)}</span>
+                </NavLink>
+              ))}
+              <button
+                onClick={() => void logout()}
+                className="mt-1 flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-sm text-secondary transition-colors hover:bg-ink hover:text-paper"
+              >
+                <IconLogout className="shrink-0" />
+                <span>{t('auth.logout')}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

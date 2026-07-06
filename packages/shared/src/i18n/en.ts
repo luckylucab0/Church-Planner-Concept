@@ -31,6 +31,7 @@ export const en = {
     availability: 'Unavailability',
     profile: 'Profile',
     admin: 'Administration',
+    more: 'More',
   },
   assignments: {
     requested: 'requested',

@@ -68,10 +68,10 @@ export default function AvailabilityPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold">{t('nav.availability')}</h1>
+      <h1 className="text-[26px] font-bold tracking-tight text-paper">{t('nav.availability')}</h1>
 
-      <section className="space-y-3 rounded-xl bg-white p-4 shadow">
-        <h2 className="font-semibold">{t('availability.absencesTitle')}</h2>
+      <section className="card space-y-3 p-4">
+        <h2 className="font-semibold text-paper">{t('availability.absencesTitle')}</h2>
         <ul className="space-y-1">
           {absences.map((absence) => (
             <li key={absence.id} className="flex items-center gap-2 text-sm">
@@ -81,53 +81,51 @@ export default function AvailabilityPage() {
               </span>
               <button
                 onClick={() => void api.delete(`/me/absences/${absence.id}`).then(reload)}
-                className="ml-auto text-xs text-gray-400 hover:text-red-600"
+                className="ml-auto text-xs"
+                style={{ color: 'var(--color-danger)' }}
               >
                 {t('common.delete')}
               </button>
             </li>
           ))}
           {absences.length === 0 && (
-            <li className="text-sm text-gray-400">{t('availability.noAbsences')}</li>
+            <li className="text-sm text-faint">{t('availability.noAbsences')}</li>
           )}
         </ul>
         <div className="flex flex-wrap items-end gap-2">
           <label className="text-sm">
-            <span className="block text-gray-600">{t('availability.from')}</span>
+            <span className="block text-muted">{t('availability.from')}</span>
             <input
               type="date"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
-              className="rounded-lg border border-gray-300 p-2"
+              className="input"
             />
           </label>
           <label className="text-sm">
-            <span className="block text-gray-600">{t('availability.to')}</span>
+            <span className="block text-muted">{t('availability.to')}</span>
             <input
               type="date"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
-              className="rounded-lg border border-gray-300 p-2"
+              className="input"
             />
           </label>
           <input
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder={`${t('availability.reason')} (${t('common.optional')})`}
-            className="rounded-lg border border-gray-300 p-2 text-sm"
+            className="input text-sm"
           />
-          <button
-            onClick={() => void addAbsence()}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white"
-          >
+          <button onClick={() => void addAbsence()} className="btn-primary text-sm">
             + {t('availability.add')}
           </button>
         </div>
       </section>
 
-      <section className="space-y-3 rounded-xl bg-white p-4 shadow">
-        <h2 className="font-semibold">{t('availability.recurringTitle')}</h2>
-        <p className="text-sm text-gray-500">{t('availability.recurringHint')}</p>
+      <section className="card space-y-3 p-4">
+        <h2 className="font-semibold text-paper">{t('availability.recurringTitle')}</h2>
+        <p className="text-sm text-muted">{t('availability.recurringHint')}</p>
         <ul className="space-y-1">
           {recurring.map((rule) => (
             <li key={rule.id} className="flex items-center gap-2 text-sm">
@@ -136,7 +134,8 @@ export default function AvailabilityPage() {
                 onClick={() =>
                   void api.delete(`/me/recurring-unavailabilities/${rule.id}`).then(reload)
                 }
-                className="ml-auto text-xs text-gray-400 hover:text-red-600"
+                className="ml-auto text-xs"
+                style={{ color: 'var(--color-danger)' }}
               >
                 {t('common.delete')}
               </button>
@@ -147,7 +146,7 @@ export default function AvailabilityPage() {
           <select
             value={preset}
             onChange={(e) => setPreset(e.target.value)}
-            className="rounded-lg border border-gray-300 p-2 text-sm"
+            className="input text-sm"
           >
             {RECURRING_PRESETS.map((entry) => (
               <option key={entry.rrule} value={entry.rrule}>
@@ -155,10 +154,7 @@ export default function AvailabilityPage() {
               </option>
             ))}
           </select>
-          <button
-            onClick={() => void addRecurring()}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white"
-          >
+          <button onClick={() => void addRecurring()} className="btn-primary text-sm">
             + {t('availability.add')}
           </button>
         </div>

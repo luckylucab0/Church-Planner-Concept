@@ -39,9 +39,9 @@ interface Suggestion {
 }
 
 const statusStyle: Record<string, string> = {
-  ACCEPTED: 'bg-green-100 text-green-700',
-  REQUESTED: 'bg-amber-100 text-amber-700',
-  DECLINED: 'bg-red-100 text-red-700',
+  ACCEPTED: 'badge badge-success',
+  REQUESTED: 'badge badge-gold',
+  DECLINED: 'badge badge-danger',
 };
 
 // Dienstplan eines Termins. Teamleiter/Admins (canAssign pro Slot,
@@ -90,7 +90,7 @@ export default function EventDetailPage() {
     reload();
   }
 
-  if (!event) return <p className="text-gray-500">{t('common.loading')}</p>;
+  if (!event) return <p className="text-muted">{t('common.loading')}</p>;
 
   const statusLabel: Record<string, string> = {
     ACCEPTED: t('assignments.accepted'),
@@ -101,8 +101,8 @@ export default function EventDetailPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-bold">{event.title}</h1>
-        <p className="text-sm text-gray-500">
+        <h1 className="text-[26px] font-bold tracking-tight text-paper">{event.title}</h1>
+        <p className="text-sm text-muted">
           {new Date(event.startsAt).toLocaleString(i18n.language, {
             weekday: 'long',
             day: '2-digit',
@@ -124,29 +124,27 @@ export default function EventDetailPage() {
 
       {/* Besetzung: beim Drucken ausgeblendet – gedruckt wird der Ablauf */}
       <div className="space-y-3 print:hidden">
-        <h2 className="font-semibold">{t('plans.staffingTitle')}</h2>
+        <h2 className="font-semibold text-paper">{t('plans.staffingTitle')}</h2>
         {event.slots.map((slot) => (
-          <section key={slot.id} className="rounded-xl bg-white p-4 shadow">
+          <section key={slot.id} className="card p-4">
             <div className="flex items-center gap-2">
               <span
                 className="h-2.5 w-2.5 rounded-full"
                 style={{ backgroundColor: slot.position.team.color }}
               />
-              <h2 className="font-semibold">
+              <h2 className="font-semibold text-paper">
                 {slot.position.team.name} · {slot.position.name}
               </h2>
               {slot.openForSignup && (
-                <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-xs text-emerald-700">
-                  {t('signup.openToggle')}
-                </span>
+                <span className="badge badge-success">{t('signup.openToggle')}</span>
               )}
-              <span className="ml-auto text-sm text-gray-500">
+              <span className="ml-auto text-sm text-muted">
                 {slot.assignments.filter((a) => a.status === 'ACCEPTED').length}/
                 {slot.requiredCount}
               </span>
             </div>
             {slot.canAssign && (
-              <label className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
+              <label className="mt-1 flex items-center gap-1.5 text-xs text-muted">
                 <input
                   type="checkbox"
                   checked={slot.openForSignup}
@@ -160,15 +158,13 @@ export default function EventDetailPage() {
               {slot.assignments.map((assignment) => (
                 <li key={assignment.id} className="flex items-center gap-2 text-sm">
                   <span>{assignment.personName}</span>
-                  <span
-                    className={`rounded px-1.5 py-0.5 text-xs ${statusStyle[assignment.status]}`}
-                  >
+                  <span className={statusStyle[assignment.status]}>
                     {statusLabel[assignment.status]}
                   </span>
                   {slot.canAssign && (
                     <button
                       onClick={() => void remove(assignment.id)}
-                      className="ml-auto text-xs text-gray-400 hover:text-red-600"
+                      className="ml-auto text-xs text-faint"
                     >
                       {t('assignments.remove')}
                     </button>
@@ -176,28 +172,28 @@ export default function EventDetailPage() {
                 </li>
               ))}
               {slot.assignments.length === 0 && (
-                <li className="text-sm text-gray-400">{t('plans.nobodyAssigned')}</li>
+                <li className="text-sm text-faint">{t('plans.nobodyAssigned')}</li>
               )}
             </ul>
 
             {slot.canAssign && suggestionsFor !== slot.id && (
               <button
                 onClick={() => void openSuggestions(slot.id)}
-                className="mt-2 text-sm font-medium text-indigo-600"
+                className="mt-2 text-sm link-gold"
               >
                 + {t('assignments.suggest')}
               </button>
             )}
 
             {suggestionsFor === slot.id && (
-              <div className="mt-3 rounded-lg border border-indigo-100 bg-indigo-50 p-3">
-                {conflict && <p className="mb-2 text-sm text-red-600">{conflict}</p>}
+              <div className="mt-3 rounded-lg border border-line bg-surface p-3">
+                {conflict && <p className="mb-2 text-sm text-red-400">{conflict}</p>}
                 <ul className="space-y-2">
                   {suggestions.map((suggestion) => (
                     <li key={suggestion.personId} className="flex items-center gap-2 text-sm">
                       <div>
                         <p className="font-medium">{suggestion.name}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-muted">
                           {suggestion.daysSinceLastService === null
                             ? t('assignments.neverServed')
                             : t('assignments.lastServed', {
@@ -208,27 +204,21 @@ export default function EventDetailPage() {
                             count: suggestion.assignmentsLast90Days,
                           })}
                           {suggestion.warnings.includes('assignedAdjacentDay') && (
-                            <span className="text-amber-600">
-                              {' '}
-                              ⚠ {t('assignments.warnAdjacentDay')}
-                            </span>
+                            <span className="text-gold"> ⚠ {t('assignments.warnAdjacentDay')}</span>
                           )}
                         </p>
                       </div>
                       <button
                         onClick={() => void assign(slot.id, suggestion.personId)}
-                        className="ml-auto rounded bg-indigo-600 px-2 py-1 text-xs font-medium text-white"
+                        className="ml-auto btn-primary px-2 py-1 text-xs"
                       >
                         {t('assignments.assign')}
                       </button>
                     </li>
                   ))}
-                  {suggestions.length === 0 && <li className="text-sm text-gray-500">—</li>}
+                  {suggestions.length === 0 && <li className="text-sm text-muted">—</li>}
                 </ul>
-                <button
-                  onClick={() => setSuggestionsFor(null)}
-                  className="mt-2 text-xs text-gray-500"
-                >
+                <button onClick={() => setSuggestionsFor(null)} className="mt-2 text-xs text-muted">
                   {t('common.cancel')}
                 </button>
               </div>

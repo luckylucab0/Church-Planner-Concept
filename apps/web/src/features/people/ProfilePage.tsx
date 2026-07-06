@@ -60,7 +60,7 @@ export default function ProfilePage() {
     URL.revokeObjectURL(url);
   }
 
-  if (!profile || !privacy) return <p className="text-gray-500">{t('common.loading')}</p>;
+  if (!profile || !privacy) return <p className="text-muted">{t('common.loading')}</p>;
 
   const privacyLabels: Record<keyof Privacy, string> = {
     emailVisibleToTeam: t('profile.shareEmail'),
@@ -71,36 +71,32 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-bold">
+      <h1 className="text-[26px] font-bold tracking-tight text-paper">
         {profile.firstName} {profile.lastName}
       </h1>
 
-      <section className="space-y-3 rounded-xl bg-white p-4 shadow">
-        <h2 className="font-semibold">{t('profile.contactData')}</h2>
+      <section className="card space-y-3 p-4">
+        <h2 className="font-semibold text-paper">{t('profile.contactData')}</h2>
         {(['email', 'phone', 'address'] as const).map((field) => (
           <label key={field} className="block">
-            <span className="text-sm text-gray-700">
-              {t(`profile.${field}`)}{' '}
-              <span className="text-gray-400">({t('common.optional')})</span>
+            <span className="text-sm text-secondary">
+              {t(`profile.${field}`)} <span className="text-faint">({t('common.optional')})</span>
             </span>
             <input
               value={profile[field] ?? ''}
               onChange={(e) => setProfile({ ...profile, [field]: e.target.value })}
-              className="mt-1 w-full rounded-lg border border-gray-300 p-2"
+              className="input mt-1"
             />
           </label>
         ))}
-        <button
-          onClick={() => void saveProfile()}
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white"
-        >
+        <button onClick={() => void saveProfile()} className="btn-primary text-sm">
           {saved ? '✓' : t('common.save')}
         </button>
       </section>
 
-      <section className="space-y-2 rounded-xl bg-white p-4 shadow">
-        <h2 className="font-semibold">{t('profile.privacyTitle')}</h2>
-        <p className="text-sm text-gray-500">{t('profile.privacyHint')}</p>
+      <section className="card space-y-2 p-4">
+        <h2 className="font-semibold text-paper">{t('profile.privacyTitle')}</h2>
+        <p className="text-sm text-muted">{t('profile.privacyHint')}</p>
         {(Object.keys(privacyLabels) as (keyof Privacy)[]).map((key) => (
           <label key={key} className="flex items-center gap-2">
             <input
@@ -113,15 +109,15 @@ export default function ProfilePage() {
         ))}
       </section>
 
-      <section className="rounded-xl bg-white p-4 shadow">
-        <h2 className="font-semibold">{t('profile.icalTitle')}</h2>
-        <p className="mb-2 text-sm text-gray-500">{t('profile.icalHint')}</p>
+      <section className="card p-4">
+        <h2 className="font-semibold text-paper">{t('profile.icalTitle')}</h2>
+        <p className="mb-2 text-sm text-muted">{t('profile.icalHint')}</p>
         {icalUrl ? (
           <input
             readOnly
             value={icalUrl}
             onFocus={(e) => e.target.select()}
-            className="w-full rounded-lg border border-gray-300 p-2 text-sm"
+            className="input text-sm"
           />
         ) : (
           <button
@@ -130,20 +126,17 @@ export default function ProfilePage() {
                 .post<{ url: string }>('/me/ical-token')
                 .then((response) => setIcalUrl(response.url))
             }
-            className="rounded-lg border border-indigo-600 px-4 py-2 text-sm font-medium text-indigo-600"
+            className="btn-ghost text-sm"
           >
             {t('profile.icalGenerate')}
           </button>
         )}
       </section>
 
-      <section className="rounded-xl bg-white p-4 shadow">
-        <h2 className="font-semibold">{t('profile.dataExportTitle')}</h2>
-        <p className="mb-2 text-sm text-gray-500">{t('profile.dataExportHint')}</p>
-        <button
-          onClick={() => void downloadExport()}
-          className="rounded-lg border border-indigo-600 px-4 py-2 text-sm font-medium text-indigo-600"
-        >
+      <section className="card p-4">
+        <h2 className="font-semibold text-paper">{t('profile.dataExportTitle')}</h2>
+        <p className="mb-2 text-sm text-muted">{t('profile.dataExportHint')}</p>
+        <button onClick={() => void downloadExport()} className="btn-ghost text-sm">
           {t('profile.downloadExport')}
         </button>
       </section>
