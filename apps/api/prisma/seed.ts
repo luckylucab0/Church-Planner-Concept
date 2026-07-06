@@ -53,8 +53,10 @@ const TEAMS: Record<string, string[]> = {
 
 async function main(): Promise<void> {
   console.log('Seed: lösche vorhandene Daten…');
+  // Audit-Log ist per DB-Trigger append-only (DELETE verboten) –
+  // TRUNCATE umgeht Row-Trigger und ist im dev-Seed legitim
+  await prisma.$executeRawUnsafe('TRUNCATE TABLE "AuditLog" RESTART IDENTITY');
   // Reihenfolge egal dank ON DELETE CASCADE – nur Wurzel-Entitäten löschen
-  await prisma.auditLog.deleteMany();
   await prisma.importJob.deleteMany();
   await prisma.setting.deleteMany();
   await prisma.song.deleteMany();
