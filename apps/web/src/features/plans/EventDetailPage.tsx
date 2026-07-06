@@ -18,6 +18,7 @@ export interface EventDetail {
 interface EventSlot {
   id: string;
   requiredCount: number;
+  openForSignup: boolean;
   position: { id: string; name: string; team: { id: string; name: string; color: string } };
   canAssign: boolean;
   assignments: {
@@ -84,6 +85,11 @@ export default function EventDetailPage() {
     reload();
   }
 
+  async function toggleSignup(slot: EventSlot) {
+    await api.patch(`/signup/slots/${slot.id}`, { open: !slot.openForSignup });
+    reload();
+  }
+
   if (!event) return <p className="text-gray-500">{t('common.loading')}</p>;
 
   const statusLabel: Record<string, string> = {
@@ -129,11 +135,26 @@ export default function EventDetailPage() {
               <h2 className="font-semibold">
                 {slot.position.team.name} · {slot.position.name}
               </h2>
+              {slot.openForSignup && (
+                <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-xs text-emerald-700">
+                  {t('signup.openToggle')}
+                </span>
+              )}
               <span className="ml-auto text-sm text-gray-500">
                 {slot.assignments.filter((a) => a.status === 'ACCEPTED').length}/
                 {slot.requiredCount}
               </span>
             </div>
+            {slot.canAssign && (
+              <label className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
+                <input
+                  type="checkbox"
+                  checked={slot.openForSignup}
+                  onChange={() => void toggleSignup(slot)}
+                />
+                {t('signup.openToggle')}
+              </label>
+            )}
 
             <ul className="mt-2 space-y-1">
               {slot.assignments.map((assignment) => (

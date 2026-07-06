@@ -51,6 +51,29 @@ Die farbigen Status bedeuten:
 | 🟢 **zugesagt**  | Du hast den Dienst bestätigt                            |
 | 🔴 **abgesagt**  | Du hast abgesagt – die Teamleitung wurde informiert     |
 
+### Vertretung suchen (Dienst tauschen)
+
+Du kannst einen Dienst doch nicht übernehmen? Statt nur abzusagen, kannst du
+über **„⇄ Vertretung suchen"** selbst eine Vertretung anfragen: ServeFlow
+zeigt dir alle geeigneten Personen (passende Position, am Termin verfügbar) –
+du wählst eine aus, sie bekommt eine E-Mail mit einem Übernahme-Link:
+
+![Übernahme-Seite der Vertretung](screenshots/14-vertretung.png)
+
+- Sagt die Person zu, **wandert der Dienst automatisch auf sie über** – du
+  bist ausgetragen, deine Teamleitung wird informiert. Lehnt sie ab, bekommst
+  du eine E-Mail und kannst jemand anderen anfragen.
+- Es läuft immer nur **eine Anfrage gleichzeitig**; solange sie offen ist,
+  kannst du sie jederzeit zurückziehen.
+
+### Offene Dienste – trag dich ein
+
+Gibt es Dienste, die deine Teamleitung zur **Selbst-Eintragung** freigegeben
+hat (z. B. Kaffee-Theke), erscheinen sie auf deiner Übersicht unter „Offene
+Dienste". Ein Klick auf **„Eintragen"** genügt – das zählt direkt als Zusage,
+deine Teamleitung wird informiert. Du siehst nur Dienste, für die du die
+passende Position hast und an denen du nicht abwesend bist.
+
 ## 3. Auf eine Einteilung antworten (Zusagen/Absagen)
 
 Wenn dich eine Teamleitung für einen Dienst einteilt, bekommst du eine E-Mail
@@ -184,6 +207,16 @@ So funktioniert die Einteilung:
 
 Über **„Entfernen"** nimmst du eine Einteilung wieder heraus.
 
+**Selbst-Eintragung:** Bei Positionen deiner Teams kannst du pro Termin das
+Häkchen **„Selbst-Eintragung"** setzen. Der Dienst erscheint dann bei allen
+passenden Personen auf der Übersicht unter „Offene Dienste", und sie können
+sich ohne dein Zutun eintragen (zählt als Zusage, du wirst per E-Mail
+informiert). Praktisch für Dienste ohne feste Planung wie Kaffee oder Aufbau.
+
+**Vertretungen:** Sucht sich eine eingeteilte Person selbst eine Vertretung
+(siehe Kapitel 2), musst du nichts tun – die Einteilung wandert bei Zusage
+automatisch, und du bekommst eine E-Mail über den Wechsel.
+
 ## 9. Für Teamleitende: Teams und Positionen
 
 Unter **Teams** siehst du alle Teams mit ihren Positionen und Mitgliedern:
@@ -237,6 +270,11 @@ Weitere Admin-Themen (Erst-Einrichtung, Betrieb, Backups) sind in der
 
 **Ich habe die Einteilungs-Mail gelöscht – wie antworte ich jetzt?**
 Melde dich an; unter „Meine Dienste" kannst du jederzeit zu- oder absagen.
+
+**Ich kann doch nicht – muss ich einfach absagen?**
+Besser: Nutze **„Vertretung suchen"** unter „Meine Dienste". Du fragst damit
+selbst eine geeignete Person an; sagt sie zu, übernimmt sie deinen Dienst
+automatisch (siehe Kapitel 2).
 
 **Mein Zusage-Link funktioniert nicht mehr.**
 Jeder Link ist nur einmal verwendbar und läuft spätestens zum Termin ab.

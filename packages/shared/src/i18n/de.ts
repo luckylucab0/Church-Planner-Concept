@@ -60,6 +60,28 @@ export const de = {
     expired: 'Dieser Link ist abgelaufen. Melde dich bei deinem Teamleiter.',
     invalid: 'Dieser Link ist ungültig.',
   },
+  replacement: {
+    heading: 'Hallo {{firstName}}!',
+    question:
+      '{{requesterFirstName}} fragt, ob du am {{date}} den Dienst als {{position}} bei „{{eventTitle}}" übernehmen kannst.',
+    accept: 'Dienst übernehmen',
+    decline: 'Geht leider nicht',
+    accepted: 'Danke – der Dienst gehört jetzt dir! 🎉',
+    declined: 'Alles klar – {{requesterFirstName}} wurde informiert.',
+    findReplacement: 'Vertretung suchen',
+    pending: 'Vertretung angefragt: {{name}}',
+    cancelRequest: 'Anfrage zurückziehen',
+    ask: 'Anfragen',
+    nobodyAvailable: 'Gerade ist niemand Passendes verfügbar.',
+  },
+  signup: {
+    title: 'Offene Dienste – trag dich ein',
+    join: 'Eintragen',
+    joined: 'Eingetragen! Der Dienst steht jetzt unter „Meine Dienste".',
+    none: 'Gerade gibt es keine offenen Dienste für dich.',
+    stillOpen: '{{count}} offen',
+    openToggle: 'Selbst-Eintragung',
+  },
   import: {
     title: 'Datenimport',
     hint: 'Importiere Personen aus den offiziellen CSV-Exporten von Elvanto (People) oder Planning Center (People/Teams). Nichts wird ohne Vorschau geschrieben.',
@@ -184,5 +206,21 @@ export const de = {
     declinedAlertSubject: 'Absage: {{personName}} für {{position}} am {{date}}',
     declinedAlertBody:
       'Hallo {{leaderName}},\n\n{{personName}} hat für {{position}} bei „{{eventTitle}}" am {{date}} abgesagt.{{reason}}\n\nVorschläge für Ersatz (faire Verteilung berücksichtigt):\n{{suggestions}}\n\nZum Plan: {{planUrl}}',
+    replacementRequestSubject:
+      'Kannst du für {{requesterName}} einspringen? {{eventTitle}} am {{date}}',
+    replacementRequestBody:
+      'Hallo {{firstName}},\n\n{{requesterName}} fragt, ob du den Dienst als {{position}} bei „{{eventTitle}}" am {{date}} übernehmen kannst.\n\nÜbernehmen: {{acceptUrl}}\nGeht nicht: {{declineUrl}}\n\nDanke!',
+    replacementAcceptedSubject: 'Vertretung gefunden: {{candidateName}} übernimmt am {{date}}',
+    replacementAcceptedBody:
+      'Hallo {{firstName}},\n\n{{candidateName}} übernimmt deinen Dienst als {{position}} bei „{{eventTitle}}" am {{date}}. Du bist damit ausgetragen.',
+    replacementDeclinedSubject: 'Vertretungsanfrage abgelehnt ({{date}})',
+    replacementDeclinedBody:
+      'Hallo {{firstName}},\n\n{{candidateName}} kann deinen Dienst als {{position}} am {{date}} leider nicht übernehmen. Du kannst eine andere Person anfragen oder absagen.',
+    replacementLeaderSubject: 'Vertretung: {{candidateName}} übernimmt für {{personName}}',
+    replacementLeaderBody:
+      'Hallo {{leaderName}},\n\n{{candidateName}} übernimmt den Dienst von {{personName}} als {{position}} bei „{{eventTitle}}" am {{date}}.\n\nZum Plan: {{planUrl}}',
+    signupAlertSubject: '{{personName}} hat sich eingetragen: {{position}} am {{date}}',
+    signupAlertBody:
+      'Hallo {{leaderName}},\n\n{{personName}} hat sich selbst für {{position}} bei „{{eventTitle}}" am {{date}} eingetragen (zählt als Zusage).\n\nZum Plan: {{planUrl}}',
   },
 } as const;

@@ -324,7 +324,13 @@ export class AssignmentsService {
         personId: user.personId,
         slot: { event: { startsAt: { gte: new Date() }, status: 'PUBLISHED' } },
       },
-      include: { slot: { include: { event: true, position: true } } },
+      include: {
+        slot: { include: { event: true, position: true } },
+        replacementRequests: {
+          where: { status: 'PENDING' },
+          include: { candidate: { select: { firstName: true, lastName: true } } },
+        },
+      },
       orderBy: { slot: { event: { startsAt: 'asc' } } },
     });
     return assignments.map((assignment) => ({
@@ -334,6 +340,12 @@ export class AssignmentsService {
       startsAt: assignment.slot.event.startsAt,
       location: assignment.slot.event.location,
       position: assignment.slot.position.name,
+      // Läuft gerade eine Vertretungsanfrage? (max. eine offen)
+      pendingReplacement: assignment.replacementRequests[0]
+        ? {
+            candidateName: `${assignment.replacementRequests[0].candidate.firstName} ${assignment.replacementRequests[0].candidate.lastName}`,
+          }
+        : null,
     }));
   }
 
@@ -377,7 +389,7 @@ export class AssignmentsService {
     if (leaders.length === 0) return;
 
     // Vorschläge im Namen des Systems berechnen (Admin-Sicht)
-    const suggestions = await this.suggestInternal(assignment.slotId);
+    const suggestions = await this.suggestForSlot(assignment.slotId);
     const topThree = suggestions
       .slice(0, 3)
       .map((s, index) => `${index + 1}. ${s.name}`)
@@ -407,8 +419,9 @@ export class AssignmentsService {
     }
   }
 
-  // Interne Variante ohne Berechtigungsprüfung (für System-Mails)
-  private async suggestInternal(slotId: string): Promise<Suggestion[]> {
+  // Variante ohne Berechtigungsprüfung – für System-Mails und Flows, die
+  // ihre Berechtigung selbst prüfen (z. B. Vertretungs-Kandidatenliste)
+  async suggestForSlot(slotId: string): Promise<Suggestion[]> {
     const systemUser: AuthUser = { accountId: 'system', personId: 'system', globalRole: 'ADMIN' };
     return this.suggest(systemUser, slotId);
   }

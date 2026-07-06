@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
@@ -10,7 +10,9 @@ import PeopleListPage from './features/people/PeopleListPage';
 import ProfilePage from './features/people/ProfilePage';
 import EventDetailPage from './features/plans/EventDetailPage';
 import MyAssignments from './features/plans/MyAssignments';
+import OpenSignups from './features/plans/OpenSignups';
 import PlansPage from './features/plans/PlansPage';
+import ReplacementPage from './features/respond/ReplacementPage';
 import RespondPage from './features/respond/RespondPage';
 import SongsPage from './features/songs/SongsPage';
 import TeamsPage from './features/teams/TeamsPage';
@@ -28,6 +30,8 @@ function RequireAuth({ children }: { children: ReactNode }) {
 function Dashboard() {
   const { session } = useSession();
   const { t } = useTranslation();
+  // Nach einer Selbst-Eintragung "Meine Dienste" neu laden (remount)
+  const [refresh, setRefresh] = useState(0);
   return (
     <div className="space-y-4">
       <div>
@@ -36,7 +40,8 @@ function Dashboard() {
           {session?.firstName} {session?.lastName}
         </p>
       </div>
-      <MyAssignments />
+      <MyAssignments key={refresh} />
+      <OpenSignups onJoined={() => setRefresh((n) => n + 1)} />
     </div>
   );
 }
@@ -46,8 +51,9 @@ export default function App() {
     <SessionProvider>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-        {/* Öffentlich: Zusage/Absage per Mail-Link, ohne Login */}
+        {/* Öffentlich: Zusage/Absage + Vertretungs-Übernahme per Mail-Link */}
         <Route path="/respond/:token" element={<RespondPage />} />
+        <Route path="/replacement/:token" element={<ReplacementPage />} />
         <Route
           path="/"
           element={

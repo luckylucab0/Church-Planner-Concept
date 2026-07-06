@@ -9,8 +9,9 @@ Open-Source-Alternative zu Elvanto und Planning Center Services.
 
 > Status: Phase 1 (MVP) ist funktional komplett – Personen, Teams, Dienstpläne,
 > Zusage/Absage per Mail-Link, Erinnerungen, iCal, Import aus Elvanto/Planning
-> Center. Aus Phase 2 bereits umgesetzt: Gottesdienst-Ablaufplan (druckbar) und
-> Liederdatenbank mit Arrangements und CCLI-Nummern.
+> Center. Aus Phase 2 bereits umgesetzt: Gottesdienst-Ablaufplan (druckbar),
+> Liederdatenbank mit Arrangements und CCLI-Nummern, Vertretungssuche durch
+> Eingeteilte (Swap & Replace) und Selbst-Eintragung in offene Dienste.
 > Roadmap: [docs/roadmap.md](docs/roadmap.md) ·
 > Anwenderhandbuch mit Screenshots: [docs/anwenderhandbuch.md](docs/anwenderhandbuch.md) ·
 > Feature-Vergleich mit Elvanto/Planning Center: [docs/vergleich-alternativen.md](docs/vergleich-alternativen.md)
