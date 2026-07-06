@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.2.0...v0.2.1) (2026-07-06)
+
+
+### Bugfixes
+
+* enable Caddy JSON access logs for CrowdSec/Loki ([fa94b10](https://github.com/luckylucab0/Church-Planner-Concept/commit/fa94b109948cab12f8652bdb81692ba79b61da8e))
+
 ## [0.2.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.1.0...v0.2.0) (2026-07-06)
 
 
