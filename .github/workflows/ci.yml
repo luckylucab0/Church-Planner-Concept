@@ -45,11 +45,11 @@ jobs:
       DATABASE_URL: postgresql://serveflow:serveflow@localhost:5432/serveflow_test
       REDIS_URL: redis://localhost:6379
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # corepack installiert exakt die pnpm-Version aus package.json
       # ("packageManager") – dadurch brauchen wir keine Third-Party-Action.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
       - run: corepack enable
@@ -90,8 +90,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
       - run: corepack enable
@@ -113,14 +113,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build images
         run: |
           docker build -f apps/api/Dockerfile -t serveflow-api:e2e .
           docker build -f apps/web/Dockerfile -t serveflow-web:e2e .
       - name: Start full stack
         run: docker compose -f docker/docker-compose.e2e.yml up -d --wait
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
       - name: Run smoke test (Einteilung → Mail → Zusage → Plan)
