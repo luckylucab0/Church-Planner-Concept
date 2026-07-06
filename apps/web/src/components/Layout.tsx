@@ -12,6 +12,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   const links = [
     { to: '/', label: t('nav.dashboard') },
     { to: '/plans', label: t('nav.plans') },
+    { to: '/songs', label: t('songs.title') },
     { to: '/people', label: t('nav.people') },
     { to: '/teams', label: t('nav.teams') },
     { to: '/availability', label: t('nav.availability') },
@@ -22,7 +23,7 @@ export default function Layout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-16 sm:pb-0">
-      <header className="sticky top-0 z-10 border-b bg-white">
+      <header className="sticky top-0 z-10 border-b bg-white print:hidden">
         <div className="mx-auto flex max-w-4xl items-center justify-between p-3">
           <span className="font-bold text-indigo-700">{t('common.appName')}</span>
           <nav className="hidden gap-4 sm:flex">
@@ -47,7 +48,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       <main className="mx-auto max-w-4xl p-4">{children}</main>
 
       {/* Mobile: Bottom-Navigation */}
-      <nav className="fixed inset-x-0 bottom-0 flex justify-around border-t bg-white p-2 sm:hidden">
+      <nav className="fixed inset-x-0 bottom-0 flex justify-around border-t bg-white p-2 sm:hidden print:hidden">
         {links.map((link) => (
           <NavLink
             key={link.to}

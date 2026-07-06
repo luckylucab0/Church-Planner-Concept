@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
+import ServicePlan, { PlanItem } from './ServicePlan';
 import { api, ApiError } from '../../api/client';
 
 export interface EventDetail {
@@ -9,6 +10,8 @@ export interface EventDetail {
   startsAt: string;
   location?: string | null;
   status: string;
+  canEditPlan: boolean;
+  planItems: PlanItem[];
   slots: EventSlot[];
 }
 
@@ -105,7 +108,17 @@ export default function EventDetailPage() {
         </p>
       </div>
 
-      <div className="space-y-3">
+      <ServicePlan
+        eventId={event.id}
+        startsAt={event.startsAt}
+        items={event.planItems}
+        canEdit={event.canEditPlan}
+        onSaved={reload}
+      />
+
+      {/* Besetzung: beim Drucken ausgeblendet – gedruckt wird der Ablauf */}
+      <div className="space-y-3 print:hidden">
+        <h2 className="font-semibold">{t('plans.staffingTitle')}</h2>
         {event.slots.map((slot) => (
           <section key={slot.id} className="rounded-xl bg-white p-4 shadow">
             <div className="flex items-center gap-2">

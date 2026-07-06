@@ -12,6 +12,7 @@ import EventDetailPage from './features/plans/EventDetailPage';
 import MyAssignments from './features/plans/MyAssignments';
 import PlansPage from './features/plans/PlansPage';
 import RespondPage from './features/respond/RespondPage';
+import SongsPage from './features/songs/SongsPage';
 import TeamsPage from './features/teams/TeamsPage';
 
 // Leitet nicht eingeloggte Nutzer zum Login um. Das ist reine UX –
@@ -76,6 +77,14 @@ export default function App() {
           element={
             <RequireAuth>
               <EventDetailPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/songs"
+          element={
+            <RequireAuth>
+              <SongsPage />
             </RequireAuth>
           }
         />

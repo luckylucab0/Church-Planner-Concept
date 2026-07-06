@@ -206,6 +206,42 @@ async function main(): Promise<void> {
     include: { positionTemplate: true },
   });
 
+  console.log('Seed: Liederdatenbank mit Arrangements…');
+  // Fiktive Titel und CCLI-Nummern – reine Demo-Daten
+  const SONGS: Array<
+    [string, string | null, number | null, string | null, Array<[string, string]>]
+  > = [
+    ['Größer als alles', 'D', 72, '7061312', [['Akustik', 'C']]],
+    ['Du bist treu', 'G', 68, '7024581', []],
+    [
+      'Licht dieser Stadt',
+      'A',
+      128,
+      '7103205',
+      [
+        ['Band', 'A'],
+        ['Unplugged', 'G'],
+      ],
+    ],
+    ['Anker in der Zeit', 'E', 74, '7011429', []],
+    ['Hier bin ich', 'C', 82, '7088846', [['Piano', 'B']]],
+    ['Ewig dein', 'F', 76, '7129973', []],
+  ];
+  const songs = [];
+  for (const [title, defaultKey, tempoBpm, ccliNumber, arrangements] of SONGS) {
+    const song = await prisma.song.create({
+      data: {
+        title,
+        defaultKey,
+        tempoBpm,
+        ccliNumber,
+        arrangements: { create: arrangements.map(([name, key]) => ({ name, key })) },
+      },
+      include: { arrangements: true },
+    });
+    songs.push(song);
+  }
+
   // Nächste 8 Sonntage 10:00 aus der RRULE materialisieren
   const rule = new RRule({
     freq: RRule.WEEKLY,
@@ -257,6 +293,44 @@ async function main(): Promise<void> {
           },
         });
       }
+
+      // Ablaufplan für die ersten zwei Termine – zeigt Programmpunkte,
+      // Lieder (inkl. Arrangement/CCLI) und Verantwortliche
+      const [song1, song2, song3, song4] = [
+        songs[index],
+        songs[index + 2],
+        songs[index + 4],
+        songs[(index + 1) % songs.length],
+      ];
+      const planItems = [
+        { title: 'Begrüßung & Gebet', durationMinutes: 5, responsiblePersonId: people[1].id },
+        {
+          title: 'Worship-Block',
+          durationMinutes: 6,
+          songId: song1.id,
+          arrangementId: song1.arrangements[0]?.id ?? null,
+          responsiblePersonId: people[1].id,
+        },
+        { title: 'Worship-Block', durationMinutes: 5, songId: song2.id },
+        { title: 'Abkündigungen', durationMinutes: 5, responsiblePersonId: people[0].id },
+        {
+          title: 'Predigt',
+          durationMinutes: 35,
+          notes: index === 0 ? 'Reihe Bergpredigt, Teil 3' : 'Gastprediger',
+          responsiblePersonId: people[3].id,
+        },
+        {
+          title: 'Response-Lied',
+          durationMinutes: 5,
+          songId: song3.id,
+          arrangementId: song3.arrangements[0]?.id ?? null,
+        },
+        { title: 'Kollekte', durationMinutes: 4, songId: song4.id },
+        { title: 'Segen', durationMinutes: 3, responsiblePersonId: people[3].id },
+      ];
+      await prisma.servicePlanItem.createMany({
+        data: planItems.map((item, sortOrder) => ({ eventId: event.id, sortOrder, ...item })),
+      });
     }
   }
 
