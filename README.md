@@ -9,7 +9,8 @@ Open-Source-Alternative zu Elvanto und Planning Center Services.
 
 > Status: Phase 1 (MVP) ist funktional komplett – Personen, Teams, Dienstpläne,
 > Zusage/Absage per Mail-Link, Erinnerungen, iCal, Import aus Elvanto/Planning
-> Center. Roadmap: [docs/roadmap.md](docs/roadmap.md)
+> Center. Roadmap: [docs/roadmap.md](docs/roadmap.md) ·
+> Anwenderhandbuch mit Screenshots: [docs/anwenderhandbuch.md](docs/anwenderhandbuch.md)
 
 ## Warum ServeFlow?
 
