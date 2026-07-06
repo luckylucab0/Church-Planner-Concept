@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.2.1...v0.3.0) (2026-07-06)
+
+
+### Features
+
+* **web:** ServeFlow-Branding und dunkles Design ([7ee69ba](https://github.com/luckylucab0/Church-Planner-Concept/commit/7ee69ba05d090dc437faf928759d39ae97f86dd5))
+* **web:** ServeFlow-Branding und dunkles Design ([#33](https://github.com/luckylucab0/Church-Planner-Concept/issues/33)) ([7d19cf9](https://github.com/luckylucab0/Church-Planner-Concept/commit/7d19cf90bc2744c12b44e20bf72231ef2dcc08f9))
+
 ## [0.2.1](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.2.0...v0.2.1) (2026-07-06)
 
 
