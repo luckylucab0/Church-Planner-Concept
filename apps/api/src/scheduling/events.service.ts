@@ -107,6 +107,7 @@ export class EventsService {
       slots: event.slots.map((slot) => ({
         id: slot.id,
         requiredCount: slot.requiredCount,
+        openForSignup: slot.openForSignup,
         position: {
           id: slot.position.id,
           name: slot.position.name,

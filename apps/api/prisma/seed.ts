@@ -334,6 +334,13 @@ async function main(): Promise<void> {
     }
   }
 
+  // Kaffee-Theke ist zur Selbst-Eintragung freigegeben – zeigt den
+  // Signup-Bereich auf dem Dashboard direkt mit Inhalt
+  await prisma.eventPositionSlot.updateMany({
+    where: { positionId: teams.Kaffee.positionIds[0] },
+    data: { openForSignup: true },
+  });
+
   console.log('Seed: Abwesenheiten…');
   const in3weeks = new Date(Date.now() + 21 * 86_400_000);
   const in4weeks = new Date(Date.now() + 28 * 86_400_000);

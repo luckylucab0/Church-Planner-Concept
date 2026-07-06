@@ -66,6 +66,7 @@ model Person {
   authTokens        AuthToken[]
   notifications     NotificationLog[]
   planResponsibilities ServicePlanItem[] @relation("PlanResponsibilities")
+  replacementRequests  ReplacementRequest[] @relation("ReplacementCandidate")
 }
 
 enum GlobalRole {
@@ -245,6 +246,9 @@ model EventPositionSlot {
   positionId    String   @db.Uuid
   position      Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
   requiredCount Int      @default(1)
+  // Selbst-Eintragung: Mitglieder mit passender Position können sich
+  // ohne Teamleiter selbst eintragen (Signup Sheets)
+  openForSignup Boolean  @default(false)
 
   assignments Assignment[]
 
@@ -274,9 +278,35 @@ model Assignment {
 
   responseTokens ResponseToken[]
   notifications  NotificationLog[]
+  replacementRequests ReplacementRequest[]
 
   @@unique([slotId, personId])
   @@index([personId])
+}
+
+// Vertretung (Swap & Replace): die eingeteilte Person fragt selbst eine
+// Vertretung an. Die angefragte Person antwortet per Token-Link ohne
+// Login; bei Zusage wandert die Einteilung auf sie über.
+enum ReplacementStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED
+}
+
+model ReplacementRequest {
+  id                String            @id @default(uuid()) @db.Uuid
+  assignmentId      String            @db.Uuid
+  assignment        Assignment        @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  candidatePersonId String            @db.Uuid
+  candidate         Person            @relation("ReplacementCandidate", fields: [candidatePersonId], references: [id], onDelete: Cascade)
+  tokenHash         String            @unique
+  status            ReplacementStatus @default(PENDING)
+  expiresAt         DateTime
+  respondedAt       DateTime?
+  createdAt         DateTime          @default(now())
+
+  @@index([assignmentId])
 }
 
 // ---------- Tokens -----------------------------------------
@@ -355,6 +385,9 @@ enum NotificationKind {
   ASSIGNED
   REMINDER
   DECLINED_ALERT
+  REPLACEMENT_REQUEST
+  REPLACEMENT_RESULT
+  SIGNUP_ALERT
 }
 
 model NotificationLog {

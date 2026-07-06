@@ -26,27 +26,27 @@ Bereits umgesetzt:
   Bearbeitung durch Admins und Teamleitende.
 - **Liederdatenbank** ✅: Songs mit Tonart, Tempo, CCLI-Nummer und
   Arrangements; Suche nach Titel/CCLI; Verknüpfung mit dem Ablaufplan.
+- **Vertretung (Swap & Replace)** ✅: Eingeteilte fragen selbst eine geeignete
+  Vertretung an (Token-Link ohne Login); bei Zusage wandert die Einteilung
+  automatisch über, Teamleitung wird informiert
+- **Selbst-Eintragung (Signup)** ✅: Teamleitende geben Slots frei, passende
+  Mitglieder tragen sich über „Offene Dienste" selbst ein (zählt als Zusage)
 
 Als Nächstes (Reihenfolge = Priorisierung aus dem Vergleich):
 
-1. **Swap & Replace**: Eingeteilte tauschen ihren Dienst selbst oder fragen
-   selbst eine Vertretung aus der Kandidatenliste an; Teamleitung wird
-   informiert statt belastet
-2. **Selbst-Eintragung (Signup)**: offene Positionen zur Selbst-Eintragung
-   freigeben (z. B. Kaffee/Aufbau)
-3. **Plan-Vorlagen & „Vorwoche kopieren"**: Ablauf + Besetzungs-Vorlagen je
+1. **Plan-Vorlagen & „Vorwoche kopieren"**: Ablauf + Besetzungs-Vorlagen je
    Gottesdienst-Typ; Rotations-Vorlagen
-4. **Probe-/Zusatzzeiten** pro Termin (Probe, Stellprobe, mehrere
+2. **Probe-/Zusatzzeiten** pro Termin (Probe, Stellprobe, mehrere
    Gottesdienstzeiten)
-5. **Songtexte & Akkorde**: ChordPro-Import, Anzeige mit Transposition in
+3. **Songtexte & Akkorde**: ChordPro-Import, Anzeige mit Transposition in
    jede Tonart; **Lied-Historie** („wann zuletzt gespielt")
-6. **Datei-Storage + Anhänge** (Noten-PDFs, MP3s, Slides pro
+4. **Datei-Storage + Anhänge** (Noten-PDFs, MP3s, Slides pro
    Lied/Ablaufpunkt; Personenfotos) – `Attachment`-Tabelle existiert
-7. **Auto-Einteilung**: alle offenen Slots eines Termins per Klick über die
+5. **Auto-Einteilung**: alle offenen Slots eines Termins per Klick über die
    Vorschlags-Engine besetzen; Absagen optional automatisch neu besetzen
-8. **Live-Ansicht**: während des Gottesdienstes durch den Ablauf steppen
+6. **Live-Ansicht**: während des Gottesdienstes durch den Ablauf steppen
    (Timer, aktueller Punkt)
-9. **Räume & Ressourcen**: Buchung pro Termin mit Konfliktprüfung
+7. **Räume & Ressourcen**: Buchung pro Termin mit Konfliktprüfung
    (`Resource`, `ResourceBooking` existieren im Schema)
 
 ## Phase 3 – Ausbau

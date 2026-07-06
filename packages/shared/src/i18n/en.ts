@@ -50,6 +50,28 @@ export const en = {
     declineReason: 'Reason (optional)',
     conflictUnavailable: 'This person is unavailable on that date.',
   },
+  replacement: {
+    heading: 'Hi {{firstName}}!',
+    question:
+      '{{requesterFirstName}} is asking if you can take over the {{position}} slot at "{{eventTitle}}" on {{date}}.',
+    accept: 'Take over',
+    decline: "Can't make it",
+    accepted: 'Thank you – the slot is yours now! 🎉',
+    declined: 'All right – {{requesterFirstName}} has been notified.',
+    findReplacement: 'Find a replacement',
+    pending: 'Replacement requested: {{name}}',
+    cancelRequest: 'Withdraw request',
+    ask: 'Ask',
+    nobodyAvailable: 'Nobody suitable is available right now.',
+  },
+  signup: {
+    title: 'Open slots – sign up',
+    join: 'Sign up',
+    joined: 'Signed up! The slot is now listed under "My assignments".',
+    none: 'There are no open slots for you right now.',
+    stillOpen: '{{count}} open',
+    openToggle: 'Self sign-up',
+  },
   respond: {
     heading: 'Hi {{firstName}}!',
     question: 'Can you serve as {{position}} at "{{eventTitle}}" on {{date}}?',
@@ -183,5 +205,20 @@ export const en = {
     declinedAlertSubject: 'Declined: {{personName}} for {{position}} on {{date}}',
     declinedAlertBody:
       'Hi {{leaderName}},\n\n{{personName}} has declined {{position}} at "{{eventTitle}}" on {{date}}.{{reason}}\n\nSuggested replacements (fair rotation considered):\n{{suggestions}}\n\nOpen the plan: {{planUrl}}',
+    replacementRequestSubject: 'Can you fill in for {{requesterName}}? {{eventTitle}} on {{date}}',
+    replacementRequestBody:
+      'Hi {{firstName}},\n\n{{requesterName}} is asking if you can take over the {{position}} slot at "{{eventTitle}}" on {{date}}.\n\nTake over: {{acceptUrl}}\nCannot make it: {{declineUrl}}\n\nThank you!',
+    replacementAcceptedSubject: 'Replacement found: {{candidateName}} takes over on {{date}}',
+    replacementAcceptedBody:
+      'Hi {{firstName}},\n\n{{candidateName}} is taking over your {{position}} slot at "{{eventTitle}}" on {{date}}. You are no longer scheduled.',
+    replacementDeclinedSubject: 'Replacement request declined ({{date}})',
+    replacementDeclinedBody:
+      'Hi {{firstName}},\n\nunfortunately {{candidateName}} cannot take over your {{position}} slot on {{date}}. You can ask someone else or decline.',
+    replacementLeaderSubject: 'Replacement: {{candidateName}} fills in for {{personName}}',
+    replacementLeaderBody:
+      'Hi {{leaderName}},\n\n{{candidateName}} is taking over the {{position}} slot from {{personName}} at "{{eventTitle}}" on {{date}}.\n\nOpen the plan: {{planUrl}}',
+    signupAlertSubject: '{{personName}} signed up: {{position}} on {{date}}',
+    signupAlertBody:
+      'Hi {{leaderName}},\n\n{{personName}} signed up for {{position}} at "{{eventTitle}}" on {{date}} (counts as accepted).\n\nOpen the plan: {{planUrl}}',
   },
 } as const;
