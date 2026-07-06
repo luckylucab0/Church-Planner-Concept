@@ -12,7 +12,8 @@ Open-Source-Alternative zu Elvanto und Planning Center Services.
 > Center. Aus Phase 2 bereits umgesetzt: Gottesdienst-Ablaufplan (druckbar) und
 > Liederdatenbank mit Arrangements und CCLI-Nummern.
 > Roadmap: [docs/roadmap.md](docs/roadmap.md) ·
-> Anwenderhandbuch mit Screenshots: [docs/anwenderhandbuch.md](docs/anwenderhandbuch.md)
+> Anwenderhandbuch mit Screenshots: [docs/anwenderhandbuch.md](docs/anwenderhandbuch.md) ·
+> Feature-Vergleich mit Elvanto/Planning Center: [docs/vergleich-alternativen.md](docs/vergleich-alternativen.md)
 
 ## Warum ServeFlow?
 
