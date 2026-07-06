@@ -12,6 +12,18 @@ updates:
       minor-and-patch:
         update-types: ['minor', 'patch']
     open-pull-requests-limit: 5
+    # Majors, die eine geplante Migration brauchen – nicht per Bump lösbar:
+    # - Prisma 7: neues prisma.config.ts, geänderte Client-Generierung
+    # - @vitejs/plugin-react 6 + Vite 8: Rolldown-Umstieg, Tailwind-Plugin prüfen
+    ignore:
+      - dependency-name: prisma
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@prisma/client'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@vitejs/plugin-react'
+        update-types: ['version-update:semver-major']
+      - dependency-name: vite
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
     directory: /
