@@ -121,8 +121,18 @@ export class SignupService {
 
   async signup(user: AuthUser, slotId: string) {
     const slot = await this.loadSlot(slotId);
-    if (!slot.openForSignup || slot.event.status !== 'PUBLISHED') {
+    if (slot.event.status !== 'PUBLISHED') {
       throw new ForbiddenException('Dieser Dienst ist nicht zur Selbst-Eintragung freigegeben');
+    }
+    // Admins/Teamleiter des Slot-Teams dürfen sich auch ohne Freigabe
+    // eintragen – sie könnten den Slot ohnehin selbst freigeben.
+    if (!slot.openForSignup) {
+      const mayBypass =
+        this.permissions.isAdmin(user) ||
+        (await this.permissions.getLedTeamIds(user.personId)).includes(slot.position.team.id);
+      if (!mayBypass) {
+        throw new ForbiddenException('Dieser Dienst ist nicht zur Selbst-Eintragung freigegeben');
+      }
     }
     if (slot.event.startsAt < new Date()) {
       throw new ForbiddenException('Termin liegt in der Vergangenheit');

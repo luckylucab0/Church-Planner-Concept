@@ -7,3 +7,8 @@
 # Caddy-Image. Entfernen, sobald Upstream aktualisiert hat.
 CVE-2026-27145 exp:2026-09-30
 CVE-2026-42504 exp:2026-09-30
+
+# Go-stdlib os.Root-Symlink-CVE, ebenfalls im vorkompilierten Caddy-Binary
+# (Fix in Go 1.26.5, offizielles Image noch mit 1.26.3 gebaut).
+# Entfernen, sobald Upstream mit Go >= 1.26.5 neu gebaut hat.
+CVE-2026-39822 exp:2026-09-30

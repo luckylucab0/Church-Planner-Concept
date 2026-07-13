@@ -83,6 +83,14 @@ export class EventsService {
               orderBy: { createdAt: 'asc' },
             },
           },
+          // Feste Reihenfolge: ohne orderBy würden Slots nach einem UPDATE
+          // (z. B. Freigabe-Toggle) in Heap-Reihenfolge zurückkommen und
+          // die Kachel spränge ans Listenende.
+          orderBy: [
+            { position: { team: { name: 'asc' } } },
+            { position: { name: 'asc' } },
+            { id: 'asc' },
+          ],
         },
         planItems: { include: planItemInclude, orderBy: { sortOrder: 'asc' } },
       },
@@ -94,6 +102,17 @@ export class EventsService {
       ? event.slots.map((s) => s.position.team.id)
       : await this.permissions.getLedTeamIds(user.personId);
 
+    // Für canSignup: eigene Positionen + ob ich an diesem Termin schon dran bin
+    const mySkills = await this.prisma.positionSkill.findMany({
+      where: { personId: user.personId },
+      select: { positionId: true },
+    });
+    const mySkillIds = new Set(mySkills.map((s) => s.positionId));
+    const alreadyInEvent = event.slots.some((slot) =>
+      slot.assignments.some((a) => a.person.id === user.personId && a.status !== 'DECLINED'),
+    );
+    const inFuture = event.startsAt >= new Date();
+
     return {
       id: event.id,
       title: event.title,
@@ -104,25 +123,38 @@ export class EventsService {
       // canEditPlan steuert nur die UI – setPlan() prüft serverseitig selbst
       canEditPlan: isAdmin || (await this.permissions.isAnyTeamLeader(user.personId)),
       planItems: event.planItems.map(mapPlanItem),
-      slots: event.slots.map((slot) => ({
-        id: slot.id,
-        requiredCount: slot.requiredCount,
-        openForSignup: slot.openForSignup,
-        position: {
-          id: slot.position.id,
-          name: slot.position.name,
-          team: slot.position.team,
-        },
-        // canAssign steuert nur die UI – die Assignments-API prüft selbst
-        canAssign: ledTeamIds.includes(slot.position.team.id),
-        assignments: slot.assignments.map((assignment) => ({
-          id: assignment.id,
-          personId: assignment.person.id,
-          personName: `${assignment.person.firstName} ${assignment.person.lastName}`,
-          status: assignment.status,
-          declineReason: assignment.declineReason,
-        })),
-      })),
+      slots: event.slots.map((slot) => {
+        const canAssign = ledTeamIds.includes(slot.position.team.id);
+        const taken = slot.assignments.filter((a) => a.status !== 'DECLINED').length;
+        return {
+          id: slot.id,
+          requiredCount: slot.requiredCount,
+          openForSignup: slot.openForSignup,
+          position: {
+            id: slot.position.id,
+            name: slot.position.name,
+            team: slot.position.team,
+          },
+          // canAssign steuert nur die UI – die Assignments-API prüft selbst
+          canAssign,
+          // "Mich eintragen" anbieten? Nur UI-Hinweis, die Signup-API prüft
+          // beim POST erneut (inkl. Abwesenheit, die hier zu teuer wäre).
+          canSignup:
+            event.status === 'PUBLISHED' &&
+            inFuture &&
+            mySkillIds.has(slot.position.id) &&
+            taken < slot.requiredCount &&
+            !alreadyInEvent &&
+            (slot.openForSignup || canAssign),
+          assignments: slot.assignments.map((assignment) => ({
+            id: assignment.id,
+            personId: assignment.person.id,
+            personName: `${assignment.person.firstName} ${assignment.person.lastName}`,
+            status: assignment.status,
+            declineReason: assignment.declineReason,
+          })),
+        };
+      }),
     };
   }
 

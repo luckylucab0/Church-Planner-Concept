@@ -1,6 +1,6 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import LoginPage from './features/auth/LoginPage';
 import AvailabilityPage from './features/availability/AvailabilityPage';
@@ -16,6 +16,19 @@ import ReplacementPage from './features/respond/ReplacementPage';
 import RespondPage from './features/respond/RespondPage';
 import SongsPage from './features/songs/SongsPage';
 import TeamsPage from './features/teams/TeamsPage';
+
+// Jede Seite startet oben: Browser-Scroll-Restauration aus (sonst landet
+// ein Reload mitten auf der Seite) und bei jedem Routenwechsel nach oben.
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.history.scrollRestoration = 'manual';
+  }, []);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
 
 // Leitet nicht eingeloggte Nutzer zum Login um. Das ist reine UX –
 // die eigentliche Zugriffskontrolle passiert serverseitig.
@@ -49,6 +62,7 @@ function Dashboard() {
 export default function App() {
   return (
     <SessionProvider>
+      <ScrollToTop />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         {/* Öffentlich: Zusage/Absage + Vertretungs-Übernahme per Mail-Link */}

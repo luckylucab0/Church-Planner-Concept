@@ -28,9 +28,12 @@ describe('Vertretung & Selbst-Eintragung (integration)', () => {
   let leaderCookie: string;
   let memberCookie: string;
   let otherCookie: string;
+  let leaderId: string;
   let memberId: string;
   let helperId: string;
   let outsiderId: string;
+  let tonId: string;
+  let thekeId: string;
   let slotId: string;
   let signupSlotId: string;
   let assignmentId: string;
@@ -66,7 +69,7 @@ describe('Vertretung & Selbst-Eintragung (integration)', () => {
       builder.overrideProvider(MailerService).useValue(mailer);
     });
 
-    const leaderId = await createPerson('Leader');
+    leaderId = await createPerson('Leader');
     memberId = await createPerson('Member');
     helperId = await createPerson('Helper');
     outsiderId = await createPerson('Outsider');
@@ -85,8 +88,8 @@ describe('Vertretung & Selbst-Eintragung (integration)', () => {
       },
       include: { positions: true },
     });
-    const tonId = team.positions.find((p) => p.name === 'Ton')!.id;
-    const thekeId = team.positions.find((p) => p.name === 'Theke')!.id;
+    tonId = team.positions.find((p) => p.name === 'Ton')!.id;
+    thekeId = team.positions.find((p) => p.name === 'Theke')!.id;
     await prisma.positionSkill.createMany({
       data: [
         { positionId: tonId, personId: memberId, skillLevel: 'SOLID' },
@@ -332,5 +335,85 @@ describe('Vertretung & Selbst-Eintragung (integration)', () => {
       headers: { cookie: helperCookie },
     });
     expect(response.statusCode).toBe(403);
+  });
+
+  it('Teamleiter trägt sich per "Mich eintragen" auch ohne Freigabe ein', async () => {
+    // Slot ist aus dem vorigen Test geschlossen; Leiter des Teams darf trotzdem
+    await prisma.positionSkill.create({
+      data: { positionId: thekeId, personId: leaderId, skillLevel: 'SOLID' },
+    });
+    const response = await app.inject({
+      method: 'POST',
+      url: `/api/v1/signup/slots/${signupSlotId}`,
+      headers: { cookie: leaderCookie },
+    });
+    expect(response.statusCode).toBe(201);
+    expect(response.json().status).toBe('ACCEPTED');
+
+    // Der Dienst steht sofort unter "Meine Dienste"
+    const mine = await app.inject({
+      method: 'GET',
+      url: '/api/v1/me/assignments',
+      headers: { cookie: leaderCookie },
+    });
+    expect(mine.json().map((a: { position: string }) => a.position)).toContain('Theke');
+  });
+
+  it('Event-Detail: Slots bleiben nach Freigabe-Toggle stabil sortiert, canSignup passt', async () => {
+    const event3 = await prisma.event.create({
+      data: {
+        title: `Gottesdienst3-${uniq}`,
+        startsAt: new Date(Date.now() + 21 * 86_400_000),
+        endsAt: new Date(Date.now() + 21 * 86_400_000 + 90 * 60_000),
+        status: 'PUBLISHED',
+        slots: {
+          create: [
+            { positionId: thekeId, requiredCount: 1 },
+            { positionId: tonId, requiredCount: 1 },
+          ],
+        },
+      },
+      include: { slots: true },
+    });
+    const thekeSlot = event3.slots.find((s) => s.positionId === thekeId)!;
+    const helperCookie = await login('helper');
+    const detail = async () =>
+      (
+        await app.inject({
+          method: 'GET',
+          url: `/api/v1/events/${event3.id}`,
+          headers: { cookie: helperCookie },
+        })
+      ).json();
+
+    const before = await detail();
+    expect(before.slots.map((s: { position: { name: string } }) => s.position.name)).toEqual([
+      'Theke',
+      'Ton',
+    ]);
+
+    // UPDATE ändert die physische Zeilen-Reihenfolge in Postgres – ohne
+    // orderBy rutschte der Theke-Slot dadurch ans Ende
+    await app.inject({
+      method: 'PATCH',
+      url: `/api/v1/signup/slots/${thekeSlot.id}`,
+      headers: { cookie: leaderCookie },
+      payload: { open: true },
+    });
+
+    const after = await detail();
+    expect(after.slots.map((s: { position: { name: string } }) => s.position.name)).toEqual([
+      'Theke',
+      'Ton',
+    ]);
+    // Helper hat beide Positionen, ist aber kein Leiter: nur der
+    // freigegebene Theke-Slot bietet "Mich eintragen" an
+    const canSignup = Object.fromEntries(
+      after.slots.map((s: { position: { name: string }; canSignup: boolean }) => [
+        s.position.name,
+        s.canSignup,
+      ]),
+    );
+    expect(canSignup).toEqual({ Theke: true, Ton: false });
   });
 });

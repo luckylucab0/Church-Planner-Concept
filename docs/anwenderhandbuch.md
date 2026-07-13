@@ -72,7 +72,9 @@ Gibt es Dienste, die deine Teamleitung zur **Selbst-Eintragung** freigegeben
 hat (z. B. Kaffee-Theke), erscheinen sie auf deiner Übersicht unter „Offene
 Dienste". Ein Klick auf **„Eintragen"** genügt – das zählt direkt als Zusage,
 deine Teamleitung wird informiert. Du siehst nur Dienste, für die du die
-passende Position hast und an denen du nicht abwesend bist.
+passende Position hast und an denen du nicht abwesend bist. Dasselbe geht
+auch direkt im Termin: Bei freigegebenen Positionen steht dort der Button
+**„Mich eintragen"**.
 
 ## 3. Auf eine Einteilung antworten (Zusagen/Absagen)
 
@@ -193,25 +195,32 @@ Positionen deiner Teams erscheint der Link **„+ Vorschläge"**:
 
 So funktioniert die Einteilung:
 
-1. **„+ Vorschläge" klicken.** ServeFlow schlägt geeignete Personen vor –
-   sortiert nach **fairer Verteilung**: Wer lange nicht mehr dran war und
-   zuletzt wenige Einsätze hatte, steht oben. Unter jedem Namen steht warum
-   (z. B. „zuletzt vor 49 Tagen · 1 Einsatz in 90 Tagen").
+1. **„Person eintragen" klicken.** Es öffnet sich eine Auswahlliste mit
+   geeigneten Personen – sortiert nach **fairer Verteilung**: Wer lange nicht
+   mehr dran war und zuletzt wenige Einsätze hatte, steht oben. Hinter jedem
+   Namen steht warum (z. B. „zuletzt vor 49 Tagen · 1 Einsatz in 90 Tagen").
 2. Personen, die **abwesend** oder am selben Termin schon eingeteilt sind,
    erscheinen gar nicht erst. Bei einem Dienst am Vor- oder Folgetag zeigt
    ServeFlow eine ⚠-Warnung, blockiert aber nicht.
-3. **„Einteilen" klicken.** Die Person bekommt sofort die E-Mail mit
-   Zusagen/Absagen-Link; im Plan steht sie als „angefragt".
+3. **Person auswählen und „Einteilen" klicken.** Die Person bekommt sofort
+   die E-Mail mit Zusagen/Absagen-Link; im Plan steht sie als „angefragt".
 4. **Bei einer Absage** wirst du automatisch per E-Mail informiert – inklusive
    der drei besten Ersatz-Vorschläge, damit du schnell reagieren kannst.
 
 Über **„Entfernen"** nimmst du eine Einteilung wieder heraus.
 
-**Selbst-Eintragung:** Bei Positionen deiner Teams kannst du pro Termin das
-Häkchen **„Selbst-Eintragung"** setzen. Der Dienst erscheint dann bei allen
-passenden Personen auf der Übersicht unter „Offene Dienste", und sie können
-sich ohne dein Zutun eintragen (zählt als Zusage, du wirst per E-Mail
-informiert). Praktisch für Dienste ohne feste Planung wie Kaffee oder Aufbau.
+**Mich eintragen:** Hast du selbst die passende Position, steht neben
+„Person eintragen" der Button **„Mich eintragen"** – ein Klick und du bist
+direkt mit Zusage eingeteilt. Der Dienst erscheint sofort unter „Meine
+Dienste" auf deiner Übersicht.
+
+**Selbst-Eintragung freigeben:** Über den Link **„Für Selbst-Eintragung
+freigeben"** öffnest du einen Slot für alle passenden Personen. Der Dienst
+erscheint dann bei ihnen auf der Übersicht unter „Offene Dienste" (und im
+Termin als „Mich eintragen"-Button), und sie können sich ohne dein Zutun
+eintragen (zählt als Zusage, du wirst per E-Mail informiert). Praktisch für
+Dienste ohne feste Planung wie Kaffee oder Aufbau. Mit **„Freigabe
+aufheben"** schließt du den Slot wieder.
 
 **Vertretungen:** Sucht sich eine eingeteilte Person selbst eine Vertretung
 (siehe Kapitel 2), musst du nichts tun – die Einteilung wandert bei Zusage

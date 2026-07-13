@@ -43,6 +43,7 @@ export const de = {
     myAssignments: 'Meine Dienste',
     noneUpcoming: 'Keine anstehenden Dienste.',
     suggest: 'Vorschläge',
+    selectPerson: 'Person auswählen …',
     assign: 'Einteilen',
     remove: 'Entfernen',
     lastServed: 'zuletzt vor {{days}} Tagen',
@@ -82,6 +83,10 @@ export const de = {
     none: 'Gerade gibt es keine offenen Dienste für dich.',
     stillOpen: '{{count}} offen',
     openToggle: 'Selbst-Eintragung',
+    self: 'Mich eintragen',
+    assignOther: 'Person eintragen',
+    release: 'Für Selbst-Eintragung freigeben',
+    releaseOff: 'Freigabe aufheben',
   },
   import: {
     title: 'Datenimport',

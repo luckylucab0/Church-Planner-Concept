@@ -24,7 +24,10 @@ COPY --from=build /repo/apps/web/dist /srv
 # Nicht als root laufen (Least Privilege): setcap erlaubt dem Caddy-Binary
 # das Binden von Port 80/443 auch ohne root; /data und /config gehören dem
 # Nutzer, damit TLS-Zertifikate geschrieben werden können.
-RUN apk add --no-cache libcap \
+# apk upgrade zieht Fixes für Alpine-CVEs, die das Basis-Image noch nicht
+# enthält (z. B. c-ares) – ohne Upgrade blockiert der Trivy-Scan.
+RUN apk upgrade --no-cache \
+  && apk add --no-cache libcap \
   && setcap cap_net_bind_service=+ep /usr/bin/caddy \
   && adduser -S -D -H -u 1000 caddyuser \
   && chown -R caddyuser /data /config /srv

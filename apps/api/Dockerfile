@@ -30,7 +30,8 @@ FROM node:22-alpine
 # npm/npx/corepack werden zur Laufzeit nicht gebraucht und fliegen raus:
 # weniger Angriffsfläche und keine CVE-Funde aus npm-Bundle-Dependencies
 # (z. B. sigstore/picomatch), die mit der App nichts zu tun haben.
-RUN addgroup -S serveflow && adduser -S serveflow -G serveflow \
+RUN apk upgrade --no-cache \
+  && addgroup -S serveflow && adduser -S serveflow -G serveflow \
   && rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /opt/yarn*
 WORKDIR /app
 COPY --from=build --chown=serveflow:serveflow /prod/api /app
