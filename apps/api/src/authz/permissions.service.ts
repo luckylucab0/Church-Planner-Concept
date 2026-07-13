@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { TeamCapability, TeamRole } from '@prisma/client';
+import { defaultAllowed } from './team-capabilities';
 import { AuthUser } from '../auth/auth.types';
 import { PrismaService } from '../prisma/prisma.service';
 import { ViewerRelationship } from './person-visibility';
 
-// Berechnet die Beziehung Betrachter↔Zielperson(en) für den
-// Field-Visibility-Layer. Für Listen bewusst als Batch-Variante,
-// sonst würden N+1-Queries pro Personenliste anfallen.
+// Zentrale Rechte-Auflösung: globale Rolle (ADMIN), Teamrolle
+// (LEADER implizit alles) und die konfigurierbare Rechtematrix pro Team
+// (TeamRolePermission, fehlende Zeile = Default aus team-capabilities.ts).
+// Für Listen bewusst Batch-Varianten, sonst würden N+1-Queries anfallen.
 @Injectable()
 export class PermissionsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -14,23 +17,58 @@ export class PermissionsService {
     return user.globalRole === 'ADMIN';
   }
 
-  // Teams, die der Nutzer leitet
-  async getLedTeamIds(personId: string): Promise<string[]> {
+  // Darf der Nutzer die Capability in GENAU DIESEM Team ausüben?
+  async hasCapability(user: AuthUser, teamId: string, capability: TeamCapability): Promise<boolean> {
+    if (this.isAdmin(user)) return true;
+    const teamIds = await this.getTeamIdsWithCapability(user, capability);
+    return teamIds.includes(teamId);
+  }
+
+  // Alle Teams, in denen der Nutzer die Capability hat – Grundlage für
+  // Scope-Prüfungen (z. B. canAssign pro Slot). Konstant viele Queries.
+  async getTeamIdsWithCapability(user: AuthUser, capability: TeamCapability): Promise<string[]> {
     const memberships = await this.prisma.teamMembership.findMany({
-      where: { personId, isLeader: true },
+      where: { personId: user.personId },
+      select: { teamId: true, role: true },
+    });
+    if (memberships.length === 0) return [];
+
+    // Matrix-Zeilen nur für Nicht-LEADER-Rollen nötig
+    const nonLeader = memberships.filter((m) => m.role !== 'LEADER');
+    const overrides = nonLeader.length
+      ? await this.prisma.teamRolePermission.findMany({
+          where: { teamId: { in: nonLeader.map((m) => m.teamId) }, capability },
+          select: { teamId: true, role: true, allowed: true },
+        })
+      : [];
+    const overrideKey = (teamId: string, role: TeamRole) => `${teamId}:${role}`;
+    const overrideMap = new Map(overrides.map((o) => [overrideKey(o.teamId, o.role), o.allowed]));
+
+    return memberships
+      .filter((m) => {
+        if (m.role === 'LEADER') return true;
+        return overrideMap.get(overrideKey(m.teamId, m.role)) ?? defaultAllowed(m.role, capability);
+      })
+      .map((m) => m.teamId);
+  }
+
+  // Capability in irgendeinem Team? Für teamübergreifende Ressourcen
+  // (Liederdatenbank, Ablaufplan, Entwurfs-Sichtbarkeit) – der Ablauf
+  // eines Gottesdienstes entsteht teamübergreifend.
+  async hasCapabilityInAnyTeam(user: AuthUser, capability: TeamCapability): Promise<boolean> {
+    if (this.isAdmin(user)) return true;
+    const teamIds = await this.getTeamIdsWithCapability(user, capability);
+    return teamIds.length > 0;
+  }
+
+  // Teams, die der Nutzer als LEADER leitet (z. B. für Benachrichtigungen
+  // und die Matrix-Verwaltung – NICHT für delegierbare Rechte verwenden).
+  async getLeaderTeamIds(personId: string): Promise<string[]> {
+    const memberships = await this.prisma.teamMembership.findMany({
+      where: { personId, role: 'LEADER' },
       select: { teamId: true },
     });
     return memberships.map((m) => m.teamId);
-  }
-
-  // Leitet die Person irgendein Team? Grundlage für Rechte, die nicht an
-  // EIN Team gebunden sind (Liederdatenbank, Ablaufplan) – der Ablauf
-  // eines Gottesdienstes entsteht teamübergreifend.
-  async isAnyTeamLeader(personId: string): Promise<boolean> {
-    const count = await this.prisma.teamMembership.count({
-      where: { personId, isLeader: true },
-    });
-    return count > 0;
   }
 
   async getTeamIds(personId: string): Promise<string[]> {
@@ -54,9 +92,13 @@ export class PermissionsService {
     const result = new Map<string, ViewerRelationship>();
     const viewerIsAdmin = this.isAdmin(user);
 
-    const [viewerTeamIds, viewerLedTeamIds] = viewerIsAdmin
-      ? [[], []]
-      : [await this.getTeamIds(user.personId), await this.getLedTeamIds(user.personId)];
+    const [viewerTeamIds, contactTeamIds, notesTeamIds] = viewerIsAdmin
+      ? [[], [], []]
+      : [
+          await this.getTeamIds(user.personId),
+          await this.getTeamIdsWithCapability(user, 'VIEW_CONTACTS'),
+          await this.getTeamIdsWithCapability(user, 'NOTES'),
+        ];
 
     // Alle Team-Mitgliedschaften der Zielpersonen in einem Rutsch
     const targetMemberships = viewerIsAdmin
@@ -77,7 +119,8 @@ export class PermissionsService {
       result.set(targetId, {
         viewerRole: user.globalRole,
         isSelf: targetId === user.personId,
-        isLeaderOfTarget: targetTeams.some((teamId) => viewerLedTeamIds.includes(teamId)),
+        canViewContactsOfTarget: targetTeams.some((teamId) => contactTeamIds.includes(teamId)),
+        canNotesOnTarget: targetTeams.some((teamId) => notesTeamIds.includes(teamId)),
         sharesTeamWithTarget: targetTeams.some((teamId) => viewerTeamIds.includes(teamId)),
       });
     }

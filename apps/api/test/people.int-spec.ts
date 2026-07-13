@@ -67,7 +67,7 @@ describe('People API – Berechtigungen (integration)', () => {
         name: `Team-A-${uniq}`,
         memberships: {
           create: [
-            { personId: leader.personId, isLeader: true },
+            { personId: leader.personId, role: 'LEADER' },
             { personId: member.personId },
             { personId: sharing.personId },
           ],

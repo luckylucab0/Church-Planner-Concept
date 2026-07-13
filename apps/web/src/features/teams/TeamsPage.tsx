@@ -21,7 +21,7 @@ interface TeamDetail {
     lastName: string;
     email?: string;
     phone?: string;
-    isLeader: boolean;
+    role: 'LEADER' | 'DEPUTY' | 'MEMBER' | 'INTERN';
   }[];
   positions: {
     id: string;
@@ -80,7 +80,7 @@ export default function TeamsPage() {
               <li key={member.id} className="flex items-center gap-2 py-1.5 text-sm">
                 <span>
                   {member.firstName} {member.lastName}
-                  {member.isLeader && (
+                  {member.role === 'LEADER' && (
                     <span className="ml-1 badge badge-gold">{t('teams.leader')}</span>
                   )}
                 </span>

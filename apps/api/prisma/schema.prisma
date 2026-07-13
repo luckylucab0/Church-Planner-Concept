@@ -134,22 +134,63 @@ model Team {
   color     String   @default("#6366f1")
   createdAt DateTime @default(now())
 
-  memberships TeamMembership[]
-  positions   Position[]
+  memberships     TeamMembership[]
+  positions       Position[]
+  rolePermissions TeamRolePermission[]
+}
+
+// Rolle pro Team-Mitgliedschaft, keine globale Rolle – ein kompromittiertes
+// Leiter-Konto reicht nie über das eigene Team hinaus. LEADER hat implizit
+// alle Team-Rechte; was DEPUTY/MEMBER/INTERN dürfen, steuert die
+// Rechtematrix (TeamRolePermission) pro Team.
+enum TeamRole {
+  LEADER
+  DEPUTY
+  MEMBER
+  INTERN
 }
 
 model TeamMembership {
-  id       String  @id @default(uuid()) @db.Uuid
-  teamId   String  @db.Uuid
-  team     Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  personId String  @db.Uuid
-  person   Person  @relation(fields: [personId], references: [id], onDelete: Cascade)
-  // Teamleiter ist eine Beziehung pro Team, keine globale Rolle –
-  // ein kompromittiertes Leiter-Konto reicht nie über das eigene Team hinaus
-  isLeader Boolean @default(false)
+  id       String   @id @default(uuid()) @db.Uuid
+  teamId   String   @db.Uuid
+  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  personId String   @db.Uuid
+  person   Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  role     TeamRole @default(MEMBER)
 
   @@unique([teamId, personId])
   @@index([personId])
+}
+
+// Die konfigurierbaren Team-Rechte. Bewusst grobkörnig entlang der
+// heutigen Teamleiter-Fähigkeiten geschnitten; Admin-Rechte (Termine,
+// Personen, Import) sind NICHT delegierbar.
+enum TeamCapability {
+  ASSIGN // einteilen/entfernen/Vorschläge sehen
+  OPEN_SIGNUP // Slots zur Selbst-Eintragung freigeben (+ Bypass)
+  MANAGE_MEMBERS // Mitglieder aufnehmen/entfernen, Rollen unterhalb LEADER
+  MANAGE_POSITIONS // Positionen und Skills pflegen
+  NOTES // GENERAL-Notizen über Teammitglieder
+  VIEW_CONTACTS // Kontaktdaten der Teammitglieder sehen
+  VIEW_DRAFTS // Termin-Entwürfe (PLANNED) sehen
+  EDIT_PLAN // Ablaufplan bearbeiten
+  MANAGE_SONGS // Liederdatenbank pflegen (teamübergreifend)
+}
+
+// Rechtematrix pro Team und Rolle. Fehlende Zeile = Code-Default aus
+// team-capabilities.ts (lazy) – so brauchen neue Capabilities keine
+// Datenmigration. Für LEADER wird nie eine Zeile gespeichert: die Rolle
+// hat implizit alles, damit sich ein Team nicht selbst aussperren kann.
+model TeamRolePermission {
+  id         String         @id @default(uuid()) @db.Uuid
+  teamId     String         @db.Uuid
+  team       Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  role       TeamRole
+  capability TeamCapability
+  allowed    Boolean
+
+  @@unique([teamId, role, capability])
+  @@index([teamId])
 }
 
 model Position {

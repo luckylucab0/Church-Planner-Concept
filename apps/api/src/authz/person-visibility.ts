@@ -14,8 +14,11 @@ import { GlobalRole, Person, PrivacySettings } from '@prisma/client';
 export interface ViewerRelationship {
   viewerRole: GlobalRole;
   isSelf: boolean;
-  // Betrachter leitet mindestens ein Team, in dem die Zielperson Mitglied ist
-  isLeaderOfTarget: boolean;
+  // Betrachter hat in mind. einem Team der Zielperson die Capability
+  // VIEW_CONTACTS (Leiter implizit, sonst per Rechtematrix)
+  canViewContactsOfTarget: boolean;
+  // Dito für NOTES (GENERAL-Notizen über die Zielperson)
+  canNotesOnTarget: boolean;
   // Betrachter und Zielperson teilen mindestens ein Team
   sharesTeamWithTarget: boolean;
 }
@@ -63,7 +66,7 @@ export function buildPersonView(
   const photoAllowed =
     relationship.viewerRole === 'ADMIN' ||
     relationship.isSelf ||
-    relationship.isLeaderOfTarget ||
+    relationship.canViewContactsOfTarget ||
     (privacy?.photoVisibleToMembers ?? true);
   if (photoAllowed) {
     base.photoUrl = person.photoUrl;
@@ -87,9 +90,9 @@ export function buildPersonView(
     return full;
   }
 
-  // Teamleiter der Zielperson: Kontaktdaten ja (braucht er für die
-  // Einteilung), Adresse/Notizen nein
-  if (relationship.isLeaderOfTarget) {
+  // VIEW_CONTACTS auf die Zielperson (Teamleitung/Stellvertretung o. Ä.):
+  // Kontaktdaten ja (braucht es für die Einteilung), Adresse/Notizen nein
+  if (relationship.canViewContactsOfTarget) {
     return {
       ...base,
       email: person.email,

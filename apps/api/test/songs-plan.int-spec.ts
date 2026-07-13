@@ -48,8 +48,8 @@ describe('Songs & Ablaufplan API (integration)', () => {
         name: `Team-${uniq}`,
         memberships: {
           create: [
-            { personId: people.Leader, isLeader: true },
-            { personId: people.Member, isLeader: false },
+            { personId: people.Leader, role: 'LEADER' },
+            { personId: people.Member },
           ],
         },
       },

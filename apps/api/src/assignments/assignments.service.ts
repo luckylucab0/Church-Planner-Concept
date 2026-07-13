@@ -59,10 +59,8 @@ export class AssignmentsService {
   }
 
   private async ensureCanManageTeam(user: AuthUser, teamId: string): Promise<void> {
-    if (this.permissions.isAdmin(user)) return;
-    const ledTeams = await this.permissions.getLedTeamIds(user.personId);
-    if (!ledTeams.includes(teamId)) {
-      throw new ForbiddenException('Nur Admins oder Leiter dieses Teams dürfen einteilen');
+    if (!(await this.permissions.hasCapability(user, teamId, 'ASSIGN'))) {
+      throw new ForbiddenException('Dir fehlt in diesem Team das Recht zum Einteilen');
     }
   }
 
@@ -383,7 +381,7 @@ export class AssignmentsService {
       },
     });
     const leaders = await this.prisma.teamMembership.findMany({
-      where: { teamId: assignment.slot.position.teamId, isLeader: true },
+      where: { teamId: assignment.slot.position.teamId, role: 'LEADER' },
       include: { person: true },
     });
     if (leaders.length === 0) return;

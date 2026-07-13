@@ -80,7 +80,7 @@ describe('Vertretung & Selbst-Eintragung (integration)', () => {
         positions: { create: [{ name: 'Ton' }, { name: 'Theke' }] },
         memberships: {
           create: [
-            { personId: leaderId, isLeader: true },
+            { personId: leaderId, role: 'LEADER' },
             { personId: memberId },
             { personId: helperId },
           ],

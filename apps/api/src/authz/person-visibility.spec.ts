@@ -36,7 +36,8 @@ function makePerson(privacy?: Partial<PrivacySettings>): Person & {
 const rel = (overrides: Partial<ViewerRelationship>): ViewerRelationship => ({
   viewerRole: 'MEMBER',
   isSelf: false,
-  isLeaderOfTarget: false,
+  canViewContactsOfTarget: false,
+  canNotesOnTarget: false,
   sharesTeamWithTarget: false,
   ...overrides,
 });
@@ -86,8 +87,8 @@ describe('buildPersonView – Berechtigungsmatrix', () => {
     });
   });
 
-  describe('Teamleiter der Zielperson', () => {
-    const view = buildPersonView(makePerson(), rel({ isLeaderOfTarget: true }));
+  describe('Teamleiter der Zielperson (Capability VIEW_CONTACTS)', () => {
+    const view = buildPersonView(makePerson(), rel({ canViewContactsOfTarget: true }));
 
     it('sieht Kontaktdaten (auch ohne Freigabe – Einteilungszweck)', () => {
       expect(view).toHaveProperty('email', 'anna@example.org');
@@ -103,8 +104,8 @@ describe('buildPersonView – Berechtigungsmatrix', () => {
 
   describe('Teamleiter eines FREMDEN Teams (kompromittiertes Leiter-Konto)', () => {
     it('sieht nur die Basis wie jedes Mitglied', () => {
-      // isLeaderOfTarget=false: die Zielperson ist NICHT in seinem Team
-      const view = buildPersonView(makePerson(), rel({ isLeaderOfTarget: false }));
+      // canViewContactsOfTarget=false: die Zielperson ist NICHT in seinem Team
+      const view = buildPersonView(makePerson(), rel({ canViewContactsOfTarget: false }));
       expect(view).not.toHaveProperty('email');
       expect(view).not.toHaveProperty('phone');
     });

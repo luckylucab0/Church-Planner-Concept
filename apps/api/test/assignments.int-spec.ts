@@ -77,7 +77,7 @@ describe('Assignments & Respond-Workflow (integration)', () => {
         positions: { create: [{ name: 'Ton' }] },
         memberships: {
           create: [
-            { personId: leaderId, isLeader: true },
+            { personId: leaderId, role: 'LEADER' },
             { personId: memberId },
             { personId: secondId },
           ],

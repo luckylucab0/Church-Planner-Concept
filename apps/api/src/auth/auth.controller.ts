@@ -117,7 +117,7 @@ export class AuthController {
       select: { firstName: true, lastName: true, locale: true },
     });
     const leaderships = await this.prisma.teamMembership.findMany({
-      where: { personId: user.personId, isLeader: true },
+      where: { personId: user.personId, role: 'LEADER' },
       select: { teamId: true },
     });
     return {

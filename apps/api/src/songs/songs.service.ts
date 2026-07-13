@@ -18,12 +18,12 @@ export class SongsService {
     private readonly audit: AuditService,
   ) {}
 
-  // Lieder pflegen dürfen Admins und Teamleiter (egal welchen Teams):
-  // die Liederdatenbank ist eine gemeinsame Ressource, kein Team-Besitz.
+  // Lieder pflegen darf, wer in irgendeinem Team die Capability
+  // MANAGE_SONGS hat: die Liederdatenbank ist eine gemeinsame
+  // Ressource, kein Team-Besitz.
   private async ensureCanManage(user: AuthUser): Promise<void> {
-    if (this.permissions.isAdmin(user)) return;
-    if (await this.permissions.isAnyTeamLeader(user.personId)) return;
-    throw new ForbiddenException('Nur Admins oder Teamleiter');
+    if (await this.permissions.hasCapabilityInAnyTeam(user, 'MANAGE_SONGS')) return;
+    throw new ForbiddenException('Dir fehlt das Recht, die Liederdatenbank zu pflegen');
   }
 
   async list(user: AuthUser, query?: string) {
@@ -39,8 +39,7 @@ export class SongsService {
       include: { arrangements: { orderBy: { name: 'asc' } } },
       orderBy: { title: 'asc' },
     });
-    const canManage =
-      this.permissions.isAdmin(user) || (await this.permissions.isAnyTeamLeader(user.personId));
+    const canManage = await this.permissions.hasCapabilityInAnyTeam(user, 'MANAGE_SONGS');
     return { canManage, songs };
   }
 

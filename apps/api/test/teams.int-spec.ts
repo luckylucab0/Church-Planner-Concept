@@ -1,5 +1,5 @@
 // Negativtests für Team-Verwaltung: Teamleiter-Scope ist strikt auf das
-// eigene Team begrenzt; das Leader-Flag kann nur ein Admin vergeben.
+// eigene Team begrenzt; die Rolle LEADER kann nur ein Admin vergeben.
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
 import * as argon2 from 'argon2';
 import { createTestApp, sessionCookieFrom, testPrisma as prisma } from './utils/create-test-app';
@@ -57,7 +57,7 @@ describe('Teams API – Berechtigungen (integration)', () => {
         name: `Team-A-${uniq}`,
         positions: { create: [{ name: 'Gitarre' }] },
         memberships: {
-          create: [{ personId: leaderId, isLeader: true }, { personId: memberId }],
+          create: [{ personId: leaderId, role: 'LEADER' }, { personId: memberId }],
         },
       },
       include: { positions: true },
@@ -138,7 +138,7 @@ describe('Teams API – Berechtigungen (integration)', () => {
       method: 'POST',
       url: `/api/v1/teams/${teamAId}/members`,
       headers: { cookie: leaderCookie },
-      payload: { personId: looseId, isLeader: true },
+      payload: { personId: looseId, role: 'LEADER' },
     });
     expect(response.statusCode).toBe(403);
   });
@@ -177,10 +177,10 @@ describe('Teams API – Berechtigungen (integration)', () => {
       method: 'POST',
       url: `/api/v1/teams/${create.json().id}/members`,
       headers: { cookie: adminCookie },
-      payload: { personId: looseId, isLeader: true },
+      payload: { personId: looseId, role: 'LEADER' },
     });
     expect(addLeader.statusCode).toBe(201);
-    expect(addLeader.json().isLeader).toBe(true);
+    expect(addLeader.json().role).toBe('LEADER');
   });
 
   it('Team-Detail filtert Kontaktdaten der Mitglieder je nach Betrachter', async () => {

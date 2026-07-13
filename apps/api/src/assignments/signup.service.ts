@@ -41,14 +41,11 @@ export class SignupService {
     return slot;
   }
 
-  // Slot für Selbst-Eintragung öffnen/schließen (Admin oder Teamleiter)
+  // Slot für Selbst-Eintragung öffnen/schließen (Capability OPEN_SIGNUP)
   async setOpen(user: AuthUser, slotId: string, open: boolean) {
     const slot = await this.loadSlot(slotId);
-    if (!this.permissions.isAdmin(user)) {
-      const ledTeams = await this.permissions.getLedTeamIds(user.personId);
-      if (!ledTeams.includes(slot.position.team.id)) {
-        throw new ForbiddenException('Nur Admins oder Leiter dieses Teams');
-      }
+    if (!(await this.permissions.hasCapability(user, slot.position.team.id, 'OPEN_SIGNUP'))) {
+      throw new ForbiddenException('Dir fehlt in diesem Team das Recht, Dienste freizugeben');
     }
     const updated = await this.prisma.eventPositionSlot.update({
       where: { id: slotId },
@@ -124,12 +121,14 @@ export class SignupService {
     if (slot.event.status !== 'PUBLISHED') {
       throw new ForbiddenException('Dieser Dienst ist nicht zur Selbst-Eintragung freigegeben');
     }
-    // Admins/Teamleiter des Slot-Teams dürfen sich auch ohne Freigabe
-    // eintragen – sie könnten den Slot ohnehin selbst freigeben.
+    // Wer Slots freigeben darf (OPEN_SIGNUP), darf sich auch ohne
+    // Freigabe eintragen – er könnte den Slot ohnehin selbst öffnen.
     if (!slot.openForSignup) {
-      const mayBypass =
-        this.permissions.isAdmin(user) ||
-        (await this.permissions.getLedTeamIds(user.personId)).includes(slot.position.team.id);
+      const mayBypass = await this.permissions.hasCapability(
+        user,
+        slot.position.team.id,
+        'OPEN_SIGNUP',
+      );
       if (!mayBypass) {
         throw new ForbiddenException('Dieser Dienst ist nicht zur Selbst-Eintragung freigegeben');
       }
@@ -201,7 +200,7 @@ export class SignupService {
       },
     });
     const leaders = await this.prisma.teamMembership.findMany({
-      where: { teamId: assignment.slot.position.teamId, isLeader: true },
+      where: { teamId: assignment.slot.position.teamId, role: 'LEADER' },
       include: { person: true },
     });
     for (const leader of leaders) {

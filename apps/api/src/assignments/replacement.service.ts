@@ -325,7 +325,7 @@ export class ReplacementService {
     record: Awaited<ReturnType<ReplacementService['loadTokenOrFail']>>,
   ): Promise<void> {
     const leaders = await this.prisma.teamMembership.findMany({
-      where: { teamId: record.assignment.slot.position.teamId, isLeader: true },
+      where: { teamId: record.assignment.slot.position.teamId, role: 'LEADER' },
       include: { person: true },
     });
     for (const leader of leaders) {

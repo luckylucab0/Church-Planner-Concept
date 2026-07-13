@@ -19,12 +19,13 @@ export class EventsService {
     private readonly audit: AuditService,
   ) {}
 
-  // Mitglieder sehen nur veröffentlichte Termine; Admins und Teamleiter
-  // auch Entwürfe (PLANNED), weil sie darauf planen.
+  // Mitglieder sehen nur veröffentlichte Termine; wer plant (Capability
+  // VIEW_DRAFTS in irgendeinem Team), sieht auch Entwürfe (PLANNED).
   private async visibleStatuses(user: AuthUser): Promise<EventStatus[]> {
-    if (this.permissions.isAdmin(user)) return ['PLANNED', 'PUBLISHED', 'CANCELLED'];
-    const ledTeams = await this.permissions.getLedTeamIds(user.personId);
-    return ledTeams.length > 0 ? ['PLANNED', 'PUBLISHED', 'CANCELLED'] : ['PUBLISHED'];
+    if (await this.permissions.hasCapabilityInAnyTeam(user, 'VIEW_DRAFTS')) {
+      return ['PLANNED', 'PUBLISHED', 'CANCELLED'];
+    }
+    return ['PUBLISHED'];
   }
 
   async list(user: AuthUser, from?: Date, to?: Date) {
@@ -98,9 +99,11 @@ export class EventsService {
     if (!event) throw new NotFoundException();
 
     const isAdmin = this.permissions.isAdmin(user);
+    // Teams, in denen der Nutzer einteilen darf (LEADER implizit,
+    // andere Rollen laut Rechtematrix)
     const ledTeamIds = isAdmin
       ? event.slots.map((s) => s.position.team.id)
-      : await this.permissions.getLedTeamIds(user.personId);
+      : await this.permissions.getTeamIdsWithCapability(user, 'ASSIGN');
 
     // Für canSignup: eigene Positionen + ob ich an diesem Termin schon dran bin
     const mySkills = await this.prisma.positionSkill.findMany({
@@ -121,7 +124,7 @@ export class EventsService {
       location: event.location,
       status: event.status,
       // canEditPlan steuert nur die UI – setPlan() prüft serverseitig selbst
-      canEditPlan: isAdmin || (await this.permissions.isAnyTeamLeader(user.personId)),
+      canEditPlan: await this.permissions.hasCapabilityInAnyTeam(user, 'EDIT_PLAN'),
       planItems: event.planItems.map(mapPlanItem),
       slots: event.slots.map((slot) => {
         const canAssign = ledTeamIds.includes(slot.position.team.id);
@@ -262,9 +265,8 @@ export class EventsService {
   // robuster als Einzel-Operationen mit Sortier-Arithmetik.
   async setPlan(user: AuthUser, eventId: string, dto: SetPlanDto) {
     await this.ensureExists(eventId);
-    if (!this.permissions.isAdmin(user)) {
-      const isLeader = await this.permissions.isAnyTeamLeader(user.personId);
-      if (!isLeader) throw new ForbiddenException('Nur Admins oder Teamleiter');
+    if (!(await this.permissions.hasCapabilityInAnyTeam(user, 'EDIT_PLAN'))) {
+      throw new ForbiddenException('Dir fehlt das Recht, den Ablaufplan zu bearbeiten');
     }
 
     // Arrangement muss zum gewählten Lied gehören – sonst stünde im Plan
