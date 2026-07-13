@@ -43,6 +43,7 @@ export const de = {
     myAssignments: 'Meine Dienste',
     noneUpcoming: 'Keine anstehenden Dienste.',
     suggest: 'Vorschläge',
+    selectPerson: 'Person auswählen …',
     assign: 'Einteilen',
     remove: 'Entfernen',
     lastServed: 'zuletzt vor {{days}} Tagen',

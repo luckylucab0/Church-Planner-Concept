@@ -92,7 +92,13 @@ export default function Layout({ children }: { children: ReactNode }) {
         </div>
         <nav className="mt-4 flex flex-1 flex-col gap-1">
           {visible.map((item) => (
-            <NavLink key={item.to} to={item.to} end={item.to === '/'} className={activeClass}>
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === '/'}
+              onClick={() => window.scrollTo(0, 0)}
+              className={activeClass}
+            >
               <item.icon className="shrink-0" />
               <span className="flex flex-col leading-tight">
                 <span>{t(item.labelKey)}</span>
@@ -140,6 +146,9 @@ export default function Layout({ children }: { children: ReactNode }) {
             key={item.to}
             to={item.to}
             end={item.to === '/'}
+            // Auch beim Tippen auf den bereits aktiven Tab nach oben
+            // (ohne Routenwechsel greift ScrollToTop sonst nicht)
+            onClick={() => window.scrollTo(0, 0)}
             className={({ isActive }) =>
               [
                 'flex min-h-[44px] flex-col items-center justify-center gap-1 rounded-lg py-1.5 text-[11px]',
@@ -177,7 +186,10 @@ export default function Layout({ children }: { children: ReactNode }) {
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  onClick={() => setMoreOpen(false)}
+                  onClick={() => {
+                    setMoreOpen(false);
+                    window.scrollTo(0, 0);
+                  }}
                   className={activeClass}
                 >
                   <item.icon className="shrink-0" />

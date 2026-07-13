@@ -195,15 +195,15 @@ Positionen deiner Teams erscheint der Link **„+ Vorschläge"**:
 
 So funktioniert die Einteilung:
 
-1. **„Person eintragen" klicken.** ServeFlow schlägt geeignete Personen vor –
-   sortiert nach **fairer Verteilung**: Wer lange nicht mehr dran war und
-   zuletzt wenige Einsätze hatte, steht oben. Unter jedem Namen steht warum
-   (z. B. „zuletzt vor 49 Tagen · 1 Einsatz in 90 Tagen").
+1. **„Person eintragen" klicken.** Es öffnet sich eine Auswahlliste mit
+   geeigneten Personen – sortiert nach **fairer Verteilung**: Wer lange nicht
+   mehr dran war und zuletzt wenige Einsätze hatte, steht oben. Hinter jedem
+   Namen steht warum (z. B. „zuletzt vor 49 Tagen · 1 Einsatz in 90 Tagen").
 2. Personen, die **abwesend** oder am selben Termin schon eingeteilt sind,
    erscheinen gar nicht erst. Bei einem Dienst am Vor- oder Folgetag zeigt
    ServeFlow eine ⚠-Warnung, blockiert aber nicht.
-3. **„Einteilen" klicken.** Die Person bekommt sofort die E-Mail mit
-   Zusagen/Absagen-Link; im Plan steht sie als „angefragt".
+3. **Person auswählen und „Einteilen" klicken.** Die Person bekommt sofort
+   die E-Mail mit Zusagen/Absagen-Link; im Plan steht sie als „angefragt".
 4. **Bei einer Absage** wirst du automatisch per E-Mail informiert – inklusive
    der drei besten Ersatz-Vorschläge, damit du schnell reagieren kannst.
 

@@ -42,6 +42,7 @@ export const en = {
     myAssignments: 'My assignments',
     noneUpcoming: 'No upcoming assignments.',
     suggest: 'Suggestions',
+    selectPerson: 'Select a person …',
     assign: 'Assign',
     remove: 'Remove',
     lastServed: 'last served {{days}} days ago',
