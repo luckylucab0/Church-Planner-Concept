@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.5.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.4.0...v0.5.0) (2026-07-14)
+
+
+### Features
+
+* **auth:** Passwort-vergessen-Flow + Dependency-Updates ([e07de43](https://github.com/luckylucab0/Church-Planner-Concept/commit/e07de43f2b05929abeaa99c528da16597bb5b11f))
+* **auth:** Passwort-vergessen-Flow mit Reset-Seiten und Admin-Anstoß ([b772ee9](https://github.com/luckylucab0/Church-Planner-Concept/commit/b772ee932df887f722132535d7c9fdeadce78d0f))
+* **auth:** Passwort-vergessen-Flow mit Reset-Seiten und Admin-Anstoß ([d0a0c50](https://github.com/luckylucab0/Church-Planner-Concept/commit/d0a0c50a6b1ff3766b602a975aba9f9cc431c01f))
+
 ## [0.4.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.3.0...v0.4.0) (2026-07-14)
 
 
