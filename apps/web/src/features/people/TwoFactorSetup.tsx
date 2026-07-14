@@ -37,9 +37,7 @@ export default function TwoFactorSetup() {
 
   function fail(error: unknown) {
     const text =
-      error instanceof ApiError && error.status === 401
-        ? t('auth.invalidTotp')
-        : t('common.error');
+      error instanceof ApiError && error.status === 401 ? t('auth.invalidTotp') : t('common.error');
     setMessage({ kind: 'error', text });
   }
 

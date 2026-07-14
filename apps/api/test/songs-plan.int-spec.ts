@@ -47,10 +47,7 @@ describe('Songs & Ablaufplan API (integration)', () => {
       data: {
         name: `Team-${uniq}`,
         memberships: {
-          create: [
-            { personId: people.Leader, role: 'LEADER' },
-            { personId: people.Member },
-          ],
+          create: [{ personId: people.Leader, role: 'LEADER' }, { personId: people.Member }],
         },
       },
     });

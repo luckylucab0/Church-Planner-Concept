@@ -183,8 +183,12 @@ export default function TeamsPage() {
           {matrix && (
             <div className="mt-4 border-t border-line pt-3">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-medium text-secondary">{t('teams.permissionsTitle')}</h3>
-                {matrixSaved && <span className="text-xs text-success">{t('teams.permissionsSaved')}</span>}
+                <h3 className="text-sm font-medium text-secondary">
+                  {t('teams.permissionsTitle')}
+                </h3>
+                {matrixSaved && (
+                  <span className="text-xs text-success">{t('teams.permissionsSaved')}</span>
+                )}
               </div>
               <p className="mt-0.5 text-xs text-faint">{t('teams.permissionsHint')}</p>
               <div className="mt-2 overflow-x-auto">

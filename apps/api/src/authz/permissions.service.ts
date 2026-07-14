@@ -18,7 +18,11 @@ export class PermissionsService {
   }
 
   // Darf der Nutzer die Capability in GENAU DIESEM Team ausüben?
-  async hasCapability(user: AuthUser, teamId: string, capability: TeamCapability): Promise<boolean> {
+  async hasCapability(
+    user: AuthUser,
+    teamId: string,
+    capability: TeamCapability,
+  ): Promise<boolean> {
     if (this.isAdmin(user)) return true;
     const teamIds = await this.getTeamIdsWithCapability(user, capability);
     return teamIds.includes(teamId);

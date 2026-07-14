@@ -172,7 +172,10 @@ export default function Layout({ children }: { children: ReactNode }) {
 
       {/* Klick daneben schließt das Desktop-Avatar-Menü */}
       {userMenuOpen && (
-        <div className="fixed inset-0 z-30 hidden lg:block" onClick={() => setUserMenuOpen(false)} />
+        <div
+          className="fixed inset-0 z-30 hidden lg:block"
+          onClick={() => setUserMenuOpen(false)}
+        />
       )}
 
       {/* Mobile-Top-Bar */}
@@ -203,7 +206,9 @@ export default function Layout({ children }: { children: ReactNode }) {
               <Avatar name={fullName || 'S F'} />
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-paper">{fullName}</p>
-                <p className="truncate text-xs text-muted">{isAdmin ? 'Admin' : t('nav.profile')}</p>
+                <p className="truncate text-xs text-muted">
+                  {isAdmin ? 'Admin' : t('nav.profile')}
+                </p>
               </div>
             </div>
             <div className="flex flex-col gap-1">

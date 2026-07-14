@@ -95,7 +95,9 @@ export class TeamsService {
       teamId,
       'MANAGE_POSITIONS',
     );
-    const leaderTeamIds = isAdmin ? [teamId] : await this.permissions.getLeaderTeamIds(user.personId);
+    const leaderTeamIds = isAdmin
+      ? [teamId]
+      : await this.permissions.getLeaderTeamIds(user.personId);
 
     return {
       id: team.id,
@@ -259,7 +261,12 @@ export class TeamsService {
               capability: entry.capability,
             },
           },
-          create: { teamId, role: entry.role, capability: entry.capability, allowed: entry.allowed },
+          create: {
+            teamId,
+            role: entry.role,
+            capability: entry.capability,
+            allowed: entry.allowed,
+          },
           update: { allowed: entry.allowed },
         }),
       ),

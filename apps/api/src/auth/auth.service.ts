@@ -151,7 +151,9 @@ export class AuthService {
     const account = await this.prisma.userAccount.findUniqueOrThrow({
       where: { id: user.accountId },
     });
-    const passwordOk = await argon2.verify(account.passwordHash, currentPassword).catch(() => false);
+    const passwordOk = await argon2
+      .verify(account.passwordHash, currentPassword)
+      .catch(() => false);
     if (!passwordOk) {
       throw new UnauthorizedException({ message: 'auth.wrongPassword' });
     }
