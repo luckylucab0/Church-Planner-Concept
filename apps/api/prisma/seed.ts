@@ -156,7 +156,7 @@ async function main(): Promise<void> {
         data: {
           teamId: team.id,
           personId: people[i].id,
-          isLeader: i === 1 && teamName === 'Worship',
+          role: i === 1 && teamName === 'Worship' ? 'LEADER' : 'MEMBER',
         },
       });
       // 1–2 Positionen pro Team-Mitgliedschaft
@@ -174,8 +174,20 @@ async function main(): Promise<void> {
   // Sicherstellen, dass leiter@ wirklich im Worship-Team Leiter ist
   await prisma.teamMembership.upsert({
     where: { teamId_personId: { teamId: teams.Worship.id, personId: people[1].id } },
-    create: { teamId: teams.Worship.id, personId: people[1].id, isLeader: true },
-    update: { isLeader: true },
+    create: { teamId: teams.Worship.id, personId: people[1].id, role: 'LEADER' },
+    update: { role: 'LEADER' },
+  });
+  // Beispiel-Rollen fürs Ausprobieren der Rechtematrix: eine
+  // Stellvertretung im Worship-Team, ein Praktikant im Kinderdienst
+  await prisma.teamMembership.upsert({
+    where: { teamId_personId: { teamId: teams.Worship.id, personId: people[4].id } },
+    create: { teamId: teams.Worship.id, personId: people[4].id, role: 'DEPUTY' },
+    update: { role: 'DEPUTY' },
+  });
+  await prisma.teamMembership.upsert({
+    where: { teamId_personId: { teamId: teams.Kinderdienst.id, personId: people[9].id } },
+    create: { teamId: teams.Kinderdienst.id, personId: people[9].id, role: 'INTERN' },
+    update: { role: 'INTERN' },
   });
 
   console.log('Seed: Gottesdienst-Typ + 8 Termine (nächste Sonntage)…');

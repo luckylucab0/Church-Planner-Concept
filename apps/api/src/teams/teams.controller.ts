@@ -15,7 +15,9 @@ import {
   AddMemberDto,
   CreatePositionDto,
   CreateTeamDto,
+  SetPermissionsDto,
   SetSkillDto,
+  UpdateMemberRoleDto,
   UpdateTeamDto,
 } from './dto/teams.dto';
 import { TeamsService } from './teams.service';
@@ -80,6 +82,17 @@ export class TeamsController {
     return this.teams.addMember(user, id, dto);
   }
 
+  @Patch(':id/members/:personId')
+  @ApiOperation({ summary: 'Teamrolle eines Mitglieds ändern (LEADER nur durch Admin)' })
+  setMemberRole(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('personId', ParseUUIDPipe) personId: string,
+    @Body() dto: UpdateMemberRoleDto,
+  ) {
+    return this.teams.setMemberRole(user, id, personId, dto.role);
+  }
+
   @Delete(':id/members/:personId')
   @HttpCode(204)
   @ApiOperation({ summary: 'Mitglied entfernen (Admin oder Teamleiter dieses Teams)' })
@@ -89,6 +102,24 @@ export class TeamsController {
     @Param('personId', ParseUUIDPipe) personId: string,
   ): Promise<void> {
     await this.teams.removeMember(user, id, personId);
+  }
+
+  // --- Rechtematrix (Admin oder Leiter dieses Teams) ----------
+
+  @Get(':id/permissions')
+  @ApiOperation({ summary: 'Rechtematrix des Teams (gemergte Sicht inkl. Defaults)' })
+  getPermissions(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.teams.getPermissionMatrix(user, id);
+  }
+
+  @Put(':id/permissions')
+  @ApiOperation({ summary: 'Rechtematrix des Teams setzen (Admin oder Leiter)' })
+  setPermissions(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: SetPermissionsDto,
+  ) {
+    return this.teams.setPermissionMatrix(user, id, dto);
   }
 
   // --- Positionen ---------------------------------------------

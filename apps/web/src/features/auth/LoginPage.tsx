@@ -71,13 +71,14 @@ export default function LoginPage() {
             <span className="text-sm text-secondary">{t('auth.twoFactorCode')}</span>
             <input
               type="text"
-              inputMode="numeric"
-              pattern="[0-9]{6}"
+              maxLength={9}
               required
               value={totpCode}
               onChange={(e) => setTotpCode(e.target.value)}
               className="input mt-1.5"
+              autoFocus
             />
+            <span className="mt-1 block text-xs text-faint">{t('auth.totpHint')}</span>
           </label>
         )}
 

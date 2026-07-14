@@ -118,6 +118,97 @@ describe('Auth (integration)', () => {
     expect(response.statusCode).toBe(403);
   });
 
+  describe('Passwort ändern (eingeloggt)', () => {
+    const changeEmail = `${uniq}-change@test.local`;
+    const newPassword = 'neues-sicheres-passwort-9!';
+
+    beforeAll(async () => {
+      await prisma.person.create({
+        data: {
+          firstName: 'Change',
+          lastName: 'Pw',
+          email: changeEmail,
+          account: {
+            create: { passwordHash: await argon2.hash(password, { type: argon2.argon2id }) },
+          },
+        },
+      });
+    });
+
+    async function loginChange(pw: string) {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/login',
+        payload: { email: changeEmail, password: pw },
+      });
+      return sessionCookieFrom(response.headers['set-cookie']);
+    }
+
+    it('lehnt falsches aktuelles Passwort ab (401)', async () => {
+      const cookie = await loginChange(password);
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/password',
+        headers: { cookie },
+        payload: { currentPassword: 'falsch-falsch-falsch', newPassword },
+      });
+      expect(response.statusCode).toBe(401);
+      expect(response.json().message).toBe('auth.wrongPassword');
+    });
+
+    it('lehnt zu kurzes neues Passwort ab (400)', async () => {
+      const cookie = await loginChange(password);
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/password',
+        headers: { cookie },
+        payload: { currentPassword: password, newPassword: 'kurz' },
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('ändert das Passwort, beendet andere Sessions und behält die eigene', async () => {
+      const otherCookie = await loginChange(password); // zweites "Gerät"
+      const ownCookie = await loginChange(password);
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/password',
+        headers: { cookie: ownCookie },
+        payload: { currentPassword: password, newPassword },
+      });
+      expect(response.statusCode).toBe(204);
+
+      // Eigene Session lebt weiter, die andere ist tot
+      const own = await app.inject({
+        method: 'GET',
+        url: '/api/v1/auth/session',
+        headers: { cookie: ownCookie },
+      });
+      expect(own.statusCode).toBe(200);
+      const other = await app.inject({
+        method: 'GET',
+        url: '/api/v1/auth/session',
+        headers: { cookie: otherCookie },
+      });
+      expect(other.statusCode).toBe(401);
+
+      // Login nur noch mit dem neuen Passwort
+      const oldLogin = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/login',
+        payload: { email: changeEmail, password },
+      });
+      expect(oldLogin.statusCode).toBe(401);
+      const newLogin = await app.inject({
+        method: 'POST',
+        url: '/api/v1/auth/login',
+        payload: { email: changeEmail, password: newPassword },
+      });
+      expect(newLogin.statusCode).toBe(200);
+    });
+  });
+
   it('sperrt Konto nach wiederholten Fehlversuchen (Lockout-Backoff)', async () => {
     const lockEmail = `${uniq}-lock@test.local`;
     await prisma.person.create({

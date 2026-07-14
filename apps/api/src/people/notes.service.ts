@@ -30,7 +30,7 @@ export class NotesService {
     if (this.permissions.isAdmin(user)) return true;
     if (kind === 'PASTORAL') return false;
     const relationship = await this.permissions.relationshipTo(user, personId);
-    return relationship.isLeaderOfTarget;
+    return relationship.canNotesOnTarget;
   }
 
   async listFor(user: AuthUser, personId: string): Promise<NoteView[]> {

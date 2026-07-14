@@ -69,4 +69,20 @@ export class SessionService {
     }
     await this.redis.del(this.accountKey(accountId));
   }
+
+  // Passwortwechsel durch die Person selbst: alle ANDEREN Geräte abmelden,
+  // die aktuelle Session bleibt – wer sein Passwort ändert, soll nicht
+  // selbst rausfliegen.
+  async destroyOthersForAccount(accountId: string, keepToken: string): Promise<void> {
+    const keepHash = hashToken(keepToken);
+    const hashes = await this.redis.smembers(this.accountKey(accountId));
+    const toDelete = hashes.filter((h) => h !== keepHash);
+    if (toDelete.length > 0) {
+      await this.redis
+        .multi()
+        .del(...toDelete.map((h) => this.sessionKey(h)))
+        .srem(this.accountKey(accountId), ...toDelete)
+        .exec();
+    }
+  }
 }

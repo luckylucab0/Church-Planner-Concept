@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../api/client';
 
+type TeamRole = 'LEADER' | 'DEPUTY' | 'MEMBER' | 'INTERN';
+
 interface TeamSummary {
   id: string;
   name: string;
@@ -15,13 +17,17 @@ interface TeamDetail {
   id: string;
   name: string;
   canManage: boolean;
+  canManageMembers: boolean;
+  canManagePositions: boolean;
+  canEditMatrix: boolean;
+  canGrantLeader: boolean;
   members: {
     id: string;
     firstName: string;
     lastName: string;
     email?: string;
     phone?: string;
-    isLeader: boolean;
+    role: TeamRole;
   }[];
   positions: {
     id: string;
@@ -30,21 +36,66 @@ interface TeamDetail {
   }[];
 }
 
+interface PermissionMatrix {
+  capabilities: string[];
+  roles: string[];
+  entries: Record<string, Record<string, boolean>>;
+}
+
+const ROLE_BADGE: Record<TeamRole, string | null> = {
+  LEADER: 'badge badge-gold',
+  DEPUTY: 'badge badge-success',
+  INTERN: 'badge badge-muted',
+  MEMBER: null, // Standardrolle braucht keinen Badge
+};
+
 // Teams-Übersicht mit aufklappbarem Detail. Die API liefert nur, was die
-// Rolle sehen darf (canManage steuert lediglich, welche Aktionen die UI
-// anbietet – durchgesetzt wird serverseitig).
+// Rolle sehen darf (die can*-Flags steuern lediglich, welche Aktionen die
+// UI anbietet – durchgesetzt wird serverseitig).
 export default function TeamsPage() {
   const { t } = useTranslation();
   const [teams, setTeams] = useState<TeamSummary[]>([]);
   const [openTeam, setOpenTeam] = useState<TeamDetail | null>(null);
+  const [matrix, setMatrix] = useState<PermissionMatrix | null>(null);
+  const [matrixSaved, setMatrixSaved] = useState(false);
 
   useEffect(() => {
     void api.get<TeamSummary[]>('/teams').then(setTeams);
   }, []);
 
   const openDetail = useCallback((teamId: string) => {
-    void api.get<TeamDetail>(`/teams/${teamId}`).then(setOpenTeam);
+    setMatrix(null);
+    setMatrixSaved(false);
+    void api.get<TeamDetail>(`/teams/${teamId}`).then((team) => {
+      setOpenTeam(team);
+      if (team.canEditMatrix) {
+        void api.get<PermissionMatrix>(`/teams/${teamId}/permissions`).then(setMatrix);
+      }
+    });
   }, []);
+
+  async function changeRole(personId: string, role: TeamRole) {
+    if (!openTeam) return;
+    await api.patch(`/teams/${openTeam.id}/members/${personId}`, { role });
+    openDetail(openTeam.id);
+  }
+
+  // Ein Matrix-Häkchen umschalten und sofort speichern – die API upsertet
+  // pro (Rolle, Capability) und liefert die gemergte Sicht zurück.
+  async function toggleCapability(role: string, capability: string) {
+    if (!openTeam || !matrix) return;
+    const allowed = !matrix.entries[role][capability];
+    setMatrix({
+      ...matrix,
+      entries: { ...matrix.entries, [role]: { ...matrix.entries[role], [capability]: allowed } },
+    });
+    const updated = await api.put<PermissionMatrix>(`/teams/${openTeam.id}/permissions`, {
+      entries: [{ role, capability, allowed }],
+    });
+    setMatrix(updated);
+    setMatrixSaved(true);
+    setTimeout(() => setMatrixSaved(false), 2000);
+  }
 
   return (
     <div className="space-y-4">
@@ -77,18 +128,42 @@ export default function TeamsPage() {
           <h3 className="mt-3 text-sm font-medium text-secondary">{t('teams.members')}</h3>
           <ul className="mt-1 divide-y divide-line">
             {openTeam.members.map((member) => (
-              <li key={member.id} className="flex items-center gap-2 py-1.5 text-sm">
+              <li key={member.id} className="flex flex-wrap items-center gap-2 py-1.5 text-sm">
                 <span>
                   {member.firstName} {member.lastName}
-                  {member.isLeader && (
-                    <span className="ml-1 badge badge-gold">{t('teams.leader')}</span>
+                  {ROLE_BADGE[member.role] && (
+                    <span className={`ml-1 ${ROLE_BADGE[member.role]}`}>
+                      {t(`teams.roles.${member.role}`)}
+                    </span>
                   )}
                 </span>
-                {(member.email || member.phone) && (
-                  <span className="ml-auto truncate text-muted">
-                    {[member.email, member.phone].filter(Boolean).join(' · ')}
-                  </span>
-                )}
+                <span className="ml-auto flex items-center gap-2">
+                  {(member.email || member.phone) && (
+                    <span className="truncate text-muted">
+                      {[member.email, member.phone].filter(Boolean).join(' · ')}
+                    </span>
+                  )}
+                  {openTeam.canManageMembers && (
+                    <select
+                      value={member.role}
+                      onChange={(e) => void changeRole(member.id, e.target.value as TeamRole)}
+                      // Rolle LEADER vergeben/ändern kann nur ein Admin
+                      disabled={member.role === 'LEADER' && !openTeam.canGrantLeader}
+                      aria-label={t('teams.changeRole')}
+                      className="input w-auto px-2 py-1 text-xs"
+                    >
+                      {(['LEADER', 'DEPUTY', 'MEMBER', 'INTERN'] as TeamRole[]).map((role) => (
+                        <option
+                          key={role}
+                          value={role}
+                          disabled={role === 'LEADER' && !openTeam.canGrantLeader}
+                        >
+                          {t(`teams.roles.${role}`)}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </span>
               </li>
             ))}
           </ul>
@@ -104,6 +179,53 @@ export default function TeamsPage() {
               </li>
             ))}
           </ul>
+
+          {matrix && (
+            <div className="mt-4 border-t border-line pt-3">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-medium text-secondary">
+                  {t('teams.permissionsTitle')}
+                </h3>
+                {matrixSaved && (
+                  <span className="text-xs text-success">{t('teams.permissionsSaved')}</span>
+                )}
+              </div>
+              <p className="mt-0.5 text-xs text-faint">{t('teams.permissionsHint')}</p>
+              <div className="mt-2 overflow-x-auto">
+                <table className="w-full min-w-[420px] text-sm">
+                  <thead>
+                    <tr className="text-left text-xs text-muted">
+                      <th className="py-1.5 pr-2 font-normal" />
+                      {matrix.roles.map((role) => (
+                        <th key={role} className="px-2 py-1.5 text-center font-medium">
+                          {t(`teams.roles.${role}`)}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-line">
+                    {matrix.capabilities.map((capability) => (
+                      <tr key={capability}>
+                        <td className="py-1.5 pr-2 text-secondary">
+                          {t(`teams.capabilities.${capability}`)}
+                        </td>
+                        {matrix.roles.map((role) => (
+                          <td key={role} className="px-2 py-1.5 text-center">
+                            <input
+                              type="checkbox"
+                              checked={matrix.entries[role]?.[capability] ?? false}
+                              onChange={() => void toggleCapability(role, capability)}
+                              aria-label={`${t(`teams.roles.${role}`)} – ${t(`teams.capabilities.${capability}`)}`}
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </section>
       )}
     </div>

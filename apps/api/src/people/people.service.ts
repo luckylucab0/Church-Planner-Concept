@@ -58,7 +58,7 @@ export class PeopleService {
     // protokolliert (Nachvollziehbarkeit von Datenzugriffen)
     if (
       !relationship.isSelf &&
-      (relationship.viewerRole === 'ADMIN' || relationship.isLeaderOfTarget)
+      (relationship.viewerRole === 'ADMIN' || relationship.canViewContactsOfTarget)
     ) {
       this.audit.log({
         actorId: user.personId,
@@ -214,7 +214,7 @@ export class PeopleService {
         createdAt: person.createdAt,
       },
       privacySettings: person.privacySettings,
-      teams: person.memberships.map((m) => ({ team: m.team.name, isLeader: m.isLeader })),
+      teams: person.memberships.map((m) => ({ team: m.team.name, role: m.role })),
       positions: person.positionSkills.map((s) => ({
         team: s.position.team.name,
         position: s.position.name,
