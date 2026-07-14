@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
 import ForgotPasswordPage from './features/auth/ForgotPasswordPage';
+import InvitePage from './features/auth/InvitePage';
 import LoginPage from './features/auth/LoginPage';
 import ResetPasswordPage from './features/auth/ResetPasswordPage';
 import AvailabilityPage from './features/availability/AvailabilityPage';
@@ -70,6 +71,8 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         {/* Ziel des Reset-Links aus der Mail */}
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        {/* Ziel des Einladungslinks: Konto einrichten (Passwort setzen) */}
+        <Route path="/invite" element={<InvitePage />} />
         {/* Öffentlich: Zusage/Absage + Vertretungs-Übernahme per Mail-Link */}
         <Route path="/respond/:token" element={<RespondPage />} />
         <Route path="/replacement/:token" element={<ReplacementPage />} />
