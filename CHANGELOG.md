@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.1](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.5.0...v0.5.1) (2026-07-14)
+
+
+### Bugfixes
+
+* **ci:** Release-Image-Build robuster machen ([c21fac6](https://github.com/luckylucab0/Church-Planner-Concept/commit/c21fac68f5cce0c32a4ebf22a052880f6d1eed5e))
+* **ci:** Release-Image-Build robuster machen ([86d767f](https://github.com/luckylucab0/Church-Planner-Concept/commit/86d767faa57b63c6d19e9aed2fd849a0d2716600))
+
 ## [0.5.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.4.0...v0.5.0) (2026-07-14)
 
 
