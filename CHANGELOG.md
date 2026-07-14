@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.1](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.7.0...v0.7.1) (2026-07-14)
+
+
+### Bugfixes
+
+* **assignments:** Team-Mitgliedschaft genügt für Eintragen und Einteilen ([23a522f](https://github.com/luckylucab0/Church-Planner-Concept/commit/23a522f6acbab11e1d11c59fde4f9cba62183290))
+* Eintragen/Einteilen ohne Positions-Zuordnung + Teams-Mobile-Layout ([09cac26](https://github.com/luckylucab0/Church-Planner-Concept/commit/09cac266ff2c2801b9d12b3150629c9cf566bd48))
+
 ## [0.7.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.6.0...v0.7.0) (2026-07-14)
 
 
