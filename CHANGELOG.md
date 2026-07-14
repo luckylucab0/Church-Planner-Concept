@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.3](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.5.2...v0.5.3) (2026-07-14)
+
+
+### Bugfixes
+
+* **ci:** SBOM-Upload im merge-Job reparieren ([a584ba3](https://github.com/luckylucab0/Church-Planner-Concept/commit/a584ba310539986d8041cf4478ed226eabb788e3))
+* **ci:** SBOM-Upload im merge-Job reparieren ([92facbf](https://github.com/luckylucab0/Church-Planner-Concept/commit/92facbfbb0a1f33063d49b0841c8a8a7a73ea8c7))
+
 ## [0.5.2](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.5.1...v0.5.2) (2026-07-14)
 
 
