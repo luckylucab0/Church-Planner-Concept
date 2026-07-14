@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.6.0...v0.7.0) (2026-07-14)
+
+
+### Features
+
+* **people:** Personen-Detailseite, Team-Mitgliederverwaltung, Teams im Profil ([9a92732](https://github.com/luckylucab0/Church-Planner-Concept/commit/9a927322258e3824703397f80bbc2a254eecb2a6))
+* Personen-Detailseite, Team-Mitgliederverwaltung und Teams im Profil ([a557509](https://github.com/luckylucab0/Church-Planner-Concept/commit/a5575092ca148922fae7f467a51c39a6cfee9ad6))
+
 ## [0.6.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.5.3...v0.6.0) (2026-07-14)
 
 
