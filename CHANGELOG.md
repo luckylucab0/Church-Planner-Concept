@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.2](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.5.1...v0.5.2) (2026-07-14)
+
+
+### Bugfixes
+
+* **ci:** arm64-Images nativ statt per QEMU bauen ([7d969a6](https://github.com/luckylucab0/Church-Planner-Concept/commit/7d969a633a4e7c2e9acb6ad33bba978a003838bf))
+* **ci:** arm64-Images nativ statt per QEMU bauen ([ac14216](https://github.com/luckylucab0/Church-Planner-Concept/commit/ac142163d6d51b46abb00691eb2ea0eee03a072f))
+
 ## [0.5.1](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.5.0...v0.5.1) (2026-07-14)
 
 
