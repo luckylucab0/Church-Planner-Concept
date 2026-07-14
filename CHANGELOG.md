@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.6.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.5.3...v0.6.0) (2026-07-14)
+
+
+### Features
+
+* **auth:** Einladungs-Flow und Benutzer-Anträge (Backend) ([dc9a460](https://github.com/luckylucab0/Church-Planner-Concept/commit/dc9a460f4bb88683caa17ac6c058d05030c16001))
+* Benutzer-Einladungen, Teamleiter-Anträge und SongSelect-Import mit CCLI-Bericht ([f09510f](https://github.com/luckylucab0/Church-Planner-Concept/commit/f09510f58a07cbc94420cab3b792ecfd6339eb63))
+* **songs:** SongSelect-Datei-Import und CCLI-Nutzungsbericht ([9fea342](https://github.com/luckylucab0/Church-Planner-Concept/commit/9fea342b7689e9660f88ab4e3b5baf368540b403))
+* **web:** Einladen, Benutzer-Anträge und Einrichtungs-Seite ([179d2f1](https://github.com/luckylucab0/Church-Planner-Concept/commit/179d2f159e94144095a3dbc83dc25082354119a7))
+
 ## [0.5.3](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.5.2...v0.5.3) (2026-07-14)
 
 
