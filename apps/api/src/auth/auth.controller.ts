@@ -1,10 +1,20 @@
-import { Body, Controller, Get, HttpCode, Post, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { FastifyReply } from 'fastify';
 import { AuthService } from './auth.service';
 import { AuthenticatedRequest, AuthUser } from './auth.types';
-import { CurrentUser, Public } from './decorators';
+import { CurrentUser, Public, RequireAdmin } from './decorators';
 import { SESSION_COOKIE } from './guards/session-auth.guard';
 import {
   ChangePasswordDto,
@@ -151,6 +161,18 @@ export class AuthController {
   @ApiOperation({ summary: 'Neues Passwort mit Reset-Token setzen' })
   async passwordResetConfirm(@Body() dto: PasswordResetConfirmDto): Promise<void> {
     await this.auth.confirmPasswordReset(dto.token, dto.newPassword);
+  }
+
+  @RequireAdmin()
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post('password-reset/for/:personId')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Reset-Mail für eine Person anstoßen (nur Admin)' })
+  async passwordResetForPerson(
+    @CurrentUser() user: AuthUser,
+    @Param('personId', ParseUUIDPipe) personId: string,
+  ): Promise<void> {
+    await this.auth.requestPasswordResetForPerson(user, personId);
   }
 
   // Session-Info inkl. Anzeigename – erspart dem Frontend einen zweiten

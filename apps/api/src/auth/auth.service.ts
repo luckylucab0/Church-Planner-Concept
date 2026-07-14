@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import * as argon2 from 'argon2';
 import { AuthUser } from './auth.types';
 import { BackupCodesService } from './backup-codes.service';
@@ -293,12 +298,36 @@ export class AuthService {
       where: { email },
       include: { account: true },
     });
-    if (!person?.account) return;
+    if (!person?.account || !person.email) return;
+    await this.sendResetMail(person.id, person.firstName, person.email);
+  }
 
+  // Admin stößt den Reset für eine Person an (z. B. Passwort vergessen
+  // und Mail-Adresse vertippt gemeldet) – gleiche Mail, gleicher Token.
+  async requestPasswordResetForPerson(actor: AuthUser, personId: string): Promise<void> {
+    const person = await this.prisma.person.findUnique({
+      where: { id: personId },
+      include: { account: true },
+    });
+    if (!person) throw new NotFoundException();
+    if (!person.account || !person.email) {
+      throw new BadRequestException('Person hat kein Konto oder keine E-Mail-Adresse');
+    }
+    await this.sendResetMail(person.id, person.firstName, person.email);
+    this.audit.log({
+      actorId: actor.personId,
+      action: 'UPDATE',
+      entityType: 'UserAccount',
+      entityId: person.account.id,
+      changedFields: ['passwordResetRequested'],
+    });
+  }
+
+  private async sendResetMail(personId: string, firstName: string, email: string): Promise<void> {
     const token = generateToken();
     await this.prisma.authToken.create({
       data: {
-        personId: person.id,
+        personId,
         purpose: 'PASSWORD_RESET',
         tokenHash: hashToken(token),
         expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 h
@@ -308,7 +337,7 @@ export class AuthService {
       to: email,
       subject: 'ServeFlow: Passwort zurücksetzen',
       text:
-        `Hallo ${person.firstName},\n\n` +
+        `Hallo ${firstName},\n\n` +
         `über diesen Link kannst du innerhalb von 1 Stunde ein neues Passwort setzen:\n` +
         `${env.APP_URL}/reset-password?token=${token}\n\n` +
         `Falls du das nicht angefordert hast, ignoriere diese Mail.`,

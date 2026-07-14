@@ -17,5 +17,11 @@ module.exports = {
   },
   transform: {
     '^.+\\.ts$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.json' }],
+    // ESM-only-Pakete (unten freigeschaltet) nach CJS transpilieren –
+    // Node 22 kann sie per require() laden, Jests CJS-Runtime nicht.
+    '^.+\\.js$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.spec.json' }],
   },
+  // node_modules bleiben untransformiert – AUSSER ESM-only-Paketen,
+  // die von CJS-Dependencies gezogen werden (cookie@2 via @fastify/cookie).
+  transformIgnorePatterns: ['/node_modules/\\.pnpm/(?!cookie@)'],
 };

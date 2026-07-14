@@ -27,6 +27,13 @@ melde dich mit deiner E-Mail-Adresse und deinem Passwort an.
 
 ![Login-Seite](screenshots/01-login.png)
 
+**Passwort vergessen?** Über den Link unter dem Anmelde-Button forderst du
+eine E-Mail mit einem Zurücksetz-Link an (1 Stunde gültig, einmal
+verwendbar). Aus Sicherheitsgründen ist die Bestätigung immer gleich –
+egal, ob die Adresse existiert. Admins können die Reset-Mail außerdem in
+der Personenliste für jede Person anstoßen. Hinweis: Nach dem Zurücksetzen
+werden alle angemeldeten Geräte abgemeldet.
+
 - **Passwort vergessen?** Über den Link auf der Login-Seite bekommst du eine
   E-Mail mit einem Link, der 1 Stunde gültig ist.
 - Falls für dein Konto die **Zwei-Faktor-Authentifizierung (2FA)** aktiviert ist,

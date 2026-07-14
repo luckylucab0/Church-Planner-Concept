@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Logo } from '../../components/Logo';
 import { ApiError } from '../../api/client';
 import { useSession } from './SessionContext';
@@ -87,6 +87,12 @@ export default function LoginPage() {
         <button type="submit" disabled={submitting} className="btn-primary w-full">
           {t('auth.login')}
         </button>
+
+        <p className="text-center">
+          <Link to="/forgot-password" className="text-sm text-muted hover:text-paper">
+            {t('auth.forgotPassword')}
+          </Link>
+        </p>
       </form>
     </main>
   );

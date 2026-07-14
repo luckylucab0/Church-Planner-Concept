@@ -1,0 +1,11 @@
+{
+  // Nur für Jest: erlaubt ts-jest, ESM-only-Pakete aus node_modules
+  // (siehe transformIgnorePatterns in jest.config.js) nach CommonJS zu
+  // transpilieren. isolatedModules = reine Transpilation, kein Typecheck.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "isolatedModules": true
+  }
+}

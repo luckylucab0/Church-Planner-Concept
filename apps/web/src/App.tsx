@@ -2,7 +2,9 @@ import { ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
+import ForgotPasswordPage from './features/auth/ForgotPasswordPage';
 import LoginPage from './features/auth/LoginPage';
+import ResetPasswordPage from './features/auth/ResetPasswordPage';
 import AvailabilityPage from './features/availability/AvailabilityPage';
 import ImportPage from './features/import/ImportPage';
 import { SessionProvider, useSession } from './features/auth/SessionContext';
@@ -65,6 +67,9 @@ export default function App() {
       <ScrollToTop />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        {/* Ziel des Reset-Links aus der Mail */}
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         {/* Öffentlich: Zusage/Absage + Vertretungs-Übernahme per Mail-Link */}
         <Route path="/respond/:token" element={<RespondPage />} />
         <Route path="/replacement/:token" element={<ReplacementPage />} />

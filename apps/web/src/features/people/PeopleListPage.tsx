@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../api/client';
+import { useSession } from '../auth/SessionContext';
 
 // Die API liefert nur die Felder, die die eigene Rolle sehen darf –
 // die UI rendert schlicht, was da ist (kein clientseitiges "Ausblenden").
@@ -15,9 +16,19 @@ interface PersonEntry {
 
 export default function PeopleListPage() {
   const { t } = useTranslation();
+  const { session } = useSession();
+  const isAdmin = session?.globalRole === 'ADMIN';
   const [people, setPeople] = useState<PersonEntry[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [resetSentFor, setResetSentFor] = useState<string | null>(null);
+
+  // Admin-Hilfe bei Aussperrung: stößt die Passwort-Reset-Mail an
+  async function sendReset(personId: string) {
+    await api.post(`/auth/password-reset/for/${personId}`);
+    setResetSentFor(personId);
+    setTimeout(() => setResetSentFor(null), 3000);
+  }
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -58,7 +69,7 @@ export default function PeopleListPage() {
                   {person.lastName[0]}
                 </div>
               )}
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="font-medium text-paper">
                   {person.firstName} {person.lastName}
                 </p>
@@ -68,6 +79,18 @@ export default function PeopleListPage() {
                   </p>
                 )}
               </div>
+              {isAdmin &&
+                person.email &&
+                (resetSentFor === person.id ? (
+                  <span className="shrink-0 text-xs text-success">{t('people.resetSent')}</span>
+                ) : (
+                  <button
+                    onClick={() => void sendReset(person.id)}
+                    className="shrink-0 text-xs text-faint hover:text-paper"
+                  >
+                    {t('people.sendReset')}
+                  </button>
+                ))}
             </li>
           ))}
         </ul>

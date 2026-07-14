@@ -26,6 +26,20 @@ export const en = {
     wrongPassword: 'The current password is incorrect.',
     totpHint: 'Code from your authenticator app or a backup code.',
     invalidTotp: 'The code is invalid.',
+    resetTitle: 'Reset password',
+    resetIntro:
+      'Enter your email address. If an account exists, we will send you a reset link (valid for 1 hour).',
+    resetSend: 'Request link',
+    resetRequested:
+      'If an account exists for this address, the email is on its way. Check your spam folder too.',
+    resetSetTitle: 'Set a new password',
+    resetDone: 'Password set – you can sign in now.',
+    resetInvalid: 'The link is invalid or expired. Request a new one.',
+    backToLogin: 'Back to sign-in',
+  },
+  people: {
+    sendReset: 'Send password reset email',
+    resetSent: 'Reset email sent ✓',
   },
   nav: {
     dashboard: 'Dashboard',

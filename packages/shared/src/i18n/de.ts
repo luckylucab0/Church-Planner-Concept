@@ -27,6 +27,20 @@ export const de = {
     wrongPassword: 'Das aktuelle Passwort ist falsch.',
     totpHint: 'Code aus der Authenticator-App oder ein Backup-Code.',
     invalidTotp: 'Der Code ist ungültig.',
+    resetTitle: 'Passwort zurücksetzen',
+    resetIntro:
+      'Gib deine E-Mail-Adresse ein. Falls ein Konto existiert, senden wir dir einen Link zum Zurücksetzen (1 Stunde gültig).',
+    resetSend: 'Link anfordern',
+    resetRequested:
+      'Falls ein Konto zu dieser Adresse existiert, ist die E-Mail unterwegs. Prüfe auch den Spam-Ordner.',
+    resetSetTitle: 'Neues Passwort setzen',
+    resetDone: 'Passwort gesetzt – du kannst dich jetzt anmelden.',
+    resetInvalid: 'Der Link ist ungültig oder abgelaufen. Fordere einen neuen an.',
+    backToLogin: 'Zur Anmeldung',
+  },
+  people: {
+    sendReset: 'Passwort-Reset-Mail senden',
+    resetSent: 'Reset-Mail versandt ✓',
   },
   nav: {
     dashboard: 'Übersicht',
