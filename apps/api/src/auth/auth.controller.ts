@@ -16,8 +16,10 @@ import { AuthService } from './auth.service';
 import { AuthenticatedRequest, AuthUser } from './auth.types';
 import { CurrentUser, Public, RequireAdmin } from './decorators';
 import { SESSION_COOKIE } from './guards/session-auth.guard';
+import { InviteService } from './invite.service';
 import {
   ChangePasswordDto,
+  InviteConfirmDto,
   LoginDto,
   PasswordResetConfirmDto,
   PasswordResetRequestDto,
@@ -32,6 +34,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class AuthController {
   constructor(
     private readonly auth: AuthService,
+    private readonly invites: InviteService,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -173,6 +176,29 @@ export class AuthController {
     @Param('personId', ParseUUIDPipe) personId: string,
   ): Promise<void> {
     await this.auth.requestPasswordResetForPerson(user, personId);
+  }
+
+  // --- Einladung (Konto einrichten) -------------------------
+
+  @RequireAdmin()
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post('invite/for/:personId')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Einladung an eine Person ohne Konto senden (nur Admin)' })
+  async inviteForPerson(
+    @CurrentUser() user: AuthUser,
+    @Param('personId', ParseUUIDPipe) personId: string,
+  ): Promise<void> {
+    await this.invites.sendInvite(user, personId);
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @Post('invite/confirm')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Einladung bestätigen: Passwort setzen, Konto wird erstellt' })
+  async inviteConfirm(@Body() dto: InviteConfirmDto): Promise<void> {
+    await this.invites.confirmInvite(dto.token, dto.password);
   }
 
   // Session-Info inkl. Anzeigename – erspart dem Frontend einen zweiten

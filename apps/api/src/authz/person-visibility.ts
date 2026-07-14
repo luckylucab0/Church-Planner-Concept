@@ -43,11 +43,17 @@ export interface PersonFullView extends PersonContactView {
   locale?: string;
   importNotes?: string | null;
   createdAt?: Date;
+  // Nur für Admins gesetzt: hat die Person ein Login-Konto? Steuert in
+  // der UI "Einladen" vs. "Passwort-Reset".
+  hasAccount?: boolean;
 }
 
 export type PersonView = PersonPublicView | PersonContactView | PersonFullView;
 
-type PersonWithPrivacy = Person & { privacySettings?: PrivacySettings | null };
+type PersonWithPrivacy = Person & {
+  privacySettings?: PrivacySettings | null;
+  account?: { id: string } | null;
+};
 
 export function buildPersonView(
   person: PersonWithPrivacy,
@@ -86,6 +92,11 @@ export function buildPersonView(
     };
     if (relationship.viewerRole === 'ADMIN') {
       full.importNotes = person.importNotes;
+      // undefined wenn account nicht mitgeladen wurde (z. B. get()) –
+      // dann fehlt das Feld in der Response komplett
+      if (person.account !== undefined) {
+        full.hasAccount = Boolean(person.account);
+      }
     }
     return full;
   }

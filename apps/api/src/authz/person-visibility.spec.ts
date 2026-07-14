@@ -125,4 +125,26 @@ describe('buildPersonView – Berechtigungsmatrix', () => {
     expect(view).toHaveProperty('address');
     expect(view).toHaveProperty('importNotes');
   });
+
+  describe('hasAccount (Konto-Existenz)', () => {
+    it('nur Admins bekommen das Flag – auch die Person selbst nicht', () => {
+      const person = { ...makePerson(), account: null };
+      const adminView = buildPersonView(person, rel({ viewerRole: 'ADMIN' }));
+      expect(adminView).toHaveProperty('hasAccount', false);
+
+      const withAccount = { ...makePerson(), account: { id: 'acc-1' } };
+      const adminView2 = buildPersonView(withAccount, rel({ viewerRole: 'ADMIN' }));
+      expect(adminView2).toHaveProperty('hasAccount', true);
+
+      expect(buildPersonView(withAccount, rel({ isSelf: true }))).not.toHaveProperty('hasAccount');
+      expect(
+        buildPersonView(withAccount, rel({ canViewContactsOfTarget: true })),
+      ).not.toHaveProperty('hasAccount');
+    });
+
+    it('fehlt komplett, wenn account nicht mitgeladen wurde', () => {
+      const view = buildPersonView(makePerson(), rel({ viewerRole: 'ADMIN' }));
+      expect(view).not.toHaveProperty('hasAccount');
+    });
+  });
 });

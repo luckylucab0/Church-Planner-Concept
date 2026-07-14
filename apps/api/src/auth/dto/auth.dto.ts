@@ -64,3 +64,15 @@ export class PasswordResetConfirmDto {
   @MaxLength(200)
   newPassword: string;
 }
+
+export class InviteConfirmDto {
+  @ApiProperty()
+  @IsString()
+  token: string;
+
+  @ApiProperty({ minLength: 10 })
+  @IsString()
+  @MinLength(10)
+  @MaxLength(200)
+  password: string;
+}

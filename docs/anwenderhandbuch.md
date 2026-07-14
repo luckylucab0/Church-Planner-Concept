@@ -15,8 +15,9 @@ nicht nötig.
 7. [Profil, Privatsphäre und Kalender-Abo](#7-profil-privatsphäre-und-kalender-abo)
 8. [Für Teamleitende: Personen einteilen](#8-für-teamleitende-personen-einteilen)
 9. [Für Teamleitende: Teams und Positionen](#9-für-teamleitende-teams-und-positionen)
-10. [Für Admins: Datenimport aus Elvanto/Planning Center](#10-für-admins-datenimport-aus-elvantoplanning-center)
-11. [Häufige Fragen](#11-häufige-fragen)
+10. [Für Admins: Benutzer anlegen und einladen](#10-für-admins-benutzer-anlegen-und-einladen)
+11. [Für Admins: Datenimport aus Elvanto/Planning Center](#11-für-admins-datenimport-aus-elvantoplanning-center)
+12. [Häufige Fragen](#12-häufige-fragen)
 
 ---
 
@@ -152,11 +153,45 @@ Titel oder CCLI-Nummer:
 
 ![Liederdatenbank](screenshots/13-lieder.png)
 
-- Pro Lied: **Standard-Tonart, Tempo (BPM), CCLI-Nummer** und beliebig viele
-  **Arrangements** (z. B. „Akustik in C", „Band in A").
+- Pro Lied: **Standard-Tonart, Tempo (BPM), CCLI-Nummer, Autor(en),
+  Copyright, Songtext** und beliebig viele **Arrangements** (z. B. „Akustik
+  in C", „Band in A").
 - Ansehen dürfen alle; anlegen und ändern können Teamleitende und Admins.
 - Wird ein Lied gelöscht, bleiben alte Ablaufpläne erhalten – nur die
   Verknüpfung verschwindet.
+
+#### Lieder aus SongSelect importieren
+
+Eine direkte Verbindung zum CCLI-Konto ist leider nicht möglich – CCLI hat
+sein Partner-API-Programm für neue Anbieter eingestellt. Der offizielle Weg
+für SongSelect-Abonnenten: Lied bei SongSelect als **ChordPro-Datei** (oder
+Nur-Text) **herunterladen** und hier über **Datei importieren** hochladen.
+
+![Lied importieren mit Textansicht](screenshots/21-song-import.png)
+
+- Titel, Tonart, Tempo, CCLI-Nummer, Autoren, Copyright und der Songtext
+  werden automatisch aus der Datei übernommen; über **Text anzeigen** siehst
+  du den Songtext (inkl. Akkorden bei ChordPro).
+- **Duplikate** werden über die CCLI-Nummer erkannt – beim erneuten Import
+  fragt ServeFlow, ob das bestehende Lied überschrieben werden soll.
+- Unterstützt werden ChordPro-Dateien (`.cho`, `.chopro`, `.pro`) und die
+  Text-Downloads von SongSelect (`.txt`).
+- Hinweis: Das Speichern von Songtexten setzt voraus, dass deine Gemeinde
+  eine **CCLI-Lizenz** hat.
+
+#### CCLI-Nutzungsbericht
+
+Für die Meldung ans CCLI-Portal erzeugt ServeFlow auf der Lieder-Seite einen
+**Nutzungsbericht**: pro Lied die Anzahl Termine im gewählten Zeitraum, in
+deren Ablaufplan es stand (abgesagte Termine zählen nicht; dasselbe Lied
+zweimal im selben Gottesdienst zählt einmal).
+
+![CCLI-Nutzungsbericht](screenshots/22-ccli-bericht.png)
+
+Den Bericht kannst du als **CSV herunterladen** und die Zahlen im CCLI-Portal
+eintragen. Admins hinterlegen dort auch die **CCLI-Lizenznummer** der
+Gemeinde. Eine automatische Meldung an CCLI gibt es (noch) nicht – auch das
+scheitert derzeit am geschlossenen Partnerprogramm.
 
 ## 6. Abwesenheiten pflegen
 
@@ -296,7 +331,64 @@ konfigurierbar, damit sich ein Team nicht selbst aussperren kann. Neue Teams
 anlegen sowie die Rolle **Leitung** vergeben oder entziehen kann nur ein
 Admin.
 
-## 10. Für Admins: Datenimport aus Elvanto/Planning Center
+### Benutzer beantragen
+
+Neue Personen anlegen können nur Admins – aber als Teamleitung musst du
+niemandem hinterhertelefonieren: Unter **Personen** findest du das Formular
+**Benutzer beantragen**.
+
+![Benutzer beantragen](screenshots/19-benutzer-beantragen.png)
+
+Trage Name, E-Mail-Adresse und optional die Telefonnummer der Person ein
+(leitest du mehrere Teams, wählst du zusätzlich das Team). Die Admins werden
+per E-Mail informiert und entscheiden über den Antrag:
+
+- **Genehmigt:** Die Person wird angelegt, **deinem Team als Mitarbeit
+  hinzugefügt** und automatisch per E-Mail eingeladen (siehe Kapitel 10). Du
+  bekommst eine Bestätigungs-Mail.
+- **Abgelehnt:** Du bekommst eine Mail, ggf. mit Begründung.
+
+Unter **Meine Anträge** siehst du jederzeit den Stand (offen / genehmigt /
+abgelehnt) inklusive Kommentar der Admins.
+
+## 10. Für Admins: Benutzer anlegen und einladen
+
+Neue Mitarbeitende erfasst du als Admin direkt auf der Seite **Personen** über
+**Person anlegen & einladen** – Vorname, Nachname, E-Mail und optional die
+Telefonnummer genügen:
+
+![Person anlegen und einladen](screenshots/17-person-anlegen.png)
+
+Die Person bekommt sofort eine **Einladungs-Mail** mit einem Link (7 Tage
+gültig, einmal verwendbar). Über den Link wählt sie ihr Passwort – erst damit
+entsteht ihr Login-Konto:
+
+![Einladung annehmen: Passwort setzen](screenshots/18-einladung-annehmen.png)
+
+Gut zu wissen:
+
+- **Personen ohne Konto** (z. B. aus einem Datenimport) zeigen in der
+  Personenliste den Button **Einladen** – so holst du bestehende Personen
+  nachträglich ins Tool. **Erneut einladen** ist jederzeit möglich; der alte
+  Link wird dabei ungültig.
+- Bei Personen **mit Konto** steht an derselben Stelle der Button für die
+  **Passwort-Reset-Mail** (falls sich jemand ausgesperrt hat).
+- Bis zur Einrichtung des Kontos ist die Person ganz normal planbar – das
+  Konto ist nur der Login.
+
+### Benutzer-Anträge prüfen
+
+Beantragt eine Teamleitung einen neuen Benutzer, bekommst du eine E-Mail, und
+auf der Seite **Personen** erscheint der Abschnitt **Offene Benutzer-Anträge**:
+
+![Benutzer-Anträge prüfen](screenshots/20-antraege-pruefen.png)
+
+Mit **Genehmigen** wird die Person angelegt, dem Team der antragstellenden
+Leitung als Mitarbeit hinzugefügt und automatisch eingeladen. Mit **Ablehnen**
+passiert nichts weiter – in beiden Fällen kannst du einen Kommentar mitgeben,
+den die Teamleitung per Mail erhält.
+
+## 11. Für Admins: Datenimport aus Elvanto/Planning Center
 
 Für den Umstieg von Elvanto oder Planning Center gibt es den Import-Assistenten
 unter **Datenimport** (nur für Admins sichtbar). Nichts wird ohne Vorschau
@@ -330,7 +422,7 @@ Wichtig zu wissen:
 Weitere Admin-Themen (Erst-Einrichtung, Betrieb, Backups) sind in der
 [technischen Dokumentation](../README.md) beschrieben.
 
-## 11. Häufige Fragen
+## 12. Häufige Fragen
 
 **Ich habe die Einteilungs-Mail gelöscht – wie antworte ich jetzt?**
 Melde dich an; unter „Meine Dienste" kannst du jederzeit zu- oder absagen.

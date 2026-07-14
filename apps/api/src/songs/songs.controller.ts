@@ -8,18 +8,23 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Put,
   Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import {
+  CcliLicenseDto,
+  CcliReportQueryDto,
   CreateArrangementDto,
   CreateSongDto,
+  ImportSongDto,
   UpdateArrangementDto,
   UpdateSongDto,
 } from './dto/songs.dto';
 import { SongsService } from './songs.service';
 import { AuthUser } from '../auth/auth.types';
-import { CurrentUser } from '../auth/decorators';
+import { CurrentUser, RequireAdmin } from '../auth/decorators';
 
 @ApiTags('songs')
 @Controller('songs')
@@ -36,6 +41,27 @@ export class SongsController {
   @ApiOperation({ summary: 'Lied anlegen (Admin oder Teamleiter)' })
   create(@CurrentUser() user: AuthUser, @Body() dto: CreateSongDto) {
     return this.songs.create(user, dto);
+  }
+
+  // Dateiinhalt als Text im Body (max 5 MB) – siehe CSV-Import-Muster
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @Post('import')
+  @ApiOperation({ summary: 'Song-Datei importieren (ChordPro/SongSelect-Text)' })
+  importFile(@CurrentUser() user: AuthUser, @Body() dto: ImportSongDto) {
+    return this.songs.importFile(user, dto);
+  }
+
+  @Get('ccli-report')
+  @ApiOperation({ summary: 'CCLI-Nutzungsbericht für einen Zeitraum' })
+  ccliReport(@CurrentUser() user: AuthUser, @Query() query: CcliReportQueryDto) {
+    return this.songs.ccliReport(user, query.from, query.to);
+  }
+
+  @RequireAdmin()
+  @Put('ccli-license')
+  @ApiOperation({ summary: 'CCLI-Lizenznummer der Gemeinde setzen (nur Admin)' })
+  setCcliLicense(@CurrentUser() user: AuthUser, @Body() dto: CcliLicenseDto) {
+    return this.songs.setCcliLicense(user, dto.licenseNumber);
   }
 
   @Patch(':id')

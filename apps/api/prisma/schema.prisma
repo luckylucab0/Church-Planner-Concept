@@ -67,6 +67,7 @@ model Person {
   notifications     NotificationLog[]
   planResponsibilities ServicePlanItem[] @relation("PlanResponsibilities")
   replacementRequests  ReplacementRequest[] @relation("ReplacementCandidate")
+  userRequests         UserAccountRequest[] @relation("UserRequestsRequested")
 }
 
 enum GlobalRole {
@@ -154,6 +155,7 @@ model Team {
   memberships     TeamMembership[]
   positions       Position[]
   rolePermissions TeamRolePermission[]
+  userRequests    UserAccountRequest[]
 }
 
 // Rolle pro Team-Mitgliedschaft, keine globale Rolle – ein kompromittiertes
@@ -383,6 +385,8 @@ model ResponseToken {
 
 enum AuthTokenPurpose {
   PASSWORD_RESET
+  // Einladung: Link zum erstmaligen Einrichten des Kontos (Passwort setzen)
+  INVITE
 }
 
 model AuthToken {
@@ -394,6 +398,44 @@ model AuthToken {
   expiresAt DateTime
   usedAt    DateTime?
   createdAt DateTime         @default(now())
+}
+
+// ---------- Benutzer-Anträge -------------------------------
+
+enum UserAccountRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// Teamleiter beantragen neue Benutzer, Admins entscheiden. Bei
+// Genehmigung entsteht die Person (inkl. Mitgliedschaft im Team des
+// Antragstellers) und der Einladungs-Flow wird angestoßen. Die
+// Antragsdaten bleiben als Nachweis erhalten (wer hat wen wann
+// beantragt/entschieden).
+model UserAccountRequest {
+  id            String                   @id @default(uuid()) @db.Uuid
+  firstName     String
+  lastName      String
+  // lowercase-normalisiert gespeichert, damit Duplikat-Checks greifen
+  email         String
+  phone         String?
+  teamId        String                   @db.Uuid
+  team          Team                     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  requestedById String                   @db.Uuid
+  requestedBy   Person                   @relation("UserRequestsRequested", fields: [requestedById], references: [id], onDelete: Cascade)
+  status        UserAccountRequestStatus @default(PENDING)
+  reviewComment String?
+  // Bewusst ohne FK (wie AuditLog.actorId): der Entscheid bleibt auch
+  // nachvollziehbar, wenn das Admin-Konto später gelöscht wird
+  reviewedById    String?   @db.Uuid
+  reviewedAt      DateTime?
+  // Ergebnis der Genehmigung, für Nachvollziehbarkeit
+  createdPersonId String?   @db.Uuid
+  createdAt       DateTime  @default(now())
+
+  @@index([status])
+  @@index([requestedById])
 }
 
 // Persönlicher iCal-Feed: geheime Abo-URL, von der Person rotierbar
@@ -446,6 +488,9 @@ enum NotificationKind {
   REPLACEMENT_REQUEST
   REPLACEMENT_RESULT
   SIGNUP_ALERT
+  INVITE
+  USER_REQUEST
+  USER_REQUEST_RESULT
 }
 
 model NotificationLog {
@@ -580,13 +625,18 @@ model ServicePlanItem {
   @@index([eventId])
 }
 
-// Liederdatenbank
+// Liederdatenbank. lyrics hält die ChordPro-Quelle (bzw. den reinen
+// Text) aus dem SongSelect-/Datei-Import – Voraussetzung fürs Speichern
+// ist die CCLI-Lizenz der Gemeinde (siehe Anwenderhandbuch).
 model Song {
   id         String  @id @default(uuid()) @db.Uuid
   title      String
   defaultKey String?
   tempoBpm   Int?
   ccliNumber String?
+  author     String?
+  copyright  String?
+  lyrics     String? @db.Text
   createdAt  DateTime @default(now())
 
   arrangements SongArrangement[]

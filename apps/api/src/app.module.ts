@@ -14,6 +14,7 @@ import { AuthzModule } from './authz/authz.module';
 import { env } from './common/config/env';
 import { HealthModule } from './health/health.module';
 import { ImportModule } from './import/import.module';
+import { UserRequestsModule } from './user-requests/user-requests.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PeopleModule } from './people/people.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -38,6 +39,7 @@ import { TeamsModule } from './teams/teams.module';
     AssignmentsModule,
     CalendarModule,
     ImportModule,
+    UserRequestsModule,
     HealthModule,
     // Basis-Rate-Limit für alle Endpoints; Auth-Routen setzen per
     // @Throttle deutlich engere Limits. In Tests deaktiviert – die

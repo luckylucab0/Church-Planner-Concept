@@ -1,4 +1,9 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { CreatePersonDto, UpdateMeDto, UpdatePersonDto, UpdatePrivacyDto } from './dto/people.dto';
 import { AuditService } from '../audit/audit.service';
@@ -32,7 +37,9 @@ export class PeopleService {
     };
     const persons = await this.prisma.person.findMany({
       where,
-      include: { privacySettings: true },
+      // account nur als Existenz-Flag: buildPersonView reicht es
+      // ausschließlich an Admins durch (hasAccount)
+      include: { privacySettings: true, account: { select: { id: true } } },
       orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
     });
     const relationships = await this.permissions.relationshipsTo(
@@ -71,14 +78,16 @@ export class PeopleService {
   }
 
   async create(user: AuthUser, dto: CreatePersonDto): Promise<PersonView> {
-    const person = await this.prisma.person.create({
-      data: {
-        ...dto,
-        birthday: dto.birthday ? new Date(dto.birthday) : undefined,
-        privacySettings: { create: {} }, // Defaults: nichts freigegeben
-      },
-      include: { privacySettings: true },
-    });
+    const person = await this.catchDuplicateEmail(() =>
+      this.prisma.person.create({
+        data: {
+          ...dto,
+          birthday: dto.birthday ? new Date(dto.birthday) : undefined,
+          privacySettings: { create: {} }, // Defaults: nichts freigegeben
+        },
+        include: { privacySettings: true },
+      }),
+    );
     this.audit.log({
       actorId: user.personId,
       action: 'CREATE',
@@ -90,11 +99,13 @@ export class PeopleService {
 
   async update(user: AuthUser, personId: string, dto: UpdatePersonDto): Promise<PersonView> {
     await this.ensureExists(personId);
-    const person = await this.prisma.person.update({
-      where: { id: personId },
-      data: { ...dto, birthday: dto.birthday ? new Date(dto.birthday) : undefined },
-      include: { privacySettings: true },
-    });
+    const person = await this.catchDuplicateEmail(() =>
+      this.prisma.person.update({
+        where: { id: personId },
+        data: { ...dto, birthday: dto.birthday ? new Date(dto.birthday) : undefined },
+        include: { privacySettings: true },
+      }),
+    );
     this.audit.log({
       actorId: user.personId,
       action: 'UPDATE',
@@ -278,5 +289,18 @@ export class PeopleService {
       select: { id: true },
     });
     if (!exists) throw new NotFoundException();
+  }
+
+  // Person.email ist unique – ein Duplikat soll ein sauberes 409 geben,
+  // kein 500 aus dem Prisma-Fehler.
+  private async catchDuplicateEmail<T>(operation: () => Promise<T>): Promise<T> {
+    try {
+      return await operation();
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new ConflictException({ message: 'people.emailTaken' });
+      }
+      throw error;
+    }
   }
 }
