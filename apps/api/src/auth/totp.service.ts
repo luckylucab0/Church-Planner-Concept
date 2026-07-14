@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { authenticator } from 'otplib';
+import { toDataURL } from 'qrcode';
 import { decryptField, encryptField } from '../common/crypto/field-crypto';
 
 // TOTP-2FA (RFC 6238) für Admin- und Teamleiter-Konten (für alle optional).
@@ -14,6 +15,12 @@ export class TotpService {
 
   buildOtpauthUrl(secret: string, accountEmail: string): string {
     return authenticator.keyuri(accountEmail, 'ServeFlow', secret);
+  }
+
+  // QR-Code serverseitig als Data-URL: das Secret läuft nie durch eine
+  // Drittanbieter-Komponente, und die CSP (img-src 'self' data:) bleibt eng.
+  buildQrDataUrl(otpauthUrl: string): Promise<string> {
+    return toDataURL(otpauthUrl, { margin: 1, width: 220 });
   }
 
   verify(code: string, encryptedSecret: Buffer | Uint8Array): boolean {

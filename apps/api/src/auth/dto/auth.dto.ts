@@ -11,10 +11,12 @@ export class LoginDto {
   @MaxLength(200)
   password: string;
 
-  @ApiPropertyOptional({ description: '6-stelliger TOTP-Code, falls 2FA aktiv' })
+  @ApiPropertyOptional({
+    description: '6-stelliger TOTP-Code oder Backup-Code (XXXX-XXXX), falls 2FA aktiv',
+  })
   @IsOptional()
   @IsString()
-  @Length(6, 6)
+  @Length(6, 9)
   totpCode?: string;
 }
 
@@ -23,6 +25,26 @@ export class TotpVerifyDto {
   @IsString()
   @Length(6, 6)
   code: string;
+}
+
+export class TotpDisableDto {
+  @ApiProperty({ description: 'Aktuelles Passwort als Nachweis' })
+  @IsString()
+  @MaxLength(200)
+  password: string;
+}
+
+export class ChangePasswordDto {
+  @ApiProperty()
+  @IsString()
+  @MaxLength(200)
+  currentPassword: string;
+
+  @ApiProperty({ minLength: 10 })
+  @IsString()
+  @MinLength(10)
+  @MaxLength(200)
+  newPassword: string;
 }
 
 export class PasswordResetRequestDto {

@@ -1,12 +1,13 @@
 import { ComponentType, ReactNode, SVGProps, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { Logo } from './Logo';
 import {
   IconAvailability,
   IconCalendar,
   IconDashboard,
   IconImport,
+  IconKey,
   IconLogout,
   IconMore,
   IconMusic,
@@ -67,7 +68,38 @@ function Avatar({ name, size = 34 }: { name: string; size?: number }) {
 export default function Layout({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
   const { session, logout } = useSession();
+  const navigate = useNavigate();
   const [moreOpen, setMoreOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  // Avatar-Menü: eigenes Profil, Passwort ändern, Abmelden – auf dem
+  // Desktop als Popover über dem User-Chip, mobil als Bottom-Sheet.
+  const userMenuItems = [
+    {
+      key: 'profile',
+      label: t('nav.myProfile'),
+      icon: IconProfile,
+      action: () => navigate('/profile'),
+    },
+    {
+      key: 'password',
+      label: t('profile.changePassword'),
+      icon: IconKey,
+      action: () => navigate('/profile#sicherheit'),
+    },
+    {
+      key: 'logout',
+      label: t('auth.logout'),
+      icon: IconLogout,
+      action: () => void logout(),
+    },
+  ];
+
+  function runMenuItem(action: () => void) {
+    setUserMenuOpen(false);
+    window.scrollTo(0, 0);
+    action();
+  }
 
   const isAdmin = session?.globalRole === 'ADMIN';
   const visible = NAV.filter((item) => !item.adminOnly || isAdmin);
@@ -107,29 +139,88 @@ export default function Layout({ children }: { children: ReactNode }) {
             </NavLink>
           ))}
         </nav>
-        {/* User-Chip unten */}
-        <div className="mt-auto flex items-center gap-3 rounded-xl border border-line bg-surface p-2.5">
-          <Avatar name={fullName || 'S F'} />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-paper">{fullName}</p>
-            <p className="truncate text-xs text-muted">{isAdmin ? 'Admin' : t('nav.profile')}</p>
-          </div>
+        {/* User-Chip unten: öffnet das Avatar-Menü */}
+        <div className="relative mt-auto">
+          {userMenuOpen && (
+            <div className="absolute bottom-full left-0 right-0 z-40 mb-2 card p-1.5 shadow-lg">
+              {userMenuItems.map((item) => (
+                <button
+                  key={item.key}
+                  onClick={() => runMenuItem(item.action)}
+                  className="flex w-full items-center gap-3 rounded-[10px] px-3 py-2.5 text-left text-sm text-secondary transition-colors hover:bg-ink hover:text-paper"
+                >
+                  <item.icon className="shrink-0" />
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
           <button
-            onClick={() => void logout()}
-            className="rounded-lg p-1.5 text-muted transition-colors hover:bg-ink hover:text-paper"
-            aria-label={t('auth.logout')}
-            title={t('auth.logout')}
+            onClick={() => setUserMenuOpen((open) => !open)}
+            className="flex w-full items-center gap-3 rounded-xl border border-line bg-surface p-2.5 text-left transition-colors hover:border-line-strong"
+            aria-haspopup="menu"
+            aria-expanded={userMenuOpen}
           >
-            <IconLogout />
+            <Avatar name={fullName || 'S F'} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-paper">{fullName}</p>
+              <p className="truncate text-xs text-muted">{isAdmin ? 'Admin' : t('nav.profile')}</p>
+            </div>
           </button>
         </div>
       </aside>
 
+      {/* Klick daneben schließt das Desktop-Avatar-Menü */}
+      {userMenuOpen && (
+        <div className="fixed inset-0 z-30 hidden lg:block" onClick={() => setUserMenuOpen(false)} />
+      )}
+
       {/* Mobile-Top-Bar */}
       <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-line bg-ink-deep px-4 lg:hidden print:hidden">
         <Logo iconSize={22} wordmarkSize={16} />
-        <Avatar name={fullName || 'S F'} />
+        <button
+          onClick={() => setUserMenuOpen(true)}
+          aria-haspopup="menu"
+          aria-label={t('nav.myProfile')}
+        >
+          <Avatar name={fullName || 'S F'} />
+        </button>
       </header>
+
+      {/* Avatar-Menü mobil: Bottom-Sheet wie das „Mehr"-Sheet */}
+      {userMenuOpen && (
+        <div
+          className="fixed inset-0 z-30 flex flex-col justify-end bg-black/60 lg:hidden"
+          onClick={() => setUserMenuOpen(false)}
+        >
+          <div
+            className="rounded-t-2xl border-t border-line bg-surface p-4"
+            style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-line-strong" />
+            <div className="mb-3 flex items-center gap-3 px-1">
+              <Avatar name={fullName || 'S F'} />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-paper">{fullName}</p>
+                <p className="truncate text-xs text-muted">{isAdmin ? 'Admin' : t('nav.profile')}</p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              {userMenuItems.map((item) => (
+                <button
+                  key={item.key}
+                  onClick={() => runMenuItem(item.action)}
+                  className="flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-left text-sm text-secondary transition-colors hover:bg-ink hover:text-paper"
+                >
+                  <item.icon className="shrink-0" />
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hauptinhalt */}
       <main className="mx-auto w-full max-w-5xl flex-1 p-4 pb-24 sm:p-6 lg:p-8 lg:pb-8">

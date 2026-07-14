@@ -96,3 +96,10 @@ export const IconLogout = (p: SVGProps<SVGSVGElement>) => (
     <path d="M10 17l-5-5 5-5M15 12H5" />
   </Icon>
 );
+
+export const IconKey = (p: SVGProps<SVGSVGElement>) => (
+  <Icon {...p}>
+    <circle cx="8" cy="15" r="4" />
+    <path d="M10.9 12.1 20 3M15 8l3 3M18 5l2 2" />
+  </Icon>
+);

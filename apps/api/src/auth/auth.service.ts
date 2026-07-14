@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as argon2 from 'argon2';
 import { AuthUser } from './auth.types';
+import { BackupCodesService } from './backup-codes.service';
 import { SessionService } from './session.service';
 import { TotpService } from './totp.service';
 import { AuditService } from '../audit/audit.service';
@@ -24,6 +25,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly sessions: SessionService,
     private readonly totp: TotpService,
+    private readonly backupCodes: BackupCodesService,
     private readonly audit: AuditService,
     private readonly mailer: MailerService,
   ) {}
@@ -88,11 +90,27 @@ export class AuthService {
         // Kein Audit-"LOGIN_FAILED" – das Passwort war korrekt.
         throw new UnauthorizedException({ message: 'auth.totpRequired', code: 'TOTP_REQUIRED' });
       }
-      if (
-        !account.totpSecretEncrypted ||
-        !this.totp.verify(totpCode, account.totpSecretEncrypted)
-      ) {
-        return fail();
+      // 6 Ziffern = TOTP; alles andere wird als Backup-Code versucht
+      // (Backup-Codes enthalten immer Buchstaben – keine Verwechslung).
+      if (/^\d{6}$/.test(totpCode)) {
+        if (
+          !account.totpSecretEncrypted ||
+          !this.totp.verify(totpCode, account.totpSecretEncrypted)
+        ) {
+          return fail();
+        }
+      } else {
+        if (!(await this.backupCodes.consume(account.id, totpCode))) {
+          return fail();
+        }
+        this.audit.log({
+          actorId: person.id,
+          action: 'UPDATE',
+          entityType: 'UserAccount',
+          entityId: account.id,
+          changedFields: ['totpBackupCodeUsed'],
+          ip,
+        });
       }
     }
 
@@ -121,20 +139,69 @@ export class AuthService {
     await this.sessions.destroy(sessionToken);
   }
 
+  // Passwort ändern (eingeloggt): aktuelles Passwort ist der Nachweis.
+  // Andere Sessions werden beendet (mögliche Fremdzugriffe), die eigene
+  // bleibt bestehen.
+  async changePassword(
+    user: AuthUser,
+    sessionToken: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    const account = await this.prisma.userAccount.findUniqueOrThrow({
+      where: { id: user.accountId },
+    });
+    const passwordOk = await argon2.verify(account.passwordHash, currentPassword).catch(() => false);
+    if (!passwordOk) {
+      throw new UnauthorizedException({ message: 'auth.wrongPassword' });
+    }
+    await this.prisma.userAccount.update({
+      where: { id: account.id },
+      data: { passwordHash: await argon2.hash(newPassword, { type: argon2.argon2id }) },
+    });
+    await this.sessions.destroyOthersForAccount(account.id, sessionToken);
+    this.audit.log({
+      actorId: user.personId,
+      action: 'UPDATE',
+      entityType: 'UserAccount',
+      entityId: account.id,
+      changedFields: ['passwordHash'],
+    });
+  }
+
   // --- 2FA -------------------------------------------------
 
-  async setupTotp(user: AuthUser): Promise<{ otpauthUrl: string; secret: string }> {
+  // Einrichtung Schritt 1: Secret + QR + Backup-Codes. Aktiviert wird
+  // erst nach verify() – sonst sperrt sich aus, wer die App nicht fertig
+  // eingerichtet hat. Verwaiste Backup-Codes eines Abbruchs sind harmlos
+  // (totpEnabled bleibt false) und werden hier ersetzt.
+  async setupTotp(
+    user: AuthUser,
+  ): Promise<{ otpauthUrl: string; qrDataUrl: string; secret: string; backupCodes: string[] }> {
     const person = await this.prisma.person.findUniqueOrThrow({ where: { id: user.personId } });
     const { secret, encrypted } = this.totp.generateSecret();
-    // Secret speichern, aber erst nach erfolgreichem verify() aktivieren –
-    // sonst sperrt sich aus, wer die App nicht fertig eingerichtet hat
     await this.prisma.userAccount.update({
       where: { id: user.accountId },
       data: { totpSecretEncrypted: encrypted, totpEnabled: false },
     });
-    return { otpauthUrl: this.totp.buildOtpauthUrl(secret, person.email ?? 'serveflow'), secret };
+    const backupCodes = await this.backupCodes.regenerate(user.accountId);
+    const otpauthUrl = this.totp.buildOtpauthUrl(secret, person.email ?? 'serveflow');
+    this.audit.log({
+      actorId: user.personId,
+      action: 'UPDATE',
+      entityType: 'UserAccount',
+      entityId: user.accountId,
+      changedFields: ['totpSecretEncrypted'],
+    });
+    return {
+      otpauthUrl,
+      qrDataUrl: await this.totp.buildQrDataUrl(otpauthUrl),
+      secret,
+      backupCodes,
+    };
   }
 
+  // Einrichtung Schritt 3: erst ein gültiger Code aktiviert die 2FA
   async verifyTotp(user: AuthUser, code: string): Promise<void> {
     const account = await this.prisma.userAccount.findUniqueOrThrow({
       where: { id: user.accountId },
@@ -145,6 +212,73 @@ export class AuthService {
     await this.prisma.userAccount.update({
       where: { id: user.accountId },
       data: { totpEnabled: true },
+    });
+    this.audit.log({
+      actorId: user.personId,
+      action: 'UPDATE',
+      entityType: 'UserAccount',
+      entityId: user.accountId,
+      changedFields: ['totpEnabled'],
+    });
+  }
+
+  async getTotpStatus(user: AuthUser): Promise<{ enabled: boolean; backupCodesRemaining: number }> {
+    const account = await this.prisma.userAccount.findUniqueOrThrow({
+      where: { id: user.accountId },
+      select: { totpEnabled: true },
+    });
+    return {
+      enabled: account.totpEnabled,
+      backupCodesRemaining: account.totpEnabled
+        ? await this.backupCodes.countRemaining(user.accountId)
+        : 0,
+    };
+  }
+
+  // Neue Backup-Codes: gültiger TOTP-Code als Besitznachweis des Faktors
+  async regenerateBackupCodes(user: AuthUser, code: string): Promise<{ backupCodes: string[] }> {
+    const account = await this.prisma.userAccount.findUniqueOrThrow({
+      where: { id: user.accountId },
+    });
+    if (
+      !account.totpEnabled ||
+      !account.totpSecretEncrypted ||
+      !this.totp.verify(code, account.totpSecretEncrypted)
+    ) {
+      throw new UnauthorizedException({ message: 'auth.invalidTotp' });
+    }
+    const backupCodes = await this.backupCodes.regenerate(user.accountId);
+    this.audit.log({
+      actorId: user.personId,
+      action: 'UPDATE',
+      entityType: 'UserAccount',
+      entityId: user.accountId,
+      changedFields: ['totpBackupCodes'],
+    });
+    return { backupCodes };
+  }
+
+  // 2FA abschalten: Passwort als Nachweis – funktioniert auch, wenn das
+  // 2FA-Gerät verloren ging (dafür sind sonst die Backup-Codes da).
+  async disableTotp(user: AuthUser, password: string): Promise<void> {
+    const account = await this.prisma.userAccount.findUniqueOrThrow({
+      where: { id: user.accountId },
+    });
+    const passwordOk = await argon2.verify(account.passwordHash, password).catch(() => false);
+    if (!passwordOk) {
+      throw new UnauthorizedException({ message: 'auth.wrongPassword' });
+    }
+    await this.prisma.userAccount.update({
+      where: { id: account.id },
+      data: { totpEnabled: false, totpSecretEncrypted: null },
+    });
+    await this.backupCodes.deleteAll(account.id);
+    this.audit.log({
+      actorId: user.personId,
+      action: 'UPDATE',
+      entityType: 'UserAccount',
+      entityId: account.id,
+      changedFields: ['totpEnabled', 'totpSecretEncrypted'],
     });
   }
 
