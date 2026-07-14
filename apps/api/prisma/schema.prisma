@@ -89,6 +89,23 @@ model UserAccount {
   lastLoginAt         DateTime?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
+
+  totpBackupCodes TotpBackupCode[]
+}
+
+// Einmal-Backup-Codes für 2FA (Geräteverlust). Es werden nur SHA-256-
+// Hashes gespeichert – die Klartext-Codes sieht die Person genau einmal
+// bei der Einrichtung. usedAt macht jeden Code single-use und
+// nachvollziehbar (Audit).
+model TotpBackupCode {
+  id        String      @id @default(uuid()) @db.Uuid
+  accountId String      @db.Uuid
+  account   UserAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  codeHash  String      @unique
+  usedAt    DateTime?
+  createdAt DateTime    @default(now())
+
+  @@index([accountId])
 }
 
 // Jede Person steuert selbst, welche Kontaktdaten Mitglieder ihrer

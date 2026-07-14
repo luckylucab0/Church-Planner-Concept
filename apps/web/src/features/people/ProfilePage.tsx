@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLocation } from 'react-router-dom';
+import SecuritySection from './SecuritySection';
 import { api } from '../../api/client';
 
 interface Profile {
@@ -25,11 +27,20 @@ export default function ProfilePage() {
   const [privacy, setPrivacy] = useState<Privacy | null>(null);
   const [saved, setSaved] = useState(false);
   const [icalUrl, setIcalUrl] = useState<string | null>(null);
+  const { hash } = useLocation();
 
   useEffect(() => {
     void api.get<Profile>('/me').then(setProfile);
     void api.get<Privacy>('/me/privacy').then(setPrivacy);
   }, []);
+
+  // Vom Avatar-Menü aus („Passwort ändern") direkt zur Sicherheits-
+  // Sektion scrollen – erst, wenn die Seite fertig gerendert ist.
+  useEffect(() => {
+    if (hash === '#sicherheit' && profile && privacy) {
+      document.getElementById('sicherheit')?.scrollIntoView({ block: 'start' });
+    }
+  }, [hash, profile, privacy]);
 
   async function saveProfile() {
     if (!profile) return;
@@ -108,6 +119,8 @@ export default function ProfilePage() {
           </label>
         ))}
       </section>
+
+      <SecuritySection />
 
       <section className="card p-4">
         <h2 className="font-semibold text-paper">{t('profile.icalTitle')}</h2>
