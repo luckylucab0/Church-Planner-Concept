@@ -186,6 +186,36 @@ Unter **Profil** verwaltest du deine eigenen Daten:
 - **Meine Daten:** Lade jederzeit alle über dich gespeicherten Daten als Datei
   herunter (Datenschutz-Auskunft).
 
+Zum Profil kommst du auch über dein **Profilbild** in der Navigation: Ein
+Klick öffnet ein kleines Menü mit „Mein Profil", „Passwort ändern" und
+„Abmelden".
+
+### Sicherheit: Passwort ändern & Zwei-Faktor-Authentisierung
+
+![Sicherheits-Sektion mit 2FA-Einrichtung](screenshots/15-2fa-einrichtung.png)
+
+Im Abschnitt **Sicherheit** des Profils kannst du:
+
+- **Passwort ändern:** Gib dein aktuelles Passwort und zweimal das neue ein
+  (mindestens 10 Zeichen). Aus Sicherheitsgründen werden dabei alle anderen
+  angemeldeten Geräte abgemeldet – du selbst bleibst angemeldet.
+- **Zwei-Faktor-Authentisierung (2FA) einrichten:** Nach dem Klick auf
+  **„2FA einrichten"** führt dich ein Assistent in drei Schritten durch die
+  Einrichtung:
+  1. **QR-Code scannen** mit einer Authenticator-App (z. B. Aegis, Google
+     Authenticator) – oder das angezeigte Secret manuell in der App eingeben.
+  2. **Backup-Codes sichern:** Zehn Einmal-Codes für den Fall, dass du dein
+     Gerät verlierst. Bewahre sie sicher auf (z. B. im Passwortmanager) – sie
+     werden nur dieses eine Mal angezeigt.
+  3. **Bestätigen:** Gib zum Abschluss einen Code aus der App ein – erst dann
+     ist 2FA aktiv.
+
+  Beim Anmelden wirst du künftig zusätzlich nach dem Code aus der App
+  gefragt; alternativ funktioniert jeder Backup-Code genau einmal. Im Profil
+  siehst du, wie viele Backup-Codes übrig sind, kannst **neue Codes
+  erzeugen** (mit App-Code als Nachweis) oder 2FA **mit deinem Passwort
+  deaktivieren**.
+
 ## 8. Für Teamleitende: Personen einteilen
 
 Als Teamleitung öffnest du unter **Dienstpläne** einen Termin. Bei den
@@ -239,7 +269,25 @@ Als Teamleitung kannst du in **deinem eigenen Team**:
 - Mitgliedern Positionen mit **Skill-Level** zuordnen (Einsteiger / Solide /
   Profi) – nur so zugeordnete Personen können für die Position eingeteilt werden
 
-Neue Teams anlegen und das Teamleiter-Recht vergeben kann nur ein Admin.
+### Rollen im Team & Rechtematrix
+
+![Rollen und Rechtematrix](screenshots/16-rechtematrix.png)
+
+Jedes Mitglied hat im Team eine **Rolle**: **Leitung**, **Stellvertretung**,
+**Mitarbeit** (Standard) oder **Praktikum**. Als Leitung wählst du die Rolle
+direkt in der Mitgliederliste über das Auswahlfeld neben der Person.
+
+Was die Rollen dürfen, legst du in der **Rechtematrix** deines Teams fest –
+pro Rolle und Recht ein Häkchen (z. B. Einteilen, Dienste freigeben,
+Positionen pflegen, Kontaktdaten sehen, Ablaufplan bearbeiten). Änderungen
+gelten sofort. Voreingestellt ist die Stellvertretung eine „Leitung ohne
+Personalhoheit" (alles außer Mitglieder & Rollen verwalten), Mitarbeit und
+Praktikum starten ohne Verwaltungsrechte.
+
+Die **Leitung** hat immer alle Rechte im Team – sie ist bewusst nicht
+konfigurierbar, damit sich ein Team nicht selbst aussperren kann. Neue Teams
+anlegen sowie die Rolle **Leitung** vergeben oder entziehen kann nur ein
+Admin.
 
 ## 10. Für Admins: Datenimport aus Elvanto/Planning Center
 
