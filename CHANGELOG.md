@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.4.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.3.0...v0.4.0) (2026-07-14)
+
+
+### Features
+
+* **auth:** Avatar-Menü, Passwort ändern und vollständige 2FA ([5fdf262](https://github.com/luckylucab0/Church-Planner-Concept/commit/5fdf26258c522c07e4a8f88bab6c05d575f82e01))
+* **auth:** Avatar-Menü, Passwort ändern, 2FA komplett + Teamrollen-UI ([006db3f](https://github.com/luckylucab0/Church-Planner-Concept/commit/006db3f001f5003b600468d38fede828b54e2b11))
+* **signup:** Buttons „Mich eintragen“/„Person eintragen“ statt Freigabe-Häkchen ([a046ede](https://github.com/luckylucab0/Church-Planner-Concept/commit/a046ede404c1f7caf90f708215835704f5eb4aff))
+* **signup:** Buttons „Mich eintragen“/„Person eintragen“ statt Freigabe-Häkchen ([626b0df](https://github.com/luckylucab0/Church-Planner-Concept/commit/626b0df05822b7f5d68882d27fff5929e9de664a))
+* **signup:** Selbst-Eintragung-Fixes + Vorschlags-Dropdown + Scroll-to-Top ([8e99207](https://github.com/luckylucab0/Church-Planner-Concept/commit/8e992070a29fd7d408b3fbf7f5c9cf60875f55c5))
+* Teamrollen mit Rechtematrix, Avatar-Menü, Passwort ändern und 2FA ([3e5ef93](https://github.com/luckylucab0/Church-Planner-Concept/commit/3e5ef9383eb13726eda0453f15ce22cd6f993294))
+* **teams:** Teamrollen mit konfigurierbarer Rechtematrix ([ee318b8](https://github.com/luckylucab0/Church-Planner-Concept/commit/ee318b8623aa212aee9d9be259ca8f582a27d62f))
+* **teams:** Teamrollen mit konfigurierbarer Rechtematrix ([41173c0](https://github.com/luckylucab0/Church-Planner-Concept/commit/41173c046a8bd2ebc8f88f894c45b1de5a04ebe4))
+* **web:** Rollen und Rechtematrix in der Teamansicht ([9cffa7a](https://github.com/luckylucab0/Church-Planner-Concept/commit/9cffa7ac375cfff5a3f2627e270fea6f15fa3521))
+* **web:** Vorschlags-Dropdown + Scroll-to-Top, Trivy-Fix (Alpine-CVEs) ([f473187](https://github.com/luckylucab0/Church-Planner-Concept/commit/f4731877253f2b7444cbf7e1427fa181cdaa86c8))
+* **web:** Vorschlags-Dropdown und Scroll-to-Top ([739dab6](https://github.com/luckylucab0/Church-Planner-Concept/commit/739dab6d8928ec5acdbb1599a6e9bda1e98dba9a))
+
+
+### Bugfixes
+
+* **docker:** Alpine-CVEs beim Build patchen, Ausnahme für Caddy-stdlib-CVE ([3f3a4e0](https://github.com/luckylucab0/Church-Planner-Concept/commit/3f3a4e086d4d056baeb42d15d2134f9fa3e14dd2))
+
+
+### Dokumentation
+
+* Screenshot zeigt Dropdown im Default-Zustand (Platzhalter statt Name) ([bd3fbc0](https://github.com/luckylucab0/Church-Planner-Concept/commit/bd3fbc0bc22208bc40f830acd006fe163abff8e0))
+* Screenshot zeigt Dropdown im Default-Zustand (Platzhalter statt Name) ([6acd601](https://github.com/luckylucab0/Church-Planner-Concept/commit/6acd6011c4b7217d6a0684a968062bbe28d2e97c))
+
 ## [0.3.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.2.1...v0.3.0) (2026-07-06)
 
 
