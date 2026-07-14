@@ -18,8 +18,6 @@ updates:
     # - otplib 13: komplette API-Neuschreibung mit ESM-only-Dependencies
     #   (@scure/@noble v2) – Jest im CJS-Modus kann sie nicht laden;
     #   erst mit Umstieg auf ESM/Vitest machbar
-    # - @fastify/static 10: @nestjs/platform-fastify erlaubt als Peer nur
-    #   ^8 || ^9 – Major erst bumpen, wenn NestJS nachzieht
     ignore:
       - dependency-name: prisma
         update-types: ['version-update:semver-major']
@@ -30,8 +28,6 @@ updates:
       - dependency-name: vite
         update-types: ['version-update:semver-major']
       - dependency-name: otplib
-        update-types: ['version-update:semver-major']
-      - dependency-name: '@fastify/static'
         update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
