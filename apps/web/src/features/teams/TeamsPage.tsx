@@ -58,6 +58,9 @@ export default function TeamsPage() {
   const [openTeam, setOpenTeam] = useState<TeamDetail | null>(null);
   const [matrix, setMatrix] = useState<PermissionMatrix | null>(null);
   const [matrixSaved, setMatrixSaved] = useState(false);
+  const [allPeople, setAllPeople] = useState<{ id: string; name: string }[]>([]);
+  const [addPersonId, setAddPersonId] = useState('');
+  const [addRole, setAddRole] = useState<TeamRole>('MEMBER');
 
   useEffect(() => {
     void api.get<TeamSummary[]>('/teams').then(setTeams);
@@ -66,6 +69,8 @@ export default function TeamsPage() {
   const openDetail = useCallback((teamId: string) => {
     setMatrix(null);
     setMatrixSaved(false);
+    setAddPersonId('');
+    setAddRole('MEMBER');
     void api.get<TeamDetail>(`/teams/${teamId}`).then((team) => {
       setOpenTeam(team);
       if (team.canEditMatrix) {
@@ -74,9 +79,32 @@ export default function TeamsPage() {
     });
   }, []);
 
+  // Personenliste fürs Hinzufügen – erst laden, wenn jemand ein Team mit
+  // Mitgliederrechten geöffnet hat (die API liefert Nicht-Admins nur Namen)
+  useEffect(() => {
+    if (!openTeam?.canManageMembers || allPeople.length > 0) return;
+    void api
+      .get<{ id: string; firstName: string; lastName: string }[]>('/people')
+      .then((people) =>
+        setAllPeople(people.map((p) => ({ id: p.id, name: `${p.firstName} ${p.lastName}` }))),
+      );
+  }, [openTeam, allPeople.length]);
+
   async function changeRole(personId: string, role: TeamRole) {
     if (!openTeam) return;
     await api.patch(`/teams/${openTeam.id}/members/${personId}`, { role });
+    openDetail(openTeam.id);
+  }
+
+  async function addMember() {
+    if (!openTeam || !addPersonId) return;
+    await api.post(`/teams/${openTeam.id}/members`, { personId: addPersonId, role: addRole });
+    openDetail(openTeam.id);
+  }
+
+  async function removeMember(personId: string, name: string) {
+    if (!openTeam || !window.confirm(t('teams.removeConfirm', { name }))) return;
+    await api.delete(`/teams/${openTeam.id}/members/${personId}`);
     openDetail(openTeam.id);
   }
 
@@ -163,10 +191,65 @@ export default function TeamsPage() {
                       ))}
                     </select>
                   )}
+                  {/* Leitung entfernen kann nur ein Admin */}
+                  {openTeam.canManageMembers &&
+                    (member.role !== 'LEADER' || openTeam.canGrantLeader) && (
+                      <button
+                        onClick={() =>
+                          void removeMember(member.id, `${member.firstName} ${member.lastName}`)
+                        }
+                        className="text-xs text-faint hover:text-paper"
+                      >
+                        {t('teams.removeMember')}
+                      </button>
+                    )}
                 </span>
               </li>
             ))}
           </ul>
+
+          {openTeam.canManageMembers && (
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <select
+                value={addPersonId}
+                onChange={(e) => setAddPersonId(e.target.value)}
+                aria-label={t('teams.addMember')}
+                className="input w-auto px-2 py-1 text-xs"
+              >
+                <option value="">{t('teams.selectPerson')}</option>
+                {allPeople
+                  .filter((person) => !openTeam.members.some((m) => m.id === person.id))
+                  .map((person) => (
+                    <option key={person.id} value={person.id}>
+                      {person.name}
+                    </option>
+                  ))}
+              </select>
+              <select
+                value={addRole}
+                onChange={(e) => setAddRole(e.target.value as TeamRole)}
+                aria-label={t('teams.changeRole')}
+                className="input w-auto px-2 py-1 text-xs"
+              >
+                {(['LEADER', 'DEPUTY', 'MEMBER', 'INTERN'] as TeamRole[]).map((role) => (
+                  <option
+                    key={role}
+                    value={role}
+                    disabled={role === 'LEADER' && !openTeam.canGrantLeader}
+                  >
+                    {t(`teams.roles.${role}`)}
+                  </option>
+                ))}
+              </select>
+              <button
+                onClick={() => void addMember()}
+                disabled={!addPersonId}
+                className="btn-primary px-2 py-1 text-xs disabled:opacity-50"
+              >
+                + {t('teams.addMember')}
+              </button>
+            </div>
+          )}
 
           <h3 className="mt-3 text-sm font-medium text-secondary">{t('teams.positions')}</h3>
           <ul className="mt-1 space-y-1">

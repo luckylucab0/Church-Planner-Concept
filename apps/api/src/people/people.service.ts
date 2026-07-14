@@ -49,10 +49,17 @@ export class PeopleService {
     return persons.map((person) => buildPersonView(person, relationships.get(person.id)!));
   }
 
-  async get(user: AuthUser, personId: string): Promise<PersonView> {
+  async get(user: AuthUser, personId: string) {
     const person = await this.prisma.person.findUnique({
       where: { id: personId },
-      include: { privacySettings: true },
+      include: {
+        privacySettings: true,
+        account: { select: { id: true } },
+        memberships: {
+          include: { team: { select: { id: true, name: true, color: true } } },
+          orderBy: { team: { name: 'asc' } },
+        },
+      },
     });
     if (!person) throw new NotFoundException();
 
@@ -74,7 +81,18 @@ export class PeopleService {
         entityId: personId,
       });
     }
-    return buildPersonView(person, relationship);
+    // Team-Zugehörigkeiten sind instanzweit sichtbar (die Teamseiten
+    // zeigen Mitgliederlisten ohnehin allen Eingeloggten) – daher für
+    // jede Sichtbarkeitsstufe beigelegt.
+    return {
+      ...buildPersonView(person, relationship),
+      memberships: person.memberships.map((m) => ({
+        teamId: m.team.id,
+        teamName: m.team.name,
+        color: m.team.color,
+        role: m.role,
+      })),
+    };
   }
 
   async create(user: AuthUser, dto: CreatePersonDto): Promise<PersonView> {

@@ -1,5 +1,6 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { api, ApiError } from '../../api/client';
 import { useSession } from '../auth/SessionContext';
 
@@ -401,24 +402,32 @@ export default function PeopleListPage() {
         <ul className="card divide-y divide-line">
           {people.map((person) => (
             <li key={person.id} className="flex items-center gap-3 p-3">
-              {person.photoUrl ? (
-                <img src={person.photoUrl} alt="" className="h-10 w-10 rounded-full object-cover" />
-              ) : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-avatar font-medium text-secondary">
-                  {person.firstName[0]}
-                  {person.lastName[0]}
-                </div>
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="font-medium text-paper">
-                  {person.firstName} {person.lastName}
-                </p>
-                {(person.email || person.phone) && (
-                  <p className="truncate text-sm text-muted">
-                    {[person.email, person.phone].filter(Boolean).join(' · ')}
-                  </p>
+              {/* Klick auf Avatar/Name öffnet die Detailseite; die
+                  Admin-Aktionsbuttons bleiben bewusst außerhalb des Links */}
+              <Link to={`/people/${person.id}`} className="flex min-w-0 flex-1 items-center gap-3">
+                {person.photoUrl ? (
+                  <img
+                    src={person.photoUrl}
+                    alt=""
+                    className="h-10 w-10 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-avatar font-medium text-secondary">
+                    {person.firstName[0]}
+                    {person.lastName[0]}
+                  </div>
                 )}
-              </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-paper">
+                    {person.firstName} {person.lastName}
+                  </p>
+                  {(person.email || person.phone) && (
+                    <p className="truncate text-sm text-muted">
+                      {[person.email, person.phone].filter(Boolean).join(' · ')}
+                    </p>
+                  )}
+                </div>
+              </Link>
               {isAdmin &&
                 person.email &&
                 (rowNotice?.id === person.id ? (

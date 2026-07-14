@@ -216,6 +216,12 @@ Unter **Profil** verwaltest du deine eigenen Daten:
 
 - **Kontaktdaten:** E-Mail, Telefon, Adresse – alles außer deinem Namen ist
   freiwillig.
+- **Meine Teams:** Deine Team-Zugehörigkeiten mit deiner Rolle im Team.
+  Ändern können sie die Teamleitung deines Teams und Admins – über die
+  Teamseite oder deine Personen-Detailseite.
+
+  ![Meine Teams im Profil](screenshots/26-profil-teams.png)
+
 - **Sichtbarkeit meiner Daten:** Du bestimmst selbst, welche deiner
   Kontaktdaten Mitglieder deiner Teams sehen dürfen. Standardmäßig ist nichts
   freigegeben. Teamleitende deiner Teams sehen deine Kontaktdaten immer (sie
@@ -311,6 +317,22 @@ Als Teamleitung kannst du in **deinem eigenen Team**:
 - Mitgliedern Positionen mit **Skill-Level** zuordnen (Einsteiger / Solide /
   Profi) – nur so zugeordnete Personen können für die Position eingeteilt werden
 
+### Mitglieder aufnehmen und entfernen
+
+![Team-Mitglieder verwalten](screenshots/25-team-mitglieder.png)
+
+In der Team-Detailansicht nimmst du über **Mitglied aufnehmen** bestehende
+Personen ins Team auf (Person und Rolle wählen) und entfernst Mitglieder über
+**Entfernen** neben der Person. Die Rolle **Leitung** vergeben, ändern oder
+entfernen kann dabei nur ein Admin – ein Team kann sich so nie selbst die
+Leitung nehmen. Beim Entfernen werden auch die Positions-Zuordnungen der
+Person in diesem Team gelöst.
+
+Dasselbe geht auch von der anderen Seite: Auf der **Detailseite einer
+Person** (Klick auf die Person in der Personenliste) siehst du ihre Teams und
+kannst sie – für Teams, die du verwaltest – dort aufnehmen, die Rolle ändern
+oder sie entfernen.
+
 ### Rollen im Team & Rechtematrix
 
 ![Rollen und Rechtematrix](screenshots/16-rechtematrix.png)
@@ -375,6 +397,25 @@ Gut zu wissen:
   **Passwort-Reset-Mail** (falls sich jemand ausgesperrt hat).
 - Bis zur Einrichtung des Kontos ist die Person ganz normal planbar – das
   Konto ist nur der Login.
+
+### Die Personen-Detailseite
+
+Ein Klick auf eine Person in der Personenliste öffnet ihre **Detailseite**.
+Was dort zu sehen ist, hängt von deinen Rechten ab: Mitglieder sehen Name,
+Foto und die Teams der Person; Teamleitende zusätzlich die Kontaktdaten
+ihrer Teammitglieder; Admins alles.
+
+![Personen-Detailseite](screenshots/23-person-detail.png)
+
+Als Admin kannst du hier über **Bearbeiten** die Stammdaten der Person
+ändern (Name, E-Mail, Telefon, Geburtstag, Adresse) und – wie in der Liste –
+die Einladungs- bzw. Passwort-Reset-Mail anstoßen.
+
+Im Abschnitt **Teams** verwalten Admins (und Teamleitende für ihre eigenen
+Teams) die Zugehörigkeit der Person direkt: zu einem Team hinzufügen, die
+Rolle ändern oder aus dem Team entfernen.
+
+![Teams einer Person verwalten](screenshots/24-person-teams.png)
 
 ### Benutzer-Anträge prüfen
 

@@ -10,6 +10,12 @@ interface Profile {
   email?: string | null;
   phone?: string | null;
   address?: string | null;
+  memberships: {
+    teamId: string;
+    teamName: string;
+    color: string;
+    role: 'LEADER' | 'DEPUTY' | 'MEMBER' | 'INTERN';
+  }[];
 }
 
 interface Privacy {
@@ -103,6 +109,26 @@ export default function ProfilePage() {
         <button onClick={() => void saveProfile()} className="btn-primary text-sm">
           {saved ? '✓' : t('common.save')}
         </button>
+      </section>
+
+      <section className="card p-4">
+        <h2 className="font-semibold text-paper">{t('profile.myTeams')}</h2>
+        {profile.memberships.length === 0 ? (
+          <p className="mt-2 text-sm text-faint">{t('people.noTeams')}</p>
+        ) : (
+          <ul className="mt-2 space-y-1.5">
+            {profile.memberships.map((membership) => (
+              <li key={membership.teamId} className="flex items-center gap-2 text-sm">
+                <span
+                  className="h-3 w-3 rounded-full"
+                  style={{ backgroundColor: membership.color }}
+                />
+                <span className="text-paper">{membership.teamName}</span>
+                <span className="badge badge-muted">{t(`teams.roles.${membership.role}`)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="card space-y-2 p-4">

@@ -79,6 +79,26 @@ describe('Teams API – Berechtigungen (integration)', () => {
     await app.close();
   });
 
+  it('Team-Liste: canManageMembers nur für Leiter des eigenen Teams', async () => {
+    const asLeader = await app.inject({
+      method: 'GET',
+      url: '/api/v1/teams',
+      headers: { cookie: leaderCookie },
+    });
+    const teams = asLeader.json() as { id: string; canManageMembers: boolean }[];
+    expect(teams.find((t) => t.id === teamAId)?.canManageMembers).toBe(true);
+    expect(teams.find((t) => t.id === teamBId)?.canManageMembers).toBe(false);
+
+    const asMember = await app.inject({
+      method: 'GET',
+      url: '/api/v1/teams',
+      headers: { cookie: memberCookie },
+    });
+    expect(
+      (asMember.json() as { canManageMembers: boolean }[]).every((t) => !t.canManageMembers),
+    ).toBe(true);
+  });
+
   it('MEMBER darf keine Teams anlegen/ändern/löschen (403)', async () => {
     const create = await app.inject({
       method: 'POST',

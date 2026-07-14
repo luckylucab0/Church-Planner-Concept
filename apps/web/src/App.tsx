@@ -10,6 +10,7 @@ import AvailabilityPage from './features/availability/AvailabilityPage';
 import ImportPage from './features/import/ImportPage';
 import { SessionProvider, useSession } from './features/auth/SessionContext';
 import PeopleListPage from './features/people/PeopleListPage';
+import PersonDetailPage from './features/people/PersonDetailPage';
 import ProfilePage from './features/people/ProfilePage';
 import EventDetailPage from './features/plans/EventDetailPage';
 import MyAssignments from './features/plans/MyAssignments';
@@ -89,6 +90,14 @@ export default function App() {
           element={
             <RequireAuth>
               <PeopleListPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/people/:id"
+          element={
+            <RequireAuth>
+              <PersonDetailPage />
             </RequireAuth>
           }
         />

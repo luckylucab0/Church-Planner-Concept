@@ -119,6 +119,17 @@ describe('People API – Berechtigungen (integration)', () => {
       expect(body).not.toHaveProperty('phone'); // nicht freigegeben
     });
 
+    it('sieht die Team-Zugehörigkeiten einer Person (instanzweit sichtbar)', async () => {
+      const response = await app.inject({
+        method: 'GET',
+        url: `/api/v1/people/${leader.personId}`,
+        headers: { cookie: member.cookie! },
+      });
+      expect(response.json().memberships).toEqual([
+        expect.objectContaining({ teamName: `Team-A-${uniq}`, role: 'LEADER' }),
+      ]);
+    });
+
     it('bekommt in der Liste nur Basisfelder', async () => {
       const response = await app.inject({
         method: 'GET',
@@ -265,6 +276,28 @@ describe('People API – Berechtigungen (integration)', () => {
       const body = response.json();
       expect(body).toHaveProperty('email');
       expect(body).toHaveProperty('address');
+    });
+
+    it('kann Personendaten ändern; Duplikat-Mail gibt 409', async () => {
+      const patch = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/people/${member.personId}`,
+        headers: { cookie: admin.cookie! },
+        payload: { phone: '+41 44 999 88 77', address: 'Neuer Weg 2, 8400 Winterthur' },
+      });
+      expect(patch.statusCode).toBe(200);
+      expect(patch.json()).toMatchObject({
+        phone: '+41 44 999 88 77',
+        address: 'Neuer Weg 2, 8400 Winterthur',
+      });
+
+      const duplicate = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/people/${member.personId}`,
+        headers: { cookie: admin.cookie! },
+        payload: { email: `${uniq}-outsider@test.local` },
+      });
+      expect(duplicate.statusCode).toBe(409);
     });
 
     it('kann PASTORAL-Notizen anlegen; Inhalt liegt verschlüsselt in der DB', async () => {

@@ -59,6 +59,9 @@ export class TeamsService {
       memberCount: team._count.memberships,
       positions: team.positions.map((p) => ({ id: p.id, name: p.name })),
       canManage: memberTeamIds.includes(team.id) || positionTeamIds.includes(team.id),
+      // Für UIs, die gezielt Mitglieder-Aktionen anbieten (z. B. die
+      // Personen-Detailseite): Positionsrechte reichen dafür nicht
+      canManageMembers: memberTeamIds.includes(team.id),
     }));
   }
 
