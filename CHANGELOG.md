@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.7.1...v0.8.0) (2026-07-15)
+
+
+### Features
+
+* **teams:** Rollen-Recht «Sich selbst eintragen» in der Rechtematrix ([e5eb7cb](https://github.com/luckylucab0/Church-Planner-Concept/commit/e5eb7cb4b127ea7cfa3c3bd94e11daef49ed570c))
+* **teams:** Rollen-Recht «Sich selbst eintragen» in der Rechtematrix ([bc032d3](https://github.com/luckylucab0/Church-Planner-Concept/commit/bc032d311b31e44525ae66a34028f553eac2d96d))
+
 ## [0.7.1](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.7.0...v0.7.1) (2026-07-14)
 
 
