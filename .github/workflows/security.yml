@@ -54,6 +54,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     strategy:
+      # Ein rotes Image darf das andere nicht abwürgen: sonst steht das
+      # zweite Ergebnis auf "cancelled" und man sieht wochenlang nicht,
+      # ob es ebenfalls betroffen ist.
+      fail-fast: false
       matrix:
         include:
           - name: api
@@ -73,3 +77,20 @@ jobs:
           ignore-unfixed: true
           # Begründete, befristete Ausnahmen (siehe Kommentare in der Datei)
           trivyignores: .trivyignore
+
+  # Advisories der npm-Abhängigkeiten. Trivy sieht nur, was im Image landet –
+  # die Dependencies des Web-Bundles (React & Co.) tauchen dort gar nicht auf,
+  # weil nur das fertige Bundle ausgeliefert wird. Dieser Job schließt die
+  # Lücke und läuft auf demselben Wochenrhythmus.
+  # Ausnahmen: pnpm.auditConfig.ignoreGhsas in der package.json (mit Begründung).
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: corepack enable
+      - name: pnpm audit (prod + dev)
+        run: pnpm audit --audit-level high

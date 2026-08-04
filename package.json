@@ -18,15 +18,22 @@
     "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.5",
-    "eslint": "^10.7.0",
-    "prettier": "^3.9.5",
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.8.0",
+    "prettier": "^3.9.6",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.64.0"
+    "typescript-eslint": "^8.66.0"
   },
   "pnpm": {
     "overrides": {
-      "fastify": "^5.10.0"
+      "fastify": "^5.11.2",
+      "@nestjs/platform-fastify>find-my-way": "^9.7.0",
+      "@nestjs/swagger>js-yaml": "^5.2.2"
+    },
+    "auditConfig": {
+      "ignoreGhsas": [
+        "GHSA-qwww-vcr4-c8h2"
+      ]
     }
   }
 }
