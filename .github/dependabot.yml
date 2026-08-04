@@ -1,7 +1,10 @@
-# Dependabot: wöchentliche, gruppierte Dependency-Updates für npm und
-# GitHub Actions. Gruppierung reduziert PR-Lärm für die Ehrenamtlichen,
-# die das Projekt warten.
+# Dependabot: wöchentliche, gruppierte Dependency-Updates für npm,
+# GitHub Actions und die Docker-Basis-Images. Gruppierung reduziert PR-Lärm
+# für die Ehrenamtlichen, die das Projekt warten.
 version: 2
+# docker-compose läuft bei GitHub noch als Beta-Ecosystem – ohne dieses Flag
+# würde der entsprechende Block still ignoriert.
+enable-beta-ecosystems: true
 updates:
   - package-ecosystem: npm
     directory: /
@@ -15,9 +18,12 @@ updates:
     # Majors, die eine geplante Migration brauchen – nicht per Bump lösbar:
     # - Prisma 7: neues prisma.config.ts, geänderte Client-Generierung
     # - @vitejs/plugin-react 6 + Vite 8: Rolldown-Umstieg, Tailwind-Plugin prüfen
-    # - otplib 13: komplette API-Neuschreibung mit ESM-only-Dependencies
-    #   (@scure/@noble v2) – Jest im CJS-Modus kann sie nicht laden;
-    #   erst mit Umstieg auf ESM/Vitest machbar
+    # - otplib 13: komplette API-Neuschreibung (authenticator.* fällt weg).
+    #   Der frühere Blocker (Jest im CJS-Modus konnte die ESM-only-Deps nicht
+    #   laden) ist seit dem ESM-Testlauf weg – es bleibt die API-Migration in
+    #   totp.service.ts, die bewusst geplant werden will (2FA-kritisch).
+    # - @types/node: muss zur Laufzeit passen, und die ist Node 22
+    #   (Dockerfiles + CI). Erst zusammen mit einem Node-Upgrade anheben.
     ignore:
       - dependency-name: prisma
         update-types: ['version-update:semver-major']
@@ -29,6 +35,8 @@ updates:
         update-types: ['version-update:semver-major']
       - dependency-name: otplib
         update-types: ['version-update:semver-major']
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
     directory: /
@@ -38,3 +46,31 @@ updates:
     groups:
       actions:
         patterns: ['*']
+
+  # Basis-Images der Dockerfiles (node, caddy). Ohne diesen Block merkt man
+  # veraltete Images nur indirekt über rote Trivy-Scans – und dann ist die
+  # Pipeline schon blockiert.
+  - package-ecosystem: docker
+    directories:
+      - /apps/api
+      - /apps/web
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      base-images:
+        patterns: ['*']
+
+  # Images aus den Compose-Dateien (postgres, redis, mailpit). Majors bleiben
+  # aussen vor: ein Postgres-Major braucht eine geplante Datenmigration.
+  - package-ecosystem: docker-compose
+    directory: /docker
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      compose-images:
+        patterns: ['*']
+    ignore:
+      - dependency-name: postgres
+        update-types: ['version-update:semver-major']

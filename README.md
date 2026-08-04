@@ -75,6 +75,12 @@ pnpm dev                                                # API :3000 + Web :5173
 - API-Doku (Swagger): http://localhost:3000/api/docs
 - Mailpit (abgefangene Mails): http://localhost:8025
 
+Tests laufen mit `pnpm test` (Postgres/Redis müssen laufen – der Dev-Stack oben
+genügt). Jest startet dabei mit `--experimental-vm-modules`, weil einige
+Abhängigkeiten reine ESM-Pakete per `import()` nachladen (z. B. `cookie` über
+`@fastify/cookie`). Ohne das Flag brechen die Integrationstests beim Aufbau der
+Fastify-App ab.
+
 ## Produktion (Docker Compose, ein Linux-Server)
 
 ```bash
@@ -110,7 +116,12 @@ Backup/Restore (verschlüsselt mit `pg_dump` + `age`): [docs/backup-restore.md](
 - **CI** (`ci.yml`): Lint, Typecheck, Format, Unit-/Integrationstests gegen echte
   Postgres/Redis-Service-Container, Migrationscheck auf leerer DB, Builds sowie
   ein E2E-Smoke-Test des Zusage-Flows gegen das komplette Compose-System.
-- **Security** (`security.yml`): CodeQL, Trivy-Image- und Config-Scans, Dependabot.
+- **Security** (`security.yml`): CodeQL, Trivy-Image- und Config-Scans,
+  `pnpm audit` über alle Abhängigkeiten (Trivy sieht nur, was im Image landet –
+  die Pakete des Web-Bundles tauchen dort nicht auf), Dependabot für npm,
+  GitHub Actions und die Docker-Basis-Images.
+  Begründete Ausnahmen stehen befristet in [`.trivyignore`](.trivyignore) bzw.
+  unter `pnpm.auditConfig.ignoreGhsas` in der `package.json`.
 - **Release** (`release.yml`): release-please pflegt Changelog/Version per PR
   (Conventional Commits); beim Veröffentlichen werden Multi-Arch-Images
   (amd64+arm64) nach GHCR gebaut, mit cosign signiert und mit SBOM versehen.
