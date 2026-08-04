@@ -12,3 +12,12 @@ CVE-2026-42504 exp:2026-09-30
 # (Fix in Go 1.26.5, offizielles Image noch mit 1.26.3 gebaut).
 # Entfernen, sobald Upstream mit Go >= 1.26.5 neu gebaut hat.
 CVE-2026-39822 exp:2026-09-30
+
+# Ebenfalls im Caddy-Binary: x/text-Endlosschleife und gRPC-xDS/HTTP2-Fund.
+# caddy:2-alpine wurde zuletzt am 24.06.2026 gebaut, die Fixes sind jünger –
+# wir können sie nur durch ein neues Upstream-Image bekommen. Beide betreffen
+# Codepfade, die ServeFlow nicht nutzt (kein xDS, kein gRPC), Caddy terminiert
+# bei uns nur TLS und proxied an die API.
+# Entfernen, sobald ein neu gebautes caddy:2-alpine verfügbar ist.
+CVE-2026-56852 exp:2026-09-30
+GHSA-hrxh-6v49-42gf exp:2026-09-30
