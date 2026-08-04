@@ -49,7 +49,8 @@ updates:
 
   # Basis-Images der Dockerfiles (node, caddy). Ohne diesen Block merkt man
   # veraltete Images nur indirekt über rote Trivy-Scans – und dann ist die
-  # Pipeline schon blockiert.
+  # Pipeline schon blockiert. Gewollt sind hier vor allem Rebuilds derselben
+  # Major-Linie, weil die die Upstream-Sicherheitsfixes mitbringen.
   - package-ecosystem: docker
     directories:
       - /apps/api
@@ -60,6 +61,12 @@ updates:
     groups:
       base-images:
         patterns: ['*']
+    # Ein Node-Major ist ein Laufzeitwechsel, kein Bump: engines, die
+    # CI-Matrix, @types/node und die README hängen alle an derselben
+    # Version. Das gehört zusammen geplant, nicht per Image-Zeile.
+    ignore:
+      - dependency-name: node
+        update-types: ['version-update:semver-major']
 
   # Images aus den Compose-Dateien (postgres, redis, mailpit). Majors bleiben
   # aussen vor: ein Postgres-Major braucht eine geplante Datenmigration.
