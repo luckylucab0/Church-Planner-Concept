@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.8.1](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.8.0...v0.8.1) (2026-08-04)
+
+
+### Bugfixes
+
+* **api:** @fastify/static wieder aufnehmen – gepatcht auf 10.1.2 ([34f9c96](https://github.com/luckylucab0/Church-Planner-Concept/commit/34f9c96efaa6bdd62d4121f588ef09875b612f25))
+* **deps:** Lockfile an geänderte pnpm-Overrides angleichen ([6b02684](https://github.com/luckylucab0/Church-Planner-Concept/commit/6b026847556b81dbc6f5d17fe4e05c0dde9a0b5b))
+* **deps:** Sicherheitsupdates, ESM-fähige Tests und wieder grüne Security-Pipeline ([fa7c4f0](https://github.com/luckylucab0/Church-Planner-Concept/commit/fa7c4f00a8fd9207144e420315abe5e8384403c4))
+* **deps:** Sicherheitsupdates, ESM-fähige Tests und wieder grüne Security-Pipeline ([0604627](https://github.com/luckylucab0/Church-Planner-Concept/commit/0604627115b8a94b1a6cee40aeb2ff03232cb6e3))
+
 ## [0.8.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.7.1...v0.8.0) (2026-07-15)
 
 
