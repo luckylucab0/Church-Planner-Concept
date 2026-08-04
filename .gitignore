@@ -25,3 +25,7 @@ test-results/
 
 # Uploads bei lokaler Entwicklung
 uploads/
+
+# Redis-Snapshot, wenn man Redis mal direkt im Repo-Ordner startet
+# (statt im Container) – reines lokales Artefakt
+dump.rdb
