@@ -5,7 +5,7 @@
 # Produktion TLS (Let's Encrypt), Security-Header, statisches Ausliefern
 # und das Proxying von /api an den API-Container.
 
-FROM node:22-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /repo
 RUN corepack enable
 

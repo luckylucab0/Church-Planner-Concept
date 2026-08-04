@@ -4,7 +4,7 @@
 # Multi-Stage: Build mit allen devDependencies, Runtime nur mit
 # Produktions-Abhängigkeiten (pnpm deploy erzeugt ein isoliertes Paket).
 
-FROM node:22-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /repo
 RUN corepack enable
 
@@ -25,7 +25,7 @@ RUN pnpm --filter @serveflow/api --prod deploy --legacy /prod/api
 WORKDIR /prod/api
 RUN cp -r /repo/apps/api/dist ./dist && npx prisma generate
 
-FROM node:22-alpine
+FROM node:26-alpine
 # Nicht als root laufen (Trivy-Misconfiguration-Check, Least Privilege).
 # npm/npx/corepack werden zur Laufzeit nicht gebraucht und fliegen raus:
 # weniger Angriffsfläche und keine CVE-Funde aus npm-Bundle-Dependencies
