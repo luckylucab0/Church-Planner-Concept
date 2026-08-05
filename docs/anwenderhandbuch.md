@@ -427,6 +427,28 @@ Rolle ändern oder aus dem Team entfernen.
 
 ![Teams einer Person verwalten](screenshots/24-person-teams.png)
 
+### Weitere Admins ernennen
+
+Im Abschnitt **Rechte** auf der Detailseite legst du fest, ob die Person
+**Mitglied** oder **Admin** ist. Ein Admin sieht und bearbeitet alles:
+sämtliche Personen samt Kontaktdaten und Notizen, alle Teams, den Import und
+die Benutzer-Anträge. Vergib die Rolle also sparsam.
+
+Was du dabei wissen solltest:
+
+- Der Abschnitt erscheint nur bei Personen, die **bereits ein Login-Konto
+  haben**. Wer noch keins hat, wird zuerst eingeladen.
+- Nach der Änderung wird die Person **abgemeldet** und muss sich neu
+  anmelden – erst dann greifen die neuen Rechte. Das ist Absicht: Sonst
+  behielte eine herabgestufte Person ihre Admin-Rechte bis zum Ablauf der
+  Sitzung.
+- **Die eigene Rolle lässt sich nicht ändern.** Damit kann sich niemand
+  versehentlich selbst aussperren und es bleibt immer mindestens ein Admin
+  übrig. Wenn du deine Admin-Rechte abgeben willst, macht ein anderer Admin
+  das für dich.
+- Team-Rollen (Leitung, Stellvertretung, Mitarbeit, Praktikum) sind davon
+  unabhängig – sie gelten nur innerhalb des jeweiligen Teams.
+
 ### Benutzer-Anträge prüfen
 
 Beantragt eine Teamleitung einen neuen Benutzer, bekommst du eine E-Mail, und

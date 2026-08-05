@@ -111,3 +111,12 @@ export class CreateNoteDto {
   @MaxLength(5000)
   content: string;
 }
+
+// Globale Rolle einer Person ändern. Bewusst ein eigener Endpoint statt
+// eines Felds in UpdatePersonDto: Rechtevergabe ist kein Stammdatum und
+// hat eigene Schutzregeln (siehe PeopleService.setGlobalRole).
+export class UpdateGlobalRoleDto {
+  @ApiProperty({ enum: ['ADMIN', 'MEMBER'] })
+  @IsIn(['ADMIN', 'MEMBER'])
+  globalRole: 'ADMIN' | 'MEMBER';
+}

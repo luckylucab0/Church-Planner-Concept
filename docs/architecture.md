@@ -26,6 +26,13 @@
 Rollen: **Admin** (global, `UserAccount.globalRole`), **Teamleiter**
 (pro Team, `TeamMembership.isLeader`), **Mitglied** (Default).
 
+Die globale Rolle vergeben Admins über `PATCH /people/:id/role`. Zwei Regeln
+sichern das ab: Die **eigene** Rolle lässt sich nicht ändern – dadurch bleibt
+immer mindestens ein Admin übrig, eine Instanz kann sich also nicht aussperren.
+Und jeder Wechsel **beendet alle Sitzungen** des betroffenen Kontos, weil die
+Rolle in der Session steckt; ohne das behielte ein herabgestufter Admin seine
+Rechte bis zum Ablauf der Sitzung.
+
 Durchsetzung ausschließlich serverseitig:
 
 1. **Policies** pro Ressource entscheiden über Zugriff (403 bei fremden Ressourcen).

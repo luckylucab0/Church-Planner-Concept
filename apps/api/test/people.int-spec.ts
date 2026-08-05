@@ -335,6 +335,100 @@ describe('People API – Berechtigungen (integration)', () => {
       expect(await prisma.userAccount.findUnique({ where: { personId: victimId } })).toBeNull();
     });
 
+    it('setzt die globale Rolle und meldet die Person ab', async () => {
+      const targetId = await createPerson('Promote');
+      const targetCookie = await loginCookie('Promote');
+
+      // Vorher: kein Admin – Personen anlegen ist tabu
+      const before = await app.inject({
+        method: 'POST',
+        url: '/api/v1/people',
+        headers: { cookie: targetCookie },
+        payload: { firstName: 'Test', lastName: uniq },
+      });
+      expect(before.statusCode).toBe(403);
+
+      const promote = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/people/${targetId}/role`,
+        headers: { cookie: admin.cookie! },
+        payload: { globalRole: 'ADMIN' },
+      });
+      expect(promote.statusCode).toBe(200);
+      expect(promote.json()).toEqual({ globalRole: 'ADMIN' });
+
+      // Die alte Session ist ungültig – sonst liefe ein herabgestufter
+      // Admin mit seinen alten Rechten weiter
+      const oldSession = await app.inject({
+        method: 'GET',
+        url: '/api/v1/auth/session',
+        headers: { cookie: targetCookie },
+      });
+      expect(oldSession.statusCode).toBe(401);
+
+      // Nach erneutem Login greift die neue Rolle
+      const fresh = await loginCookie('Promote');
+      const after = await app.inject({
+        method: 'GET',
+        url: '/api/v1/auth/session',
+        headers: { cookie: fresh },
+      });
+      expect(after.json().globalRole).toBe('ADMIN');
+    });
+
+    it('zeigt die Rolle im Personendetail – aber nur Admins', async () => {
+      const adminView = await app.inject({
+        method: 'GET',
+        url: `/api/v1/people/${member.personId}`,
+        headers: { cookie: admin.cookie! },
+      });
+      expect(adminView.json().globalRole).toBe('MEMBER');
+
+      const memberView = await app.inject({
+        method: 'GET',
+        url: `/api/v1/people/${leader.personId}`,
+        headers: { cookie: member.cookie! },
+      });
+      expect(memberView.json()).not.toHaveProperty('globalRole');
+    });
+
+    it('verweigert die Änderung der eigenen Rolle (kein Aussperren)', async () => {
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/people/${admin.personId}/role`,
+        headers: { cookie: admin.cookie! },
+        payload: { globalRole: 'MEMBER' },
+      });
+      expect(response.statusCode).toBe(403);
+      const account = await prisma.userAccount.findUniqueOrThrow({
+        where: { personId: admin.personId },
+      });
+      expect(account.globalRole).toBe('ADMIN');
+    });
+
+    it('lehnt Personen ohne Login-Konto ab (400)', async () => {
+      const person = await prisma.person.create({
+        data: { firstName: 'Kontolos', lastName: uniq, privacySettings: { create: {} } },
+      });
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/people/${person.id}/role`,
+        headers: { cookie: admin.cookie! },
+        payload: { globalRole: 'ADMIN' },
+      });
+      expect(response.statusCode).toBe(400);
+    });
+
+    it('MEMBER darf keine Rollen vergeben (403)', async () => {
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/people/${outsider.personId}/role`,
+        headers: { cookie: member.cookie! },
+        payload: { globalRole: 'ADMIN' },
+      });
+      expect(response.statusCode).toBe(403);
+    });
+
     it('Aktionen landen im Audit-Log (append-only)', async () => {
       const entries = await prisma.auditLog.findMany({
         where: { actorId: admin.personId, entityType: 'Person' },

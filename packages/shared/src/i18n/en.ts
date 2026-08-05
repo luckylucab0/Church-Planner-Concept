@@ -65,6 +65,16 @@ export const en = {
     addToTeamSubmit: 'Add',
     removeFromTeam: 'Remove',
     removeFromTeamConfirm: 'Remove this person from team "{{team}}"?',
+    globalRoleTitle: 'Permissions',
+    globalRoleHint:
+      'Admins can see and edit every person and team. After a change the person has to sign in again.',
+    globalRoleLabel: 'Role in ServeFlow',
+    globalRoleMember: 'Member',
+    globalRoleAdmin: 'Admin',
+    makeAdminConfirm:
+      'Make {{name}} an admin? They will be able to see and edit all data, including contact details and notes.',
+    revokeAdminConfirm: 'Revoke admin rights from {{name}}?',
+    roleChanged: 'Role changed ✓',
   },
   userRequests: {
     request: 'Request a user',
