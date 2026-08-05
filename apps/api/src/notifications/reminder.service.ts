@@ -100,15 +100,26 @@ export class ReminderService implements OnModuleInit, OnApplicationShutdown {
           minute: '2-digit',
         }),
       };
-      await this.mailer.send({
-        to: assignment.person.email!,
-        subject: interpolate(texts.reminderSubject, vars),
-        text: interpolate(texts.reminderBody, vars),
-      });
-      await this.prisma.notificationLog.create({
-        data: { personId: assignment.personId, assignmentId: assignment.id, kind: 'REMINDER' },
-      });
-      sent++;
+      // Pro Einteilung abgesichert: zwischen findMany und dem Versand kann die
+      // Person gelöscht worden sein (Betroffenenrecht, Import-Bereinigung) oder
+      // der Mailserver kurz weg sein. Ohne diesen Fang würde ein einzelner
+      // Fehler den ganzen Lauf abbrechen – alle späteren Erinnerungen fielen
+      // aus, bis 15 Minuten später der nächste Lauf startet.
+      try {
+        await this.mailer.send({
+          to: assignment.person.email!,
+          subject: interpolate(texts.reminderSubject, vars),
+          text: interpolate(texts.reminderBody, vars),
+        });
+        await this.prisma.notificationLog.create({
+          data: { personId: assignment.personId, assignmentId: assignment.id, kind: 'REMINDER' },
+        });
+        sent++;
+      } catch (error) {
+        this.logger.warn(
+          `Erinnerung für Einteilung ${assignment.id} übersprungen: ${String(error)}`,
+        );
+      }
     }
     return sent;
   }
