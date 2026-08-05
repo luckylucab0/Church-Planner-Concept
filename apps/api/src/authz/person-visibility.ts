@@ -46,13 +46,16 @@ export interface PersonFullView extends PersonContactView {
   // Nur für Admins gesetzt: hat die Person ein Login-Konto? Steuert in
   // der UI "Einladen" vs. "Passwort-Reset".
   hasAccount?: boolean;
+  // Ebenfalls nur für Admins: die globale Rolle des Kontos. Fehlt, wenn
+  // die Person kein Konto hat oder das Konto nicht mitgeladen wurde.
+  globalRole?: GlobalRole;
 }
 
 export type PersonView = PersonPublicView | PersonContactView | PersonFullView;
 
 type PersonWithPrivacy = Person & {
   privacySettings?: PrivacySettings | null;
-  account?: { id: string } | null;
+  account?: { id: string; globalRole?: GlobalRole } | null;
 };
 
 export function buildPersonView(
@@ -96,6 +99,9 @@ export function buildPersonView(
       // dann fehlt das Feld in der Response komplett
       if (person.account !== undefined) {
         full.hasAccount = Boolean(person.account);
+        if (person.account?.globalRole) {
+          full.globalRole = person.account.globalRole;
+        }
       }
     }
     return full;

@@ -11,7 +11,12 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CreateNoteDto, CreatePersonDto, UpdatePersonDto } from './dto/people.dto';
+import {
+  CreateNoteDto,
+  CreatePersonDto,
+  UpdateGlobalRoleDto,
+  UpdatePersonDto,
+} from './dto/people.dto';
 import { NotesService } from './notes.service';
 import { PeopleService } from './people.service';
 import { AuthUser } from '../auth/auth.types';
@@ -53,6 +58,17 @@ export class PeopleController {
     @Body() dto: UpdatePersonDto,
   ) {
     return this.people.update(user, id, dto);
+  }
+
+  @Patch(':id/role')
+  @RequireAdmin()
+  @ApiOperation({ summary: 'Globale Rolle setzen: Admin oder Mitglied (nur Admin)' })
+  setRole(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateGlobalRoleDto,
+  ) {
+    return this.people.setGlobalRole(user, id, dto);
   }
 
   @Delete(':id')

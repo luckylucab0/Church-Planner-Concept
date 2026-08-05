@@ -20,6 +20,7 @@ interface PersonDetail {
   address?: string | null;
   createdAt?: string;
   hasAccount?: boolean; // nur für Admins gesetzt
+  globalRole?: 'ADMIN' | 'MEMBER'; // ebenfalls nur für Admins, nur mit Konto
   memberships: { teamId: string; teamName: string; color: string; role: TeamRole }[];
 }
 
@@ -149,6 +150,21 @@ export default function PersonDetailPage() {
     transientNotice(t('people.resetSent'));
   }
 
+  // Globale Rolle. Der Wechsel meldet die Person serverseitig ab, deshalb
+  // die ausdrückliche Rückfrage – sie muss sich danach neu anmelden.
+  async function changeGlobalRole(role: 'ADMIN' | 'MEMBER') {
+    if (!id || !person || role === person.globalRole) return;
+    const name = `${person.firstName} ${person.lastName}`;
+    const question =
+      role === 'ADMIN'
+        ? t('people.makeAdminConfirm', { name })
+        : t('people.revokeAdminConfirm', { name });
+    if (!window.confirm(question)) return;
+    await api.patch(`/people/${id}/role`, { globalRole: role });
+    await reload();
+    transientNotice(t('people.roleChanged'));
+  }
+
   // --- Team-Zugehörigkeit ---------------------------------------
 
   const canManageTeam = useCallback(
@@ -211,7 +227,9 @@ export default function PersonDetailPage() {
       </Link>
 
       <section className="card p-4">
-        <div className="flex items-start gap-4">
+        {/* Auf dem Handy umbrechen: Name und Admin-Aktionen nebeneinander
+            lassen für beide zu wenig Platz. */}
+        <div className="flex flex-wrap items-start gap-4">
           {person.photoUrl ? (
             <img src={person.photoUrl} alt="" className="h-16 w-16 rounded-full object-cover" />
           ) : (
@@ -230,7 +248,7 @@ export default function PersonDetailPage() {
             {notice && <p className="text-sm text-success">{notice}</p>}
           </div>
           {isAdmin && !editing && (
-            <div className="flex shrink-0 flex-col items-end gap-2 text-sm">
+            <div className="flex w-full shrink-0 flex-wrap gap-x-4 gap-y-2 text-sm sm:w-auto sm:flex-col sm:items-end">
               <button onClick={startEdit} className="link-gold">
                 {t('common.edit')}
               </button>
@@ -335,6 +353,27 @@ export default function PersonDetailPage() {
           </form>
         )}
       </section>
+
+      {/* Globale Rolle – nur für Admins und nur bei Personen mit Login.
+          Die eigene Rolle fehlt bewusst: sie lässt sich serverseitig nicht
+          ändern, damit sich niemand selbst aussperrt. */}
+      {isAdmin && person.globalRole && person.id !== session?.personId && (
+        <section className="card p-4">
+          <h2 className="font-medium text-paper">{t('people.globalRoleTitle')}</h2>
+          <p className="mt-1 text-sm text-muted">{t('people.globalRoleHint')}</p>
+          <label className="mt-3 block max-w-xs">
+            <span className="text-xs text-faint">{t('people.globalRoleLabel')}</span>
+            <select
+              value={person.globalRole}
+              onChange={(e) => void changeGlobalRole(e.target.value as 'ADMIN' | 'MEMBER')}
+              className="input mt-1.5"
+            >
+              <option value="MEMBER">{t('people.globalRoleMember')}</option>
+              <option value="ADMIN">{t('people.globalRoleAdmin')}</option>
+            </select>
+          </label>
+        </section>
+      )}
 
       {/* Teams der Person – Verwaltung für Admins und Leiter ihrer Teams */}
       <section className="card p-4">

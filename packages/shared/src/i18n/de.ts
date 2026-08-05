@@ -67,6 +67,16 @@ export const de = {
     addToTeamSubmit: 'Hinzufügen',
     removeFromTeam: 'Entfernen',
     removeFromTeamConfirm: 'Person aus dem Team „{{team}}" entfernen?',
+    globalRoleTitle: 'Rechte',
+    globalRoleHint:
+      'Admins sehen und bearbeiten alle Personen und Teams. Nach einer Änderung muss sich die Person neu anmelden.',
+    globalRoleLabel: 'Rolle in ServeFlow',
+    globalRoleMember: 'Mitglied',
+    globalRoleAdmin: 'Admin',
+    makeAdminConfirm:
+      '{{name}} zum Admin machen? Damit sieht und bearbeitet die Person alle Daten, inklusive Kontaktdaten und Notizen.',
+    revokeAdminConfirm: '{{name}} die Admin-Rechte entziehen?',
+    roleChanged: 'Rolle geändert ✓',
   },
   userRequests: {
     request: 'Benutzer beantragen',

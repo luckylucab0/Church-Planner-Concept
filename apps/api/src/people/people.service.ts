@@ -1,13 +1,21 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { CreatePersonDto, UpdateMeDto, UpdatePersonDto, UpdatePrivacyDto } from './dto/people.dto';
+import { GlobalRole, Prisma } from '@prisma/client';
+import {
+  CreatePersonDto,
+  UpdateGlobalRoleDto,
+  UpdateMeDto,
+  UpdatePersonDto,
+  UpdatePrivacyDto,
+} from './dto/people.dto';
 import { AuditService } from '../audit/audit.service';
 import { AuthUser } from '../auth/auth.types';
+import { SessionService } from '../auth/session.service';
 import { PermissionsService } from '../authz/permissions.service';
 import { buildPersonView, PersonView } from '../authz/person-visibility';
 import { PrismaService } from '../prisma/prisma.service';
@@ -18,6 +26,7 @@ export class PeopleService {
     private readonly prisma: PrismaService,
     private readonly permissions: PermissionsService,
     private readonly audit: AuditService,
+    private readonly sessions: SessionService,
   ) {}
 
   // Liste: jede Person wird durch den Field-Visibility-Layer gefiltert –
@@ -37,9 +46,9 @@ export class PeopleService {
     };
     const persons = await this.prisma.person.findMany({
       where,
-      // account nur als Existenz-Flag: buildPersonView reicht es
-      // ausschließlich an Admins durch (hasAccount)
-      include: { privacySettings: true, account: { select: { id: true } } },
+      // account nur als Existenz-Flag plus Rolle: buildPersonView reicht
+      // beides ausschließlich an Admins durch (hasAccount, globalRole)
+      include: { privacySettings: true, account: { select: { id: true, globalRole: true } } },
       orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
     });
     const relationships = await this.permissions.relationshipsTo(
@@ -54,7 +63,7 @@ export class PeopleService {
       where: { id: personId },
       include: {
         privacySettings: true,
-        account: { select: { id: true } },
+        account: { select: { id: true, globalRole: true } },
         memberships: {
           include: { team: { select: { id: true, name: true, color: true } } },
           orderBy: { team: { name: 'asc' } },
@@ -132,6 +141,47 @@ export class PeopleService {
       changedFields: Object.keys(dto),
     });
     return buildPersonView(person, await this.permissions.relationshipTo(user, personId));
+  }
+
+  // Globale Rolle setzen (Admin ↔ Mitglied).
+  //
+  // Die eigene Rolle ist bewusst gesperrt. Das ist nicht nur Bequemlichkeit:
+  // Weil nur Admins hier hereinkommen und niemand sich selbst degradieren
+  // kann, bleibt immer mindestens ein Admin übrig – eine Instanz kann sich
+  // also nicht aussperren. Ein Admin, der abgeben will, lässt sich von einem
+  // anderen Admin herunterstufen.
+  async setGlobalRole(
+    user: AuthUser,
+    personId: string,
+    dto: UpdateGlobalRoleDto,
+  ): Promise<{ globalRole: GlobalRole }> {
+    if (personId === user.personId) {
+      throw new ForbiddenException('Die eigene Rolle kann nicht geändert werden');
+    }
+    await this.ensureExists(personId);
+    const account = await this.prisma.userAccount.findUnique({ where: { personId } });
+    if (!account) {
+      throw new BadRequestException('Person hat kein Login-Konto');
+    }
+    if (account.globalRole === dto.globalRole) {
+      return { globalRole: account.globalRole };
+    }
+
+    await this.prisma.userAccount.update({
+      where: { id: account.id },
+      data: { globalRole: dto.globalRole },
+    });
+    // Die Rolle steckt in der Session – ohne Abmelden behielte ein
+    // heruntergestufter Admin seine Rechte bis zum Ablauf der Session.
+    await this.sessions.destroyAllForAccount(account.id);
+    this.audit.log({
+      actorId: user.personId,
+      action: 'UPDATE',
+      entityType: 'UserAccount',
+      entityId: account.id,
+      changedFields: ['globalRole'],
+    });
+    return { globalRole: dto.globalRole };
   }
 
   // Vollständige Löschung (Recht auf Vergessen): Kaskaden entfernen alle
