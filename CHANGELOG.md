@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.3](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.8.2...v0.8.3) (2026-08-05)
+
+
+### Bugfixes
+
+* **web:** untere Navigationsleiste auf dem iPhone sichtbar machen ([e3667c6](https://github.com/luckylucab0/Church-Planner-Concept/commit/e3667c6e5e53f3f09df83d5fe13c56c2e81bfa36))
+* **web:** untere Navigationsleiste auf dem iPhone sichtbar machen ([9e0b154](https://github.com/luckylucab0/Church-Planner-Concept/commit/9e0b154bfc715b5c9249ea9bc0e945d21515a1d7))
+
 ## [0.8.2](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.8.1...v0.8.2) (2026-08-05)
 
 
