@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.8.3...v0.9.0) (2026-08-05)
+
+
+### Features
+
+* **people:** Admins können die globale Rolle vergeben ([2261251](https://github.com/luckylucab0/Church-Planner-Concept/commit/226125158ae71e92adbc9b9a0e7520f97ea5a36e))
+* **people:** Admins können die globale Rolle vergeben ([9a559cc](https://github.com/luckylucab0/Church-Planner-Concept/commit/9a559cc824a9adf9fc33488a567744975e3479c0))
+
 ## [0.8.3](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.8.2...v0.8.3) (2026-08-05)
 
 
