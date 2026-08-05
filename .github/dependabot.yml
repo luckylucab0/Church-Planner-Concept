@@ -24,6 +24,14 @@ updates:
     #   totp.service.ts, die bewusst geplant werden will (2FA-kritisch).
     # - @types/node: muss zur Laufzeit passen, und die ist Node 22
     #   (Dockerfiles + CI). Erst zusammen mit einem Node-Upgrade anheben.
+    # - TypeScript 6/7: beide Wege sind aktuell zu. TS 6 kommt mit den von
+    #   Prisma 6.19 erzeugten Client-Typen nicht zurecht (hunderte Fehler bis
+    #   hin zu "hat kein exportiertes Mitglied 'SkillLevel'"), TS 7 baut zwar
+    #   sauber durch, aber typescript-eslint 8 bricht dort hart ab
+    #   ("does not support TS 7.0"). Wieder aufgreifen, wenn typescript-eslint
+    #   TS 7 unterstützt – dann zusammen mit dem Prisma-7-Upgrade und dem
+    #   Wechsel von moduleResolution "Node"/node10 auf Node16, den TS 7
+    #   ohnehin erzwingt.
     ignore:
       - dependency-name: prisma
         update-types: ['version-update:semver-major']
@@ -36,6 +44,8 @@ updates:
       - dependency-name: otplib
         update-types: ['version-update:semver-major']
       - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
+      - dependency-name: typescript
         update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
