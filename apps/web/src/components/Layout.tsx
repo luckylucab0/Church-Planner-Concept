@@ -116,7 +116,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     ].join(' ');
 
   return (
-    <div className="min-h-screen bg-ink text-paper lg:flex">
+    <div className="min-h-dvh bg-ink text-paper lg:flex">
       {/* Desktop-Sidebar */}
       <aside className="hidden w-60 shrink-0 flex-col border-r border-line bg-ink-deep p-4 lg:flex print:hidden">
         <div className="px-2 py-3">

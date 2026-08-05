@@ -35,7 +35,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-ink p-4">
+    <main className="flex min-h-dvh items-center justify-center bg-ink p-4">
       <form onSubmit={onSubmit} className="card w-full max-w-sm space-y-5 p-6">
         <div className="flex justify-center py-2">
           <Logo iconSize={30} wordmarkSize={22} />

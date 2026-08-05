@@ -185,6 +185,21 @@
   }
 }
 
+/* Eingabefelder auf dem Handy mindestens 16px: WebKit (iOS – Safari wie
+   Chrome, beide nutzen dieselbe Engine) zoomt beim Fokussieren automatisch
+   hinein, wenn ein Feld kleiner ist. Der Zoom bleibt danach bestehen und
+   schiebt unter anderem die fixierte Tab-Bar aus dem Bild.
+   Bewusst ausserhalb jeder @layer: Tailwind legt Utilities in
+   @layer utilities, ungelayertes CSS gewinnt in der Kaskade – nur so greift
+   die Regel auch bei Feldern mit text-sm/text-xs. */
+@media (max-width: 767px) {
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
 /* Druckansicht (Ablaufplan): dunkles Theme aufheben – Papier bleibt
    schwarz auf weiß, damit Ausdrucke lesbar sind. */
 @media print {
