@@ -59,7 +59,7 @@ export default function ReplacementPage() {
 
   if (error) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-ink p-4">
+      <main className="flex min-h-dvh items-center justify-center bg-ink p-4">
         <div className={card}>
           {logo}
           <p className="text-secondary">{error}</p>
@@ -70,7 +70,7 @@ export default function ReplacementPage() {
 
   if (result) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-ink p-4">
+      <main className="flex min-h-dvh items-center justify-center bg-ink p-4">
         <div className={card}>
           {logo}
           <p className="text-lg text-paper">
@@ -96,7 +96,7 @@ export default function ReplacementPage() {
   });
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-ink p-4">
+    <main className="flex min-h-dvh items-center justify-center bg-ink p-4">
       <div className={card}>
         {logo}
         <h1 className="text-xl font-bold text-paper">

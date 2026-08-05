@@ -58,7 +58,7 @@ export default function RespondPage() {
 
   if (error) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-ink p-4">
+      <main className="flex min-h-dvh items-center justify-center bg-ink p-4">
         <div className={card}>
           <div className="flex justify-center pb-1">
             <Logo iconSize={26} wordmarkSize={18} />
@@ -71,7 +71,7 @@ export default function RespondPage() {
 
   if (result) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-ink p-4">
+      <main className="flex min-h-dvh items-center justify-center bg-ink p-4">
         <div className={card}>
           <div className="flex justify-center pb-1">
             <Logo iconSize={26} wordmarkSize={18} />
@@ -97,7 +97,7 @@ export default function RespondPage() {
   });
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-ink p-4">
+    <main className="flex min-h-dvh items-center justify-center bg-ink p-4">
       <div className={card}>
         <div className="flex justify-center pb-1">
           <Logo iconSize={26} wordmarkSize={18} />

@@ -236,7 +236,10 @@ export default function ServicePlan({
             const song = songs.find((s) => s.id === item.songId);
             return (
               <div key={index} className="rounded-lg border border-line p-3">
-                <div className="flex items-center gap-2">
+                {/* Auf dem Handy bekommt der Titel eine eigene Zeile: neben
+                    Zeit, Dauer und den drei Schaltflächen bliebe sonst nur
+                    eine Handbreit übrig. */}
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="w-12 shrink-0 font-mono text-sm text-muted">
                     {formatTime(startTimes[index])}
                   </span>
@@ -244,7 +247,7 @@ export default function ServicePlan({
                     value={item.title}
                     onChange={(e) => updateItem(index, { title: e.target.value })}
                     placeholder={t('plan.itemTitle')}
-                    className="min-w-0 flex-1 input text-sm"
+                    className="order-last w-full min-w-0 input text-sm sm:order-none sm:w-auto sm:flex-1"
                   />
                   <input
                     type="number"

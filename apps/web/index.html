@@ -2,8 +2,13 @@
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <!-- Mobile-First: viele Nutzer sagen per Handy-Browser zu/ab -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- Mobile-First: viele Nutzer sagen per Handy-Browser zu/ab.
+         Bewusst OHNE viewport-fit=cover: damit würde der Layout-Viewport bis
+         an die Geräteunterkante reichen – also hinter die Bedienleiste des
+         Browsers – und die fixierte Tab-Bar wäre auf dem iPhone unsichtbar,
+         bis man scrollt. In der installierten PWA rückt iOS den Inhalt
+         ohnehin selbst in den sicheren Bereich ein. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0b0b0e" />
     <link rel="icon" type="image/svg+xml" href="/logo-icon-gold.svg" />
     <link rel="apple-touch-icon" href="/app-icon.svg" />
