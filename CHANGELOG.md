@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.2](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.8.1...v0.8.2) (2026-08-05)
+
+
+### Bugfixes
+
+* **notifications:** Erinnerungslauf bricht nicht mehr am ersten Fehler ab ([45df978](https://github.com/luckylucab0/Church-Planner-Concept/commit/45df978764a1ec6209044e301863d52bfe1ee74a))
+* **notifications:** Erinnerungslauf bricht nicht mehr am ersten Fehler ab ([cdefb2e](https://github.com/luckylucab0/Church-Planner-Concept/commit/cdefb2e2b2a88aaca81e504b703f4cf346996862))
+
 ## [0.8.1](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.8.0...v0.8.1) (2026-08-04)
 
 
