@@ -1,0 +1,15 @@
+# Wird nur importiert, wenn der Entrypoint CROWDSEC_ENABLED=on gesetzt hat
+# (CROWDSEC_API_KEY vorhanden). Verbindet Caddy mit der CrowdSec-LAPI und –
+# falls CROWDSEC_APPSEC_URL gesetzt – mit der AppSec-Engine (WAF).
+# Eine beim Start nicht erreichbare LAPI ist bewusst KEIN harter Fehler
+# (enable_hard_fails bleibt aus): Caddy startet trotzdem und loggt nur.
+#
+# Zur Platzhalter-Syntax: Bei leerem Env-Wert verschluckt Caddy ein
+# unquoted {$VAR} samt Argument (Parse-Fehler), deshalb die Anführungs-
+# zeichen. api_url verlangt zwingend ein URL-Schema, daher dort als
+# Fallback der Default des Moduls (localhost, kein realer Endpunkt).
+crowdsec {
+	api_url {$CROWDSEC_LAPI_URL:http://127.0.0.1:8080}
+	api_key "{$CROWDSEC_API_KEY}"
+	appsec_url "{$CROWDSEC_APPSEC_URL}"
+}

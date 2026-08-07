@@ -24,6 +24,11 @@ services:
       - '443:443'
     environment:
       DOMAIN: ${DOMAIN}
+      # CrowdSec AppSec/WAF (optional, siehe .env.example): ohne Werte
+      # startet Caddy ohne WAF, exakt wie bisher.
+      CROWDSEC_LAPI_URL: ${CROWDSEC_LAPI_URL:-}
+      CROWDSEC_API_KEY: ${CROWDSEC_API_KEY:-}
+      CROWDSEC_APPSEC_URL: ${CROWDSEC_APPSEC_URL:-}
     volumes:
       - caddy-data:/data # TLS-Zertifikate
       - caddy-config:/config

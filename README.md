@@ -92,6 +92,10 @@ docker compose up -d
 ```
 
 - Caddy holt automatisch ein Let's-Encrypt-Zertifikat für `DOMAIN` (Ports 80+443 offen lassen).
+- Optionaler WAF am Edge: Wer eine eigene CrowdSec-Instanz betreibt, kann Caddy per
+  `CROWDSEC_LAPI_URL`, `CROWDSEC_API_KEY` und `CROWDSEC_APPSEC_URL` an deren
+  AppSec-Engine anbinden (siehe `.env.example` und `docs/security.md`). Ohne diese
+  Variablen verhält sich das Image exakt wie bisher.
 - `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` legen beim ersten Start das Admin-Konto an –
   nach dem ersten Login aus der `.env` entfernen.
 - Migrationen laufen beim Container-Start automatisch.

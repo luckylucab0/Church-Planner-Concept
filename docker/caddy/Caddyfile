@@ -1,6 +1,16 @@
 # Caddy-Konfiguration für Produktion.
 # {$DOMAIN} kommt aus der Umgebung (docker-compose.yml) – Caddy holt
 # automatisch ein Let's-Encrypt-Zertifikat und erneuert es selbst.
+
+# CrowdSec ist optional: Der Entrypoint setzt CROWDSEC_ENABLED=on, sobald
+# CROWDSEC_API_KEY vorhanden ist; ohne Key werden (bis auf Kommentare
+# leere) off-Snippets importiert und alles verhält sich wie bisher. Der
+# Fallback ":off" hält direkte Aufrufe wie `caddy validate` ohne den
+# Entrypoint lauffähig.
+{
+	import /etc/caddy/crowdsec/global-{$CROWDSEC_ENABLED:off}.caddyfile
+}
+
 {$DOMAIN} {
 	# Access-Logs als JSON auf stdout. Landen so im Docker-json-Log des
 	# web-Containers und werden von CrowdSec (HTTP-Bruteforce/Scan-Erkennung)
@@ -22,16 +32,27 @@
 		-Server
 	}
 
-	# API-Requests an den API-Container weiterreichen
-	handle /api/* {
-		reverse_proxy api:3000
-	}
+	# route statt nackter handle-Blöcke: In Caddys Standard-Direktiven-
+	# Reihenfolge käme eine eigenständige route NACH den (terminalen)
+	# handle-Blöcken – nur innerhalb einer route gilt die hingeschriebene
+	# Reihenfolge, und nur so prüft AppSec (WAF) jede Anfrage VOR dem
+	# Routing. Geschwister-handle bleiben auch in einer route wechselseitig
+	# exklusiv, das Verhalten unten ist also unverändert.
+	route {
+		# CrowdSec AppSec (WAF) – leeres Snippet, solange CrowdSec aus ist
+		import /etc/caddy/crowdsec/site-{$CROWDSEC_ENABLED:off}.caddyfile
 
-	# Alles andere: SPA-Bundle (Client-Side-Routing → Fallback auf index.html)
-	handle {
-		root * /srv
-		try_files {path} /index.html
-		file_server
+		# API-Requests an den API-Container weiterreichen
+		handle /api/* {
+			reverse_proxy api:3000
+		}
+
+		# Alles andere: SPA-Bundle (Client-Side-Routing → Fallback auf index.html)
+		handle {
+			root * /srv
+			try_files {path} /index.html
+			file_server
+		}
 	}
 
 	encode gzip
