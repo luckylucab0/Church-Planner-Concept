@@ -17,6 +17,7 @@ Dieses Dokument beschreibt das Threat Model und die daraus abgeleiteten Maßnahm
 | MitM                                 | TLS-only (Caddy mit Auto-HTTPS), HSTS, Cookies `Secure` + `HttpOnly` + `SameSite=Lax`                                                     |
 | CSRF                                 | SameSite-Cookies + Double-Submit-Token für zustandsändernde Requests                                                                      |
 | Geleakte Backups                     | Backups werden mit `age` verschlüsselt (siehe backup-restore.md)                                                                          |
+| Automatisierte Web-Exploits/Scanner  | Optional CrowdSec AppSec (WAF) direkt in Caddy: prüft jede Anfrage vor dem Routing, Block → 403 (siehe unten)                             |
 | Mass Assignment                      | DTO-Validierung mit `whitelist: true, forbidNonWhitelisted: true`                                                                         |
 
 ### Angreifer 2: Neugieriges Mitglied (gültiger Login, Rolle MEMBER)
@@ -43,6 +44,30 @@ Dieses Dokument beschreibt das Threat Model und die daraus abgeleiteten Maßnahm
 | Vektor                             | Maßnahme                                                                                                                                                                       |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Missbrauch des Zusage/Absage-Links | Token zeigt nur Vorname + Termin (keine Kontaktdaten in URL oder Seite), Single-Purpose, Ablauf spätestens zum Termin, Aktion erfordert expliziten POST (kein GET-Side-Effect) |
+
+## CrowdSec AppSec (optionaler WAF am Edge)
+
+Das web-Image enthält Caddy mit einkompilierten CrowdSec-Bouncer-Modulen
+(`http` + `appsec`, gepinnt auf ein Release). Aktiv wird davon nur etwas, wenn
+deployment-seitig `CROWDSEC_LAPI_URL`, `CROWDSEC_API_KEY` und
+`CROWDSEC_APPSEC_URL` gesetzt sind (siehe `.env.example`) – ohne diese
+Variablen startet Caddy mit unveränderter Konfiguration und ohne WAF.
+
+Bewusst gewählte Ausfall-Semantik:
+
+- **Start:** Eine beim Start nicht erreichbare LAPI verhindert den Start nicht
+  (Soft-Fail, Modul-Default) – ein CrowdSec-Ausfall darf die Verfügbarkeit der
+  Anwendung nicht mitreißen.
+- **Laufzeit:** Ist die AppSec-Engine nicht erreichbar, werden Anfragen mit 5xx
+  beantwortet (fail closed, Modul-Default). Ein stillschweigend ausgefallener
+  WAF wäre für diese Datenklasse das größere Risiko; wer Verfügbarkeit über
+  WAF-Abdeckung stellt, kann das per `appsec_fail_open` im Snippet
+  `docker/caddy/crowdsec/global-on.caddyfile` umkehren.
+- Vom WAF blockierte Anfragen enden mit **403**.
+
+Das ebenfalls einkompilierte `crowdsec`-Handler-Modul (Durchsetzen von
+IP-Bann-Entscheidungen direkt in Caddy) ist noch nicht aktiviert – die
+Log-basierte Erkennung samt Remediation läuft heute außerhalb dieses Stacks.
 
 ## Verschlüsselung sensibler Felder at rest
 

@@ -1,0 +1,3 @@
+# Absichtlich (bis auf diesen Kommentar) leer: wird importiert, wenn
+# CrowdSec deaktiviert ist (kein CROWDSEC_API_KEY gesetzt). Die Datei
+# muss existieren, damit der import in der Caddyfile nicht fehlschlägt.

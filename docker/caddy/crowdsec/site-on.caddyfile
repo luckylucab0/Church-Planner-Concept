@@ -1,0 +1,7 @@
+# Wird nur importiert, wenn CROWDSEC_ENABLED=on: Jede Anfrage geht VOR dem
+# Routing an die CrowdSec-AppSec-Engine (WAF); blockierte Anfragen enden
+# mit 403. Ist die Engine zur Laufzeit nicht erreichbar, antwortet Caddy
+# 5xx (fail closed, Modul-Default) – ein stiller WAF-Ausfall wäre für
+# diese Datenklasse schlechter als ein sichtbarer Fehler.
+# Ohne CROWDSEC_APPSEC_URL ist der Handler ein No-op (Pass-through).
+appsec
