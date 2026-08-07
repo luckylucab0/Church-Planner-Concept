@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.9.0...v0.10.0) (2026-08-07)
+
+
+### Features
+
+* **docker:** CrowdSec AppSec (WAF) optional ins web-Image einbauen ([4ae9c21](https://github.com/luckylucab0/Church-Planner-Concept/commit/4ae9c213ab822a67c6be628d25b05146814384cb))
+* **docker:** CrowdSec AppSec (WAF) optional ins web-Image einbauen ([ff327be](https://github.com/luckylucab0/Church-Planner-Concept/commit/ff327be7d7f37864a382c33e6ca6d95d87bba515))
+
 ## [0.9.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.8.3...v0.9.0) (2026-08-05)
 
 
