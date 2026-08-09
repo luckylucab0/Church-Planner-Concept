@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.11.0...v0.12.0) (2026-08-09)
+
+
+### Features
+
+* **scheduling:** Termine delegierbar machen und Programmpunkte typisieren ([b1ccc79](https://github.com/luckylucab0/Church-Planner-Concept/commit/b1ccc79a8fe727e545e041c10096196d8b17196b))
+
 ## [0.11.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.10.0...v0.11.0) (2026-08-09)
 
 
