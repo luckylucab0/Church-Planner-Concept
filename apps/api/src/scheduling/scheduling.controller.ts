@@ -70,8 +70,12 @@ export class ServiceTypesController {
   @Put(':id/template')
   @RequireAdmin()
   @ApiOperation({ summary: 'Benötigte Positionen pro Termin definieren' })
-  setTemplate(@Param('id', ParseUUIDPipe) id: string, @Body() dto: SetTemplateDto) {
-    return this.serviceTypes.setTemplate(id, dto);
+  setTemplate(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: SetTemplateDto,
+  ) {
+    return this.serviceTypes.setTemplate(user, id, dto);
   }
 
   @Post(':id/generate')
@@ -104,15 +108,17 @@ export class EventsController {
   }
 
   @Post()
-  @RequireAdmin()
-  @ApiOperation({ summary: 'Einzeltermin anlegen (Slots optional aus Typ-Template)' })
+  @ApiOperation({
+    summary: 'Einzeltermin anlegen (Recht „Termine verwalten“; Slots optional aus Typ-Template)',
+  })
   create(@CurrentUser() user: AuthUser, @Body() dto: CreateEventDto) {
     return this.events.create(user, dto);
   }
 
   @Patch(':id')
-  @RequireAdmin()
-  @ApiOperation({ summary: 'Termin ändern (inkl. Veröffentlichen/Absagen via status)' })
+  @ApiOperation({
+    summary: 'Termin ändern (Recht „Termine verwalten“; inkl. Veröffentlichen/Absagen via status)',
+  })
   update(
     @CurrentUser() user: AuthUser,
     @Param('id', ParseUUIDPipe) id: string,
@@ -121,10 +127,12 @@ export class EventsController {
     return this.events.update(user, id, dto);
   }
 
+  // Löschen bleibt Admin-Sache: es räumt Slots, Einteilungen und Ablaufplan
+  // per Cascade ab. Wer nur MANAGE_EVENTS hat, sagt stattdessen ab.
   @Delete(':id')
   @RequireAdmin()
   @HttpCode(204)
-  @ApiOperation({ summary: 'Termin löschen' })
+  @ApiOperation({ summary: 'Termin löschen (nur Admin)' })
   async delete(
     @CurrentUser() user: AuthUser,
     @Param('id', ParseUUIDPipe) id: string,
@@ -133,10 +141,15 @@ export class EventsController {
   }
 
   @Put(':id/slots')
-  @RequireAdmin()
-  @ApiOperation({ summary: 'Benötigte Positionen dieses Termins anpassen' })
-  setSlots(@Param('id', ParseUUIDPipe) id: string, @Body() dto: SetSlotsDto) {
-    return this.events.setSlots(id, dto);
+  @ApiOperation({
+    summary: 'Benötigte Positionen dieses Termins anpassen (Recht „Termine verwalten“)',
+  })
+  setSlots(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: SetSlotsDto,
+  ) {
+    return this.events.setSlots(user, id, dto);
   }
 
   @Put(':id/plan')

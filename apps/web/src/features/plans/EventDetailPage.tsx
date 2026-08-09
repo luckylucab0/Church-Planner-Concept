@@ -15,6 +15,7 @@ export interface EventDetail {
   location?: string | null;
   status: EventStatus;
   canEditPlan: boolean;
+  canManageEvent: boolean;
   planItems: PlanItem[];
   slots: EventSlot[];
 }
@@ -57,6 +58,9 @@ export default function EventDetailPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const { session } = useSession();
+  // Bearbeiten/Veröffentlichen/Absagen/Slots hängen am Recht „Termine
+  // verwalten" (canManageEvent kommt serverseitig berechnet mit dem Termin);
+  // nur das endgültige Löschen bleibt dem Admin vorbehalten.
   const isAdmin = session?.globalRole === 'ADMIN';
 
   const [event, setEvent] = useState<EventDetail | null>(null);
@@ -90,9 +94,29 @@ export default function EventDetailPage() {
     navigate('/plans');
   }
 
-  async function saveSlots() {
-    if (!eventId || !slotDraft) return;
-    await api.put(`/events/${eventId}/slots`, { items: slotDraft });
+  // Der Server lehnt das Entfernen besetzter Positionen mit 409 ab, statt
+  // die Einteilungen stillschweigend mitzulöschen. Die Rückfrage nennt die
+  // Zahl der betroffenen Personen – lokal gezählt, damit sie übersetzt ist.
+  async function saveSlots(force = false) {
+    if (!eventId || !slotDraft || !event) return;
+    try {
+      await api.put(`/events/${eventId}/slots`, { items: slotDraft, ...(force ? { force } : {}) });
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        const kept = new Set(slotDraft.map((item) => item.positionId));
+        const affected = event.slots
+          .filter((slot) => !kept.has(slot.position.id))
+          .reduce(
+            (sum, slot) => sum + slot.assignments.filter((a) => a.status !== 'DECLINED').length,
+            0,
+          );
+        if (window.confirm(t('slots.removeConfirm', { count: affected }))) {
+          await saveSlots(true);
+        }
+        return;
+      }
+      throw error;
+    }
     setSlotDraft(null);
     reload();
   }
@@ -193,7 +217,7 @@ export default function EventDetailPage() {
             {event.location ? ` · ${event.location}` : ''}
           </p>
         </div>
-        {isAdmin && !editing && (
+        {event.canManageEvent && !editing && (
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm print:hidden">
             {event.status === 'PLANNED' && (
               <button onClick={() => void setStatus('PUBLISHED')} className="link-gold">
@@ -211,14 +235,16 @@ export default function EventDetailPage() {
             <button onClick={() => setEditing(true)} className="text-faint hover:text-paper">
               {t('common.edit')}
             </button>
-            <button onClick={() => void deleteEvent()} className="text-faint hover:text-paper">
-              {t('common.delete')}
-            </button>
+            {isAdmin && (
+              <button onClick={() => void deleteEvent()} className="text-faint hover:text-paper">
+                {t('common.delete')}
+              </button>
+            )}
           </div>
         )}
       </div>
 
-      {isAdmin && editing && (
+      {event.canManageEvent && editing && (
         <section className="card p-4 print:hidden">
           <h2 className="mb-3 font-semibold text-paper">{t('events.edit')}</h2>
           <EventForm
@@ -252,7 +278,7 @@ export default function EventDetailPage() {
       <div className="space-y-3 print:hidden">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="font-semibold text-paper">{t('plans.staffingTitle')}</h2>
-          {isAdmin && slotDraft === null && (
+          {event.canManageEvent && slotDraft === null && (
             <button
               onClick={() =>
                 setSlotDraft(
@@ -271,7 +297,7 @@ export default function EventDetailPage() {
 
         {/* Positionen des Termins ändern. Bestehende Einteilungen bleiben
             erhalten, solange die Position im Plan bleibt (siehe setSlots). */}
-        {isAdmin && slotDraft !== null && (
+        {event.canManageEvent && slotDraft !== null && (
           <section className="card p-4">
             <h3 className="mb-2 text-sm font-medium text-secondary">{t('slots.edit')}</h3>
             <PositionSlotsEditor value={slotDraft} onChange={setSlotDraft} />

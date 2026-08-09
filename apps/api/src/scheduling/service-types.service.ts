@@ -62,7 +62,7 @@ export class ServiceTypesService {
 
   // Template komplett ersetzen (idempotent) – einfacher zu bedienen und
   // zu testen als einzelne Add/Remove-Endpunkte
-  async setTemplate(id: string, dto: SetTemplateDto) {
+  async setTemplate(user: AuthUser, id: string, dto: SetTemplateDto) {
     await this.ensureExists(id);
     await this.prisma.$transaction([
       this.prisma.serviceTypePosition.deleteMany({ where: { serviceTypeId: id } }),
@@ -74,6 +74,13 @@ export class ServiceTypesService {
         })),
       }),
     ]);
+    this.audit.log({
+      actorId: user.personId,
+      action: 'UPDATE',
+      entityType: 'ServiceType',
+      entityId: id,
+      changedFields: ['positionTemplate'],
+    });
     return this.prisma.serviceTypePosition.findMany({ where: { serviceTypeId: id } });
   }
 

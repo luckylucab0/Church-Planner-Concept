@@ -35,6 +35,11 @@ Bereits umgesetzt:
   automatisch über, Teamleitung wird informiert
 - **Selbst-Eintragung (Signup)** ✅: Teamleitende geben Slots frei, passende
   Mitglieder tragen sich über „Offene Dienste" selbst ein (zählt als Zusage)
+- **Termin-Verwaltung delegierbar** ✅: neues Recht „Termine anlegen &
+  verwalten" in der Rechtematrix (Standard: aus). Damit plant z. B. ein Team
+  „Moderation" Gottesdienste, ohne Admin-Rechte auf Personendaten. Nicht
+  delegierbar bleiben Gottesdienst-Typen samt Serien-Generierung und das
+  endgültige Löschen – dafür gibt es Absagen.
 
 Nachgezogene Oberflächen: Die folgenden Funktionen gehören eigentlich zu
 Phase 1 und waren in der API von Anfang an vorhanden, hatten aber keine

@@ -363,6 +363,39 @@ konfigurierbar, damit sich ein Team nicht selbst aussperren kann. Neue Teams
 anlegen sowie die Rolle **Leitung** vergeben oder entziehen kann nur ein
 Admin.
 
+Drei Rechte wirken **über das Team hinaus**, weil die Sache selbst der ganzen
+Gemeinde gehört und nicht einem Team: **Ablaufplan bearbeiten**,
+**Liederdatenbank pflegen** und **Termine anlegen & verwalten**. Wer eines
+davon in einem Team hat, übt es überall aus – der Ablaufplan eines
+Gottesdienstes entsteht schließlich teamübergreifend.
+
+### Wer soll Gottesdienste anlegen dürfen?
+
+Standardmäßig niemand außer Admins und Teamleitungen: das Recht **„Termine
+anlegen & verwalten"** ist für Stellvertretung, Mitarbeit und Praktikum
+voreingestellt **aus**. Nach einem Update ändert sich also nichts, bis du es
+bewusst vergibst.
+
+Wenn bei euch nicht die Teamleitungen den Programmablauf verantworten, sondern
+z. B. das Moderationsteam, das Sekretariat oder die Gemeindeleitung, brauchst
+du dafür **keine Admin-Rechte zu verteilen** – ein eigenes Team genügt:
+
+1. Als Admin unter **Teams** ein Team anlegen, z. B. „Moderation" oder
+   „Programm".
+2. Die betreffenden Personen als **Mitarbeit** aufnehmen.
+3. In der Rechtematrix bei **Mitarbeit** das Häkchen **„Termine anlegen &
+   verwalten"** setzen.
+
+Diese Personen können danach Termine anlegen, Titel/Zeit/Ort ändern,
+veröffentlichen, absagen und die benötigten Positionen anpassen – ohne Zugriff
+auf Personenverwaltung, Import oder die Serien-Konfiguration. Ein Termin
+**löschen** kann weiterhin nur ein Admin; für alle anderen ist **Absagen** der
+Weg, und der ist ohnehin der bessere: der Termin bleibt mit seiner Geschichte
+sichtbar, nur die Erinnerungen entfallen.
+
+Das Häkchen wirkt sofort für die API. Damit die Schaltflächen erscheinen, muss
+die betroffene Person die Seite einmal neu laden.
+
 ### Benutzer beantragen
 
 Neue Personen anlegen können nur Admins – aber als Teamleitung musst du

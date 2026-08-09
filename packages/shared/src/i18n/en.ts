@@ -264,6 +264,8 @@ export const en = {
     selectPosition: 'Select position…',
     requiredCount: 'Count',
     removeHint: 'Removed positions lose their assignments. Positions that stay keep theirs.',
+    removeConfirm:
+      '{{count}} people are still assigned to removed positions. Their assignments will be lost. Save anyway?',
   },
   serviceTypes: {
     title: 'Service types',
@@ -413,7 +415,7 @@ export const en = {
     },
     permissionsTitle: 'Role permissions',
     permissionsHint:
-      'Configure what deputies, members and interns may do in this team. The leader always has all permissions.',
+      'Configure what deputies, members and interns may do in this team. The leader always has all permissions. The order of service, the song database and services belong to the whole church, so those three permissions reach beyond this team.',
     permissionsSaved: 'Permissions saved.',
     capabilities: {
       ASSIGN: 'Assign & suggestions',
@@ -426,6 +428,7 @@ export const en = {
       VIEW_DRAFTS: 'See draft events',
       EDIT_PLAN: 'Edit service plan',
       MANAGE_SONGS: 'Manage song database',
+      MANAGE_EVENTS: 'Create & manage services',
     },
   },
   profile: {

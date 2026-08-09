@@ -20,13 +20,13 @@ interface EventSummary {
 type StatusFilter = 'ALL' | 'PLANNED' | 'PUBLISHED' | 'CANCELLED' | 'UNDERSTAFFED';
 
 // Kommende Termine mit Besetzungsgrad, nach Monat gruppiert. Mitglieder
-// sehen nur veröffentlichte Termine (serverseitig gefiltert); Admins legen
-// hier neue Termine an.
+// sehen nur veröffentlichte Termine (serverseitig gefiltert); wer das Recht
+// „Termine verwalten" hat, legt hier neue Termine an.
 export default function PlansPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { session } = useSession();
-  const isAdmin = session?.globalRole === 'ADMIN';
+  const canManageEvents = session?.canManageEvents ?? false;
 
   const [events, setEvents] = useState<EventSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,7 +94,7 @@ export default function PlansPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-[26px] font-bold tracking-tight text-paper">{t('nav.plans')}</h1>
-        {isAdmin && !creating && (
+        {canManageEvents && !creating && (
           <button onClick={() => setCreating(true)} className="btn-primary">
             + {t('events.create')}
           </button>

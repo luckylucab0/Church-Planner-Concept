@@ -32,12 +32,14 @@ Dieses Dokument beschreibt das Threat Model und die daraus abgeleiteten Maßnahm
 
 ### Angreifer 3: Kompromittiertes Teamleiter-Konto
 
-| Vektor                                       | Maßnahme                                                                                                       |
-| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Massenexport von Kontaktdaten                | Kein Bulk-Export für Teamleiter; Sichtbarkeit strikt auf eigene Teammitglieder begrenzt                        |
-| Zugriff auf seelsorgerliche Notizen          | `PASTORAL`-Notizen sind Teamleitern grundsätzlich entzogen (nur Admin bzw. explizit berechtigte Rollen)        |
-| Manipulation von Plänen / Social Engineering | Audit-Log (append-only) macht jede Änderung nachvollziehbar; Admin kann Sessions einzelner Konten invalidieren |
-| Kontoübernahme erschweren                    | TOTP-2FA für Teamleiter und Admins (per Instanz-Setting erzwingbar)                                            |
+| Vektor                                       | Maßnahme                                                                                                                                                |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Massenexport von Kontaktdaten                | Kein Bulk-Export für Teamleiter; Sichtbarkeit strikt auf eigene Teammitglieder begrenzt                                                                 |
+| Zugriff auf seelsorgerliche Notizen          | `PASTORAL`-Notizen sind Teamleitern grundsätzlich entzogen (nur Admin bzw. explizit berechtigte Rollen)                                                 |
+| Manipulation von Plänen / Social Engineering | Audit-Log (append-only) macht jede Änderung nachvollziehbar; Admin kann Sessions einzelner Konten invalidieren                                          |
+| Kontoübernahme erschweren                    | TOTP-2FA für Teamleiter und Admins (per Instanz-Setting erzwingbar)                                                                                     |
+| Termine sabotieren (absagen, umlegen)        | `MANAGE_EVENTS` ist für alle konfigurierbaren Rollen opt-in; Serien-Konfiguration und `DELETE` bleiben Admin; Absagen ist reversibel und wird auditiert |
+| Einteilungen unbemerkt löschen               | Das Entfernen einer besetzten Position antwortet mit `409` und verlangt ein ausdrückliches `force`                                                      |
 
 ### Angreifer 4: Empfänger weitergeleiteter E-Mails
 

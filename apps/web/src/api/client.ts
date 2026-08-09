@@ -41,4 +41,7 @@ export interface SessionInfo {
   lastName: string;
   locale: string;
   ledTeamIds: string[];
+  // Recht „Termine verwalten" in irgendeinem Team (oder Admin). Steuert nur
+  // die Sichtbarkeit von Schaltflächen – die API prüft selbst.
+  canManageEvents: boolean;
 }

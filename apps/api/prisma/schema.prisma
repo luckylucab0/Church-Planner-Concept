@@ -182,8 +182,11 @@ model TeamMembership {
 }
 
 // Die konfigurierbaren Team-Rechte. Bewusst grobkörnig entlang der
-// heutigen Teamleiter-Fähigkeiten geschnitten; Admin-Rechte (Termine,
-// Personen, Import) sind NICHT delegierbar.
+// heutigen Teamleiter-Fähigkeiten geschnitten; Personen- und Import-Rechte
+// bleiben Admin-Sache und sind NICHT delegierbar. Bei Terminen ist die
+// Linie feiner: das Planen einzelner Termine ist über MANAGE_EVENTS
+// delegierbar, die Serien-Konfiguration (ServiceType, RRULE, Vorlage,
+// Generierung) und das endgültige Löschen bleiben beim Admin.
 enum TeamCapability {
   ASSIGN // einteilen/entfernen/Vorschläge sehen
   OPEN_SIGNUP // Slots zur Selbst-Eintragung freigeben (+ Bypass)
@@ -195,6 +198,7 @@ enum TeamCapability {
   VIEW_DRAFTS // Termin-Entwürfe (PLANNED) sehen
   EDIT_PLAN // Ablaufplan bearbeiten
   MANAGE_SONGS // Liederdatenbank pflegen (teamübergreifend)
+  MANAGE_EVENTS // Termine anlegen/ändern/veröffentlichen/absagen (teamübergreifend)
 }
 
 // Rechtematrix pro Team und Rolle. Fehlende Zeile = Code-Default aus

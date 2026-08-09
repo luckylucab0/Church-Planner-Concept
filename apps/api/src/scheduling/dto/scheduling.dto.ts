@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsBoolean,
   IsDateString,
   IsIn,
   IsInt,
@@ -103,6 +104,10 @@ export class CreateEventDto {
   serviceTypeId?: string;
 }
 
+// Bewusst OHNE serviceTypeId: die Serien-Zuordnung eines Termins ist
+// strukturell und damit Admin-Sache. Zusammen mit forbidNonWhitelisted
+// scheitert ein Umhängen per PATCH schon an der Validierung. Jedes hier
+// ergänzte Feld erweitert automatisch die Reichweite von MANAGE_EVENTS.
 export class UpdateEventDto {
   @ApiPropertyOptional()
   @IsOptional()
@@ -138,6 +143,15 @@ export class SetSlotsDto {
   @ValidateNested({ each: true })
   @Type(() => TemplateItemDto)
   items: TemplateItemDto[];
+
+  @ApiPropertyOptional({
+    description:
+      'Positionen auch dann entfernen, wenn dafür schon Personen eingeteilt sind ' +
+      '(deren Einteilungen gehen verloren). Ohne das Flag antwortet der Server mit 409.',
+  })
+  @IsOptional()
+  @IsBoolean()
+  force?: boolean;
 }
 
 // Ein Programmpunkt im Gottesdienstablauf; die Reihenfolge ergibt sich
