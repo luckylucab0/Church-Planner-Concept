@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.10.0...v0.11.0) (2026-08-09)
+
+
+### Features
+
+* **web:** Oberflächen für vorhandene APIs nachziehen ([b3afda1](https://github.com/luckylucab0/Church-Planner-Concept/commit/b3afda12ecc0dead947363c7ae897f99573fa657))
+* **web:** Oberflächen für vorhandene APIs nachziehen ([3a87e42](https://github.com/luckylucab0/Church-Planner-Concept/commit/3a87e42d3c13b31c1173011d642b7929043ae764))
+
 ## [0.10.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.9.0...v0.10.0) (2026-08-07)
 
 
