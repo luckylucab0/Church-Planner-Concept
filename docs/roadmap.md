@@ -16,6 +16,10 @@ Center: [vergleich-alternativen.md](vergleich-alternativen.md).
 - Import aus Elvanto/Planning Center (CSV + PCO-API) mit Dry-Run und Fehlerreport
 - CI/CD: Lint/Tests/E2E-Smoke, CodeQL, Trivy, release-please, GHCR, cosign, SBOM
 
+Die APIs dieser Phase sind seit dem MVP vollständig. Ein Teil davon war
+allerdings nur über `/api/v1` bedienbar – die zugehörigen Web-Oberflächen
+sind erst in Phase 2 nachgezogen worden (siehe unten).
+
 ## Phase 2 – Gottesdienst-Inhalte & Scheduling-Ausbau (in Arbeit)
 
 Bereits umgesetzt:
@@ -31,6 +35,33 @@ Bereits umgesetzt:
   automatisch über, Teamleitung wird informiert
 - **Selbst-Eintragung (Signup)** ✅: Teamleitende geben Slots frei, passende
   Mitglieder tragen sich über „Offene Dienste" selbst ein (zählt als Zusage)
+
+Nachgezogene Oberflächen: Die folgenden Funktionen gehören eigentlich zu
+Phase 1 und waren in der API von Anfang an vorhanden, hatten aber keine
+Web-Oberfläche. Ergänzt wurden nur die Ansichten, am Backend hat sich dafür
+nichts geändert.
+
+- **Termin-Verwaltung** ✅: Termine anlegen, bearbeiten, löschen,
+  veröffentlichen und absagen; Positions-Slots eines Termins bearbeiten
+- **Dienstplan-Liste** ✅: Filter nach Suchbegriff, Status und Zeitraum,
+  Gruppierung nach Monat
+- **Gottesdienst-Typen** ✅ (`/admin/service-types`): anlegen, ändern,
+  löschen; Wiederholungsregel über Voreinstellungen, RRULE-Freitext nur noch
+  unter „Eigene Regel"; Positions-Vorlage pflegen; Termine bis zu einem
+  Datum erzeugen
+- **Teams & Positionen** ✅: Teams anlegen, umbenennen und löschen (Admin);
+  Positionen anlegen und löschen; Personen mit Skill-Level
+  (Anfänger/Sicher/Profi) zuordnen
+- **Notizen & DSGVO-Aktionen** ✅: verschlüsselte Notizen
+  (Allgemein/Seelsorge) lesen, anlegen und löschen; Datenexport,
+  Anonymisieren und Löschen auf der Personen-Detailseite
+- **Import** ✅: Planning-Center-API als dritte Quelle neben den beiden
+  CSV-Exporten, dazu eine Historie der letzten Import-Vorgänge
+- **Arrangements bearbeiten** ✅: Name und Tonart bestehender Arrangements
+  ändern, statt nur anlegen und löschen
+- **Profil** ✅: Sprachwahl (Deutsch/Englisch, wirkt auf Oberfläche und
+  E-Mails); Status des iCal-Abos – ob bereits ein Feed existiert, seit wann,
+  und „neu erzeugen"
 
 Als Nächstes (Reihenfolge = Priorisierung aus dem Vergleich):
 

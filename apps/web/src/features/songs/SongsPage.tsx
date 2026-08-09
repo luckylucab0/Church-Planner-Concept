@@ -60,6 +60,12 @@ export default function SongsPage() {
   const [showForm, setShowForm] = useState(false);
   const [arrangementFor, setArrangementFor] = useState<string | null>(null);
   const [arrangementForm, setArrangementForm] = useState({ name: '', key: '' });
+  // Bearbeitung läuft inline in der Liste – deshalb nur ein Arrangement gleichzeitig
+  const [arrangementEdit, setArrangementEdit] = useState<{
+    id: string;
+    name: string;
+    key: string;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [lyricsFor, setLyricsFor] = useState<string | null>(null);
 
@@ -136,6 +142,27 @@ export default function SongsPage() {
     });
     setArrangementFor(null);
     setArrangementForm({ name: '', key: '' });
+    await reload();
+  }
+
+  function startArrangementEdit(arrangement: Arrangement) {
+    setArrangementFor(null); // Anlegen und Bearbeiten schließen sich gegenseitig aus
+    setArrangementEdit({
+      id: arrangement.id,
+      name: arrangement.name,
+      key: arrangement.key ?? '',
+    });
+  }
+
+  async function saveArrangement(songId: string) {
+    if (!arrangementEdit) return;
+    await api.patch(`/songs/${songId}/arrangements/${arrangementEdit.id}`, {
+      name: arrangementEdit.name.trim(),
+      // Leerstring statt undefined: PATCH lässt fehlende Felder unverändert,
+      // sonst ließe sich eine einmal gesetzte Tonart nie wieder entfernen
+      key: arrangementEdit.key.trim(),
+    });
+    setArrangementEdit(null);
     await reload();
   }
 
@@ -373,28 +400,78 @@ export default function SongsPage() {
             {(song.arrangements.length > 0 || data.canManage) && (
               <div className="mt-2 text-sm">
                 <span className="font-medium text-secondary">{t('songs.arrangements')}:</span>{' '}
-                {song.arrangements.map((arrangement) => (
-                  <span
-                    key={arrangement.id}
-                    className="mr-2 inline-flex items-center gap-1 rounded bg-avatar px-1.5 py-0.5 border border-line"
-                  >
-                    {arrangement.name}
-                    {arrangement.key ? ` (${arrangement.key})` : ''}
-                    {data.canManage && (
+                {song.arrangements.map((arrangement) =>
+                  arrangementEdit?.id === arrangement.id ? (
+                    <span
+                      key={arrangement.id}
+                      className="mt-1 mr-2 inline-flex min-w-0 flex-wrap items-center gap-2"
+                    >
+                      <input
+                        value={arrangementEdit.name}
+                        onChange={(e) =>
+                          setArrangementEdit({ ...arrangementEdit, name: e.target.value })
+                        }
+                        placeholder={t('songs.arrangementName')}
+                        maxLength={100}
+                        className="w-32 rounded-[10px] border border-line bg-ink px-2 py-1"
+                        autoFocus
+                      />
+                      <input
+                        value={arrangementEdit.key}
+                        onChange={(e) =>
+                          setArrangementEdit({ ...arrangementEdit, key: e.target.value })
+                        }
+                        placeholder={t('songs.key')}
+                        maxLength={10}
+                        className="w-16 rounded-[10px] border border-line bg-ink px-2 py-1"
+                      />
                       <button
-                        onClick={() => void removeArrangement(song.id, arrangement.id)}
-                        className="text-faint"
-                        aria-label={t('common.delete')}
+                        onClick={() => void saveArrangement(song.id)}
+                        disabled={!arrangementEdit.name.trim()}
+                        className="btn-primary px-2 text-xs disabled:opacity-50"
                       >
-                        ✕
+                        {t('common.save')}
                       </button>
-                    )}
-                  </span>
-                ))}
+                      <button
+                        onClick={() => setArrangementEdit(null)}
+                        className="text-xs text-muted"
+                      >
+                        {t('common.cancel')}
+                      </button>
+                    </span>
+                  ) : (
+                    <span
+                      key={arrangement.id}
+                      className="mr-2 inline-flex min-w-0 flex-wrap items-center gap-1 rounded bg-avatar px-1.5 py-0.5 border border-line"
+                    >
+                      {arrangement.name}
+                      {arrangement.key ? ` (${arrangement.key})` : ''}
+                      {data.canManage && (
+                        <>
+                          <button
+                            onClick={() => startArrangementEdit(arrangement)}
+                            className="text-gold"
+                            aria-label={t('songs.editArrangement')}
+                          >
+                            ✎
+                          </button>
+                          <button
+                            onClick={() => void removeArrangement(song.id, arrangement.id)}
+                            className="text-faint"
+                            aria-label={t('common.delete')}
+                          >
+                            ✕
+                          </button>
+                        </>
+                      )}
+                    </span>
+                  ),
+                )}
                 {song.arrangements.length === 0 && <span className="text-faint">—</span>}
                 {data.canManage && arrangementFor !== song.id && (
                   <button
                     onClick={() => {
+                      setArrangementEdit(null);
                       setArrangementFor(song.id);
                       setArrangementForm({ name: '', key: '' });
                     }}

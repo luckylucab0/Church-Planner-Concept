@@ -1,15 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import EventForm, { EventStatus } from './EventForm';
+import PositionSlotsEditor, { SlotItem } from './PositionSlotsEditor';
 import ServicePlan, { PlanItem } from './ServicePlan';
 import { api, ApiError } from '../../api/client';
+import { useSession } from '../auth/SessionContext';
 
 export interface EventDetail {
   id: string;
   title: string;
   startsAt: string;
+  endsAt: string;
   location?: string | null;
-  status: string;
+  status: EventStatus;
   canEditPlan: boolean;
   planItems: PlanItem[];
   slots: EventSlot[];
@@ -51,18 +55,47 @@ const statusStyle: Record<string, string> = {
 export default function EventDetailPage() {
   const { t, i18n } = useTranslation();
   const { eventId } = useParams<{ eventId: string }>();
+  const navigate = useNavigate();
+  const { session } = useSession();
+  const isAdmin = session?.globalRole === 'ADMIN';
+
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [suggestionsFor, setSuggestionsFor] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [selectedPersonId, setSelectedPersonId] = useState('');
   const [conflict, setConflict] = useState<string | null>(null);
   const [signupError, setSignupError] = useState<{ slotId: string; message: string } | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [slotDraft, setSlotDraft] = useState<SlotItem[] | null>(null);
 
   const reload = useCallback(() => {
     if (eventId) void api.get<EventDetail>(`/events/${eventId}`).then(setEvent);
   }, [eventId]);
 
   useEffect(reload, [reload]);
+
+  // Termin veröffentlichen/absagen ohne den Umweg über das Formular –
+  // beides sind Ein-Klick-Aktionen im Alltag.
+  async function setStatus(status: EventStatus) {
+    if (!eventId) return;
+    await api.patch(`/events/${eventId}`, { status });
+    reload();
+  }
+
+  async function deleteEvent() {
+    if (!eventId || !event || !window.confirm(t('events.deleteConfirm', { title: event.title }))) {
+      return;
+    }
+    await api.delete(`/events/${eventId}`);
+    navigate('/plans');
+  }
+
+  async function saveSlots() {
+    if (!eventId || !slotDraft) return;
+    await api.put(`/events/${eventId}/slots`, { items: slotDraft });
+    setSlotDraft(null);
+    reload();
+  }
 
   async function openSuggestions(slotId: string) {
     setConflict(null);
@@ -138,19 +171,74 @@ export default function EventDetailPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-[26px] font-bold tracking-tight text-paper">{event.title}</h1>
-        <p className="text-sm text-muted">
-          {new Date(event.startsAt).toLocaleString(i18n.language, {
-            weekday: 'long',
-            day: '2-digit',
-            month: 'long',
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
-          {event.location ? ` · ${event.location}` : ''}
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-[26px] font-bold tracking-tight text-paper">
+            {event.title}
+            {event.status === 'PLANNED' && (
+              <span className="ml-2 badge badge-muted align-middle">{t('plans.draft')}</span>
+            )}
+            {event.status === 'CANCELLED' && (
+              <span className="ml-2 badge badge-danger align-middle">{t('plans.cancelled')}</span>
+            )}
+          </h1>
+          <p className="text-sm text-muted">
+            {new Date(event.startsAt).toLocaleString(i18n.language, {
+              weekday: 'long',
+              day: '2-digit',
+              month: 'long',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+            {event.location ? ` · ${event.location}` : ''}
+          </p>
+        </div>
+        {isAdmin && !editing && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm print:hidden">
+            {event.status === 'PLANNED' && (
+              <button onClick={() => void setStatus('PUBLISHED')} className="link-gold">
+                {t('events.publish')}
+              </button>
+            )}
+            {event.status === 'PUBLISHED' && (
+              <button
+                onClick={() => void setStatus('CANCELLED')}
+                className="text-faint hover:text-paper"
+              >
+                {t('events.cancelEvent')}
+              </button>
+            )}
+            <button onClick={() => setEditing(true)} className="text-faint hover:text-paper">
+              {t('common.edit')}
+            </button>
+            <button onClick={() => void deleteEvent()} className="text-faint hover:text-paper">
+              {t('common.delete')}
+            </button>
+          </div>
+        )}
       </div>
+
+      {isAdmin && editing && (
+        <section className="card p-4 print:hidden">
+          <h2 className="mb-3 font-semibold text-paper">{t('events.edit')}</h2>
+          <EventForm
+            mode="edit"
+            initial={{
+              id: event.id,
+              title: event.title,
+              startsAt: event.startsAt,
+              endsAt: event.endsAt,
+              location: event.location,
+              status: event.status,
+            }}
+            onSaved={() => {
+              setEditing(false);
+              reload();
+            }}
+            onCancel={() => setEditing(false)}
+          />
+        </section>
+      )}
 
       <ServicePlan
         eventId={event.id}
@@ -162,7 +250,43 @@ export default function EventDetailPage() {
 
       {/* Besetzung: beim Drucken ausgeblendet – gedruckt wird der Ablauf */}
       <div className="space-y-3 print:hidden">
-        <h2 className="font-semibold text-paper">{t('plans.staffingTitle')}</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-semibold text-paper">{t('plans.staffingTitle')}</h2>
+          {isAdmin && slotDraft === null && (
+            <button
+              onClick={() =>
+                setSlotDraft(
+                  event.slots.map((slot) => ({
+                    positionId: slot.position.id,
+                    requiredCount: slot.requiredCount,
+                  })),
+                )
+              }
+              className="text-sm text-faint hover:text-paper"
+            >
+              {t('slots.edit')}
+            </button>
+          )}
+        </div>
+
+        {/* Positionen des Termins ändern. Bestehende Einteilungen bleiben
+            erhalten, solange die Position im Plan bleibt (siehe setSlots). */}
+        {isAdmin && slotDraft !== null && (
+          <section className="card p-4">
+            <h3 className="mb-2 text-sm font-medium text-secondary">{t('slots.edit')}</h3>
+            <PositionSlotsEditor value={slotDraft} onChange={setSlotDraft} />
+            <p className="mt-2 text-xs text-faint">{t('slots.removeHint')}</p>
+            <div className="mt-3 flex items-center gap-3">
+              <button onClick={() => void saveSlots()} className="btn-primary px-3 py-1.5 text-xs">
+                {t('common.save')}
+              </button>
+              <button onClick={() => setSlotDraft(null)} className="text-xs text-muted">
+                {t('common.cancel')}
+              </button>
+            </div>
+          </section>
+        )}
+
         {event.slots.map((slot) => (
           <section key={slot.id} className="card p-4">
             <div className="flex items-center gap-2">

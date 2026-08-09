@@ -10,6 +10,7 @@ import {
   useMemo,
   useState,
 } from 'react';
+import i18n from '../../i18n';
 import { api, ApiError, SessionInfo } from '../../api/client';
 
 interface SessionState {
@@ -17,6 +18,7 @@ interface SessionState {
   loading: boolean;
   login: (email: string, password: string, totpCode?: string) => Promise<void>;
   logout: () => Promise<void>;
+  setLocale: (locale: string) => void;
 }
 
 const SessionContext = createContext<SessionState | null>(null);
@@ -46,9 +48,21 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setSession(null);
   }, []);
 
+  // Die im Profil gewählte Sprache schlägt auf die Oberfläche durch – ohne
+  // sie wäre `Person.locale` nur die Sprache der E-Mails.
+  useEffect(() => {
+    if (session?.locale && session.locale !== i18n.language) {
+      void i18n.changeLanguage(session.locale);
+    }
+  }, [session?.locale]);
+
+  const setLocale = useCallback((locale: string) => {
+    setSession((current) => (current ? { ...current, locale } : current));
+  }, []);
+
   const value = useMemo(
-    () => ({ session, loading, login, logout }),
-    [session, loading, login, logout],
+    () => ({ session, loading, login, logout, setLocale }),
+    [session, loading, login, logout, setLocale],
   );
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
