@@ -611,12 +611,33 @@ model Setting {
 // Ablaufplan & Lieder (Phase 2, seit Modul 11 aktiv)
 // ============================================================
 
+// Art eines Programmpunkts. Steuert Symbol und Vorschlagsdauer im Editor
+// und ist die Grundlage für Ablauf-Vorlagen und die Live-Ansicht – beide
+// müssen wissen, WAS ein Punkt ist, nicht nur wie er heißt. Schränkt nie
+// ein, was im Titel oder in den Notizen stehen darf. OTHER ist Default,
+// damit bestehende Abläufe unverändert gültig bleiben.
+enum ServicePlanItemKind {
+  SONG
+  SERMON
+  MODERATION
+  PRAYER
+  COMMUNION
+  ANNOUNCEMENTS
+  OFFERING
+  BLESSING
+  BAPTISM
+  VIDEO
+  BREAK
+  OTHER
+}
+
 // Gottesdienstablauf (Order of Service)
 model ServicePlanItem {
   id              String  @id @default(uuid()) @db.Uuid
   eventId         String  @db.Uuid
   event           Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   sortOrder       Int
+  kind            ServicePlanItemKind @default(OTHER)
   title           String
   durationMinutes Int     @default(5)
   responsiblePersonId String? @db.Uuid

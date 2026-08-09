@@ -315,30 +315,53 @@ async function main(): Promise<void> {
         songs[(index + 1) % songs.length],
       ];
       const planItems = [
-        { title: 'Begrüßung & Gebet', durationMinutes: 5, responsiblePersonId: people[1].id },
+        {
+          title: 'Begrüßung & Gebet',
+          kind: 'PRAYER' as const,
+          durationMinutes: 5,
+          responsiblePersonId: people[1].id,
+        },
         {
           title: 'Worship-Block',
+          kind: 'SONG' as const,
           durationMinutes: 6,
           songId: song1.id,
           arrangementId: song1.arrangements[0]?.id ?? null,
           responsiblePersonId: people[1].id,
         },
-        { title: 'Worship-Block', durationMinutes: 5, songId: song2.id },
-        { title: 'Abkündigungen', durationMinutes: 5, responsiblePersonId: people[0].id },
+        { title: 'Worship-Block', kind: 'SONG' as const, durationMinutes: 5, songId: song2.id },
+        {
+          title: 'Abkündigungen',
+          kind: 'ANNOUNCEMENTS' as const,
+          durationMinutes: 5,
+          responsiblePersonId: people[0].id,
+        },
         {
           title: 'Predigt',
+          kind: 'SERMON' as const,
           durationMinutes: 35,
           notes: index === 0 ? 'Reihe Bergpredigt, Teil 3' : 'Gastprediger',
           responsiblePersonId: people[3].id,
         },
         {
           title: 'Response-Lied',
+          kind: 'SONG' as const,
           durationMinutes: 5,
           songId: song3.id,
           arrangementId: song3.arrangements[0]?.id ?? null,
         },
-        { title: 'Kollekte', durationMinutes: 4, songId: song4.id },
-        { title: 'Segen', durationMinutes: 3, responsiblePersonId: people[3].id },
+        {
+          title: 'Kollekte',
+          kind: 'OFFERING' as const,
+          durationMinutes: 4,
+          songId: song4.id,
+        },
+        {
+          title: 'Segen',
+          kind: 'BLESSING' as const,
+          durationMinutes: 3,
+          responsiblePersonId: people[3].id,
+        },
       ];
       await prisma.servicePlanItem.createMany({
         data: planItems.map((item, sortOrder) => ({ eventId: event.id, sortOrder, ...item })),

@@ -347,6 +347,7 @@ export class EventsService {
         data: dto.items.map((item, index) => ({
           eventId,
           sortOrder: index,
+          kind: item.kind ?? 'OTHER',
           title: item.title,
           durationMinutes: item.durationMinutes,
           songId: item.songId ?? null,
@@ -403,6 +404,7 @@ type PlanItemWithRelations = Prisma.ServicePlanItemGetPayload<{ include: typeof 
 function mapPlanItem(item: PlanItemWithRelations) {
   return {
     id: item.id,
+    kind: item.kind,
     title: item.title,
     durationMinutes: item.durationMinutes,
     notes: item.notes,

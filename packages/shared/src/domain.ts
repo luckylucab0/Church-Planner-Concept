@@ -14,6 +14,25 @@ export type SkillLevel = (typeof SKILL_LEVELS)[number];
 export const EVENT_STATUSES = ['PLANNED', 'PUBLISHED', 'CANCELLED'] as const;
 export type EventStatus = (typeof EVENT_STATUSES)[number];
 
+// Art eines Programmpunkts im Ablaufplan. Steuert nur Symbol und
+// Vorschlagsdauer – die Reihenfolge hier ist auch die Reihenfolge im
+// Auswahlfeld, deshalb die häufigsten zuerst und OTHER zuletzt.
+export const SERVICE_PLAN_ITEM_KINDS = [
+  'SONG',
+  'SERMON',
+  'MODERATION',
+  'PRAYER',
+  'COMMUNION',
+  'ANNOUNCEMENTS',
+  'OFFERING',
+  'BLESSING',
+  'BAPTISM',
+  'VIDEO',
+  'BREAK',
+  'OTHER',
+] as const;
+export type ServicePlanItemKind = (typeof SERVICE_PLAN_ITEM_KINDS)[number];
+
 export const NOTE_KINDS = ['GENERAL', 'PASTORAL'] as const;
 export type NoteKind = (typeof NOTE_KINDS)[number];
 

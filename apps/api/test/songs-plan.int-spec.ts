@@ -136,9 +136,47 @@ describe('Songs & Ablaufplan API (integration)', () => {
       method: 'PUT',
       url: `/api/v1/events/${eventId}/plan`,
       headers: { cookie: memberCookie },
-      payload: { items: [{ title: 'Hack', durationMinutes: 5 }] },
+      // kind mitschicken: belegt, dass der Rechte-Check vor der Validierung
+      // greift und nicht erst danach
+      payload: { items: [{ title: 'Hack', durationMinutes: 5, kind: 'SERMON' }] },
     });
     expect(response.statusCode).toBe(403);
+  });
+
+  it('Programmpunkte tragen eine Art; ohne Angabe ist es OTHER', async () => {
+    const response = await app.inject({
+      method: 'PUT',
+      url: `/api/v1/events/${eventId}/plan`,
+      headers: { cookie: leaderCookie },
+      payload: {
+        items: [
+          { title: 'Predigt', durationMinutes: 30, kind: 'SERMON' },
+          // ohne kind – bestehende Clients dürfen weiter so schicken
+          { title: 'Irgendwas', durationMinutes: 5 },
+        ],
+      },
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.json()[0].kind).toBe('SERMON');
+    expect(response.json()[1].kind).toBe('OTHER');
+
+    // und kommt genauso aus dem Termin-Detail zurück
+    const detail = await app.inject({
+      method: 'GET',
+      url: `/api/v1/events/${eventId}`,
+      headers: { cookie: leaderCookie },
+    });
+    expect(detail.json().planItems[0].kind).toBe('SERMON');
+  });
+
+  it('lehnt eine unbekannte Art ab (400)', async () => {
+    const response = await app.inject({
+      method: 'PUT',
+      url: `/api/v1/events/${eventId}/plan`,
+      headers: { cookie: leaderCookie },
+      payload: { items: [{ title: 'Quatsch', durationMinutes: 5, kind: 'TANZEINLAGE' }] },
+    });
+    expect(response.statusCode).toBe(400);
   });
 
   it('TEAMLEITER setzt Ablauf mit Lied, Arrangement und Verantwortlicher', async () => {

@@ -1,3 +1,4 @@
+import { SERVICE_PLAN_ITEM_KINDS, ServicePlanItemKind } from '@serveflow/shared';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../api/client';
@@ -18,6 +19,7 @@ export interface PlanArrangement {
 
 export interface PlanItem {
   id: string;
+  kind: ServicePlanItemKind;
   title: string;
   durationMinutes: number;
   notes: string | null;
@@ -25,6 +27,27 @@ export interface PlanItem {
   arrangement: PlanArrangement | null;
   responsiblePerson: { id: string; name: string } | null;
 }
+
+// Symbol und Vorschlagsdauer je Art. Emoji statt eigener SVGs – die Datei
+// arbeitet ohnehin schon mit ♪ und 🖨.
+const KIND_META: Record<ServicePlanItemKind, { icon: string; minutes: number }> = {
+  SONG: { icon: '♪', minutes: 5 },
+  SERMON: { icon: '📖', minutes: 30 },
+  MODERATION: { icon: '🎤', minutes: 3 },
+  PRAYER: { icon: '🙏', minutes: 5 },
+  COMMUNION: { icon: '🍞', minutes: 10 },
+  ANNOUNCEMENTS: { icon: '📢', minutes: 5 },
+  OFFERING: { icon: '🧺', minutes: 4 },
+  BLESSING: { icon: '✝', minutes: 3 },
+  BAPTISM: { icon: '💧', minutes: 15 },
+  VIDEO: { icon: '🎞', minutes: 4 },
+  BREAK: { icon: '⏸', minutes: 10 },
+  OTHER: { icon: '•', minutes: 5 },
+};
+
+// Die vier Arten, die in fast jedem Gottesdienst vorkommen – als
+// Schnellzugriff neben dem generischen „+ Programmpunkt".
+const QUICK_KINDS: ServicePlanItemKind[] = ['SONG', 'SERMON', 'MODERATION', 'PRAYER'];
 
 interface SongWithArrangements extends PlanSong {
   arrangements: PlanArrangement[];
@@ -39,6 +62,7 @@ interface PersonOption {
 // Ein Programmpunkt im Editor: gleiche Felder wie PlanItem, aber ohne id
 // (der Server ersetzt die Liste komplett) und mit editierbaren Referenzen.
 interface DraftItem {
+  kind: ServicePlanItemKind;
   title: string;
   durationMinutes: number;
   notes: string;
@@ -49,6 +73,7 @@ interface DraftItem {
 
 function toDraft(item: PlanItem): DraftItem {
   return {
+    kind: item.kind,
     title: item.title,
     durationMinutes: item.durationMinutes,
     notes: item.notes ?? '',
@@ -128,6 +153,36 @@ export default function ServicePlan({
     setDraft((current) => current.map((item, i) => (i === index ? { ...item, ...patch } : item)));
   }
 
+  // Art wechseln: Titel und Dauer nur vorbelegen, solange sie noch auf der
+  // Voreinstellung stehen – selbst Getipptes bleibt unangetastet. Ein
+  // verknüpftes Lied bleibt ebenfalls erhalten, sonst wäre ein versehentlicher
+  // Wechsel nicht rückgängig zu machen.
+  function changeKind(index: number, item: DraftItem, kind: ServicePlanItemKind) {
+    const patch: Partial<DraftItem> = { kind };
+    if (!item.title.trim() || item.title === t(`plan.kinds.${item.kind}`)) {
+      patch.title = t(`plan.kinds.${kind}`);
+    }
+    if (item.durationMinutes === KIND_META[item.kind].minutes) {
+      patch.durationMinutes = KIND_META[kind].minutes;
+    }
+    updateItem(index, patch);
+  }
+
+  function addItem(kind: ServicePlanItemKind) {
+    setDraft((current) => [
+      ...current,
+      {
+        kind,
+        title: kind === 'OTHER' ? '' : t(`plan.kinds.${kind}`),
+        durationMinutes: KIND_META[kind].minutes,
+        notes: '',
+        songId: null,
+        arrangementId: null,
+        responsiblePersonId: null,
+      },
+    ]);
+  }
+
   function move(index: number, delta: -1 | 1) {
     setDraft((current) => {
       const target = index + delta;
@@ -156,6 +211,7 @@ export default function ServicePlan({
     try {
       await api.put(`/events/${eventId}/plan`, {
         items: draft.map((item) => ({
+          kind: item.kind,
           title: item.title,
           durationMinutes: item.durationMinutes,
           notes: item.notes || undefined,
@@ -212,7 +268,12 @@ export default function ServicePlan({
                 {formatTime(startTimes[index])}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="font-medium">{item.title}</p>
+                <p className="font-medium">
+                  <span className="mr-1.5 text-muted" title={t(`plan.kinds.${item.kind}`)}>
+                    {KIND_META[item.kind].icon}
+                  </span>
+                  {item.title}
+                </p>
                 {item.song && (
                   <p className="text-muted">♪ {songLine(item.song, item.arrangement)}</p>
                 )}
@@ -243,6 +304,21 @@ export default function ServicePlan({
                   <span className="w-12 shrink-0 font-mono text-sm text-muted">
                     {formatTime(startTimes[index])}
                   </span>
+                  {/* Art zuerst: sie bestimmt, welche Felder überhaupt
+                      auftauchen, und macht sichtbar, dass ein Punkt kein
+                      Lied braucht. */}
+                  <select
+                    value={item.kind}
+                    onChange={(e) => changeKind(index, item, e.target.value as ServicePlanItemKind)}
+                    className="w-auto shrink-0 input text-sm"
+                    aria-label={t('plan.kind')}
+                  >
+                    {SERVICE_PLAN_ITEM_KINDS.map((kind) => (
+                      <option key={kind} value={kind}>
+                        {KIND_META[kind].icon} {t(`plan.kinds.${kind}`)}
+                      </option>
+                    ))}
+                  </select>
                   <input
                     value={item.title}
                     onChange={(e) => updateItem(index, { title: e.target.value })}
@@ -286,31 +362,37 @@ export default function ServicePlan({
                 </div>
 
                 <div className="mt-2 grid gap-2 sm:grid-cols-3">
-                  <select
-                    value={item.songId ?? ''}
-                    onChange={(e) => {
-                      if (e.target.value === '__new__') {
-                        setNewSongFor(index);
-                        setNewSongTitle('');
-                      } else {
-                        updateItem(index, {
-                          songId: e.target.value || null,
-                          arrangementId: null,
-                        });
-                      }
-                    }}
-                    className="input text-sm"
-                    aria-label={t('plan.song')}
-                  >
-                    <option value="">{t('plan.noSong')}</option>
-                    {songs.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        ♪ {s.title}
-                        {s.defaultKey ? ` (${s.defaultKey})` : ''}
-                      </option>
-                    ))}
-                    <option value="__new__">+ {t('songs.addSong')}…</option>
-                  </select>
+                  {/* Lied-Auswahl nur bei der Art „Lied" – ein bereits
+                      verknüpftes Lied bleibt aber sichtbar, damit Altdaten und
+                      Sonderfälle (Hintergrundlied zur Kollekte) die
+                      Verknüpfung nicht stillschweigend verlieren. */}
+                  {(item.kind === 'SONG' || item.songId) && (
+                    <select
+                      value={item.songId ?? ''}
+                      onChange={(e) => {
+                        if (e.target.value === '__new__') {
+                          setNewSongFor(index);
+                          setNewSongTitle('');
+                        } else {
+                          updateItem(index, {
+                            songId: e.target.value || null,
+                            arrangementId: null,
+                          });
+                        }
+                      }}
+                      className="input text-sm"
+                      aria-label={t('plan.song')}
+                    >
+                      <option value="">{t('plan.noSong')}</option>
+                      {songs.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          ♪ {s.title}
+                          {s.defaultKey ? ` (${s.defaultKey})` : ''}
+                        </option>
+                      ))}
+                      <option value="__new__">+ {t('songs.addSong')}…</option>
+                    </select>
+                  )}
 
                   {song && song.arrangements.length > 0 && (
                     <select
@@ -377,23 +459,13 @@ export default function ServicePlan({
             );
           })}
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() =>
-                setDraft((c) => [
-                  ...c,
-                  {
-                    title: '',
-                    durationMinutes: 5,
-                    notes: '',
-                    songId: null,
-                    arrangementId: null,
-                    responsiblePersonId: null,
-                  },
-                ])
-              }
-              className="text-sm link-gold"
-            >
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            {QUICK_KINDS.map((kind) => (
+              <button key={kind} onClick={() => addItem(kind)} className="text-sm link-gold">
+                + {KIND_META[kind].icon} {t(`plan.kinds.${kind}`)}
+              </button>
+            ))}
+            <button onClick={() => addItem('OTHER')} className="text-sm text-muted">
               + {t('plan.addItem')}
             </button>
             <button

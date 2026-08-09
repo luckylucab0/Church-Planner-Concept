@@ -71,7 +71,9 @@ nichts geändert.
 Als Nächstes (Reihenfolge = Priorisierung aus dem Vergleich):
 
 1. **Plan-Vorlagen & „Vorwoche kopieren"**: Ablauf + Besetzungs-Vorlagen je
-   Gottesdienst-Typ; Rotations-Vorlagen
+   Gottesdienst-Typ; Rotations-Vorlagen. Die Programmpunkt-Arten sind die
+   Grundlage dafür – eine Vorlage muss wissen, _was_ ein Punkt ist, nicht nur
+   wie er heißt.
 2. **Probe-/Zusatzzeiten** pro Termin (Probe, Stellprobe, mehrere
    Gottesdienstzeiten)
 3. **Songtexte & Akkorde**: ChordPro-Import, Anzeige mit Transposition in

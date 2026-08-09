@@ -139,10 +139,18 @@ direkt im Termin pflegen:
 ![Ablauf-Editor](screenshots/12-ablauf-editor.png)
 
 - **Programmpunkte** hinzufügen, umbenennen, löschen und mit den Pfeilen ↑/↓
-  umsortieren; Dauer in Minuten je Punkt.
-- Jedem Punkt kannst du ein **Lied** aus der Liederdatenbank zuordnen (inkl.
-  Arrangement), eine **verantwortliche Person** und eine **Notiz** (z. B.
-  „Übergang direkt ins Gebet").
+  umsortieren; Dauer in Minuten je Punkt. Für Lied, Predigt, Moderation und
+  Gebet gibt es Schaltflächen zum direkten Anlegen.
+- Jeder Punkt hat eine **Art**: Lied, Predigt, Moderation, Gebet, Abendmahl,
+  Abkündigungen, Kollekte, Segen, Taufe, Video, Pause oder Sonstiges. Sie
+  bestimmt das Symbol im Ablauf und schlägt eine passende Dauer vor – sie
+  schränkt aber **nie** ein, was du in Titel oder Notiz schreibst. Ein
+  Gottesdienst besteht eben nicht nur aus Liedern, und ein Punkt braucht auch
+  keines: Die **Lied-Auswahl erscheint erst bei der Art „Lied"**. Hast du einem
+  Punkt schon ein Lied zugeordnet, bleibt die Auswahl sichtbar, auch wenn du
+  die Art wechselst – so geht nichts verloren.
+- Jedem Punkt kannst du außerdem eine **verantwortliche Person** und eine
+  **Notiz** (z. B. „Übergang direkt ins Gebet") geben.
 - Fehlt ein Lied, legst du es mit **„+ Lied anlegen"** an, ohne den Editor zu
   verlassen.
 - **Speichern** ersetzt den kompletten Ablauf – alle sehen sofort den neuen

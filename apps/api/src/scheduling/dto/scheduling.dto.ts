@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
+import { SERVICE_PLAN_ITEM_KINDS, ServicePlanItemKind } from '@serveflow/shared';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -162,6 +163,14 @@ export class PlanItemDto {
   @IsString()
   @MaxLength(200)
   title: string;
+
+  @ApiPropertyOptional({
+    enum: SERVICE_PLAN_ITEM_KINDS,
+    description: 'Art des Programmpunkts; ohne Angabe OTHER',
+  })
+  @IsOptional()
+  @IsIn(SERVICE_PLAN_ITEM_KINDS)
+  kind?: ServicePlanItemKind;
 
   @ApiProperty({ example: 15 })
   @IsInt()
