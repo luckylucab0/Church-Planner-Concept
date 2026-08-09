@@ -1,10 +1,20 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api, ApiError } from '../../api/client';
+import { downloadJson } from '../../lib/download';
 import { useSession } from '../auth/SessionContext';
 
 type TeamRole = 'LEADER' | 'DEPUTY' | 'MEMBER' | 'INTERN';
+type NoteKind = 'GENERAL' | 'PASTORAL';
+
+interface PersonNote {
+  id: string;
+  kind: NoteKind;
+  content: string;
+  authorName: string | null;
+  createdAt: string;
+}
 
 // Die API liefert nur die Felder, die die eigene Rolle sehen darf –
 // unsichtbare Felder FEHLEN komplett (kein null), die UI rendert, was da ist.
@@ -43,8 +53,9 @@ const TEAM_ROLES: TeamRole[] = ['LEADER', 'DEPUTY', 'MEMBER', 'INTERN'];
 // API für die eigene Rolle liefert. Admins bearbeiten die Stammdaten;
 // Admins und Teamleiter (für ihre Teams) verwalten die Team-Zugehörigkeit.
 export default function PersonDetailPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { session } = useSession();
   const isAdmin = session?.globalRole === 'ADMIN';
 
@@ -52,6 +63,12 @@ export default function PersonDetailPage() {
   const [notFound, setNotFound] = useState(false);
   const [manageableTeams, setManageableTeams] = useState<TeamSummary[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
+
+  // Notizen: null = keine Leseberechtigung (die API antwortet mit 403,
+  // die Sektion bleibt dann komplett ausgeblendet)
+  const [notes, setNotes] = useState<PersonNote[] | null>(null);
+  const [noteKind, setNoteKind] = useState<NoteKind>('GENERAL');
+  const [noteContent, setNoteContent] = useState('');
 
   // Admin-Bearbeitung der Stammdaten
   const [editing, setEditing] = useState(false);
@@ -91,9 +108,62 @@ export default function PersonDetailPage() {
       .catch(console.error);
   }, [isAdmin, session]);
 
+  const loadNotes = useCallback(() => {
+    if (!id) return;
+    void api
+      .get<PersonNote[]>(`/people/${id}/notes`)
+      .then(setNotes)
+      .catch(() => setNotes(null));
+  }, [id]);
+
+  useEffect(loadNotes, [loadNotes]);
+
   function transientNotice(text: string) {
     setNotice(text);
     setTimeout(() => setNotice(null), 3000);
+  }
+
+  // --- Notizen ---------------------------------------------------
+
+  async function addNote(event: FormEvent) {
+    event.preventDefault();
+    if (!id || !noteContent.trim()) return;
+    await api.post(`/people/${id}/notes`, { kind: noteKind, content: noteContent.trim() });
+    setNoteContent('');
+    loadNotes();
+  }
+
+  async function deleteNote(noteId: string) {
+    if (!window.confirm(t('notes.deleteConfirm'))) return;
+    await api.delete(`/people/notes/${noteId}`);
+    loadNotes();
+  }
+
+  // --- DSGVO-Aktionen (nur Admin) --------------------------------
+
+  async function exportPersonData() {
+    if (!id || !person) return;
+    const data = await api.get<unknown>(`/people/${id}/export`);
+    downloadJson(data, `serveflow-${person.lastName}-${person.firstName}.json`.toLowerCase());
+  }
+
+  // Anonymisieren behält die Planhistorie (wer wann Dienst hatte),
+  // Löschen entfernt alles – deshalb zwei getrennte Aktionen.
+  async function anonymizePerson() {
+    if (!id || !person) return;
+    const name = `${person.firstName} ${person.lastName}`;
+    if (!window.confirm(t('gdpr.anonymizeConfirm', { name }))) return;
+    await api.post(`/people/${id}/anonymize`);
+    await reload();
+    transientNotice(t('gdpr.anonymized'));
+  }
+
+  async function deletePerson() {
+    if (!id || !person) return;
+    const name = `${person.firstName} ${person.lastName}`;
+    if (!window.confirm(t('gdpr.deleteConfirm', { name }))) return;
+    await api.delete(`/people/${id}`);
+    navigate('/people');
   }
 
   function startEdit() {
@@ -470,6 +540,99 @@ export default function PersonDetailPage() {
           </form>
         )}
       </section>
+
+      {/* Notizen – verschlüsselt gespeichert. GENERAL sehen Admins und
+          Teamleitende der Person, PASTORAL ausschließlich Admins. */}
+      {notes !== null && (
+        <section className="card p-4">
+          <h2 className="font-medium text-paper">{t('notes.title')}</h2>
+          <p className="mt-1 text-sm text-muted">{t('notes.hint')}</p>
+
+          {notes.length === 0 ? (
+            <p className="mt-2 text-sm text-faint">{t('notes.empty')}</p>
+          ) : (
+            <ul className="mt-2 divide-y divide-line">
+              {notes.map((note) => (
+                <li key={note.id} className="py-2">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-faint">
+                    <span
+                      className={`badge ${note.kind === 'PASTORAL' ? 'badge-danger' : 'badge-muted'}`}
+                    >
+                      {t(`notes.kind.${note.kind}`)}
+                    </span>
+                    <span>
+                      {new Date(note.createdAt).toLocaleDateString(i18n.language)}
+                      {note.authorName ? ` · ${note.authorName}` : ''}
+                    </span>
+                    <button
+                      onClick={() => void deleteNote(note.id)}
+                      className="ml-auto hover:text-paper"
+                    >
+                      {t('common.delete')}
+                    </button>
+                  </div>
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-paper">{note.content}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <form onSubmit={(e) => void addNote(e)} className="mt-3 space-y-2">
+            <textarea
+              value={noteContent}
+              onChange={(e) => setNoteContent(e.target.value)}
+              maxLength={5000}
+              rows={3}
+              placeholder={t('notes.placeholder')}
+              aria-label={t('notes.add')}
+              className="input"
+            />
+            <div className="flex flex-wrap items-center gap-2">
+              {/* PASTORAL nur anbieten, wenn die eigene Rolle es auch lesen
+                  darf – sonst schriebe man sich Notizen, die man nie sieht */}
+              {isAdmin && (
+                <select
+                  value={noteKind}
+                  onChange={(e) => setNoteKind(e.target.value as NoteKind)}
+                  aria-label={t('notes.kindLabel')}
+                  className="input w-auto text-sm"
+                >
+                  <option value="GENERAL">{t('notes.kind.GENERAL')}</option>
+                  <option value="PASTORAL">{t('notes.kind.PASTORAL')}</option>
+                </select>
+              )}
+              <button type="submit" disabled={!noteContent.trim()} className="btn-primary text-sm">
+                {t('notes.add')}
+              </button>
+            </div>
+          </form>
+        </section>
+      )}
+
+      {/* DSGVO-Aktionen: Export, Anonymisieren, Löschen. Die eigene Person
+          fehlt bewusst – wer sich selbst löscht, sperrt sich aus. */}
+      {isAdmin && person.id !== session?.personId && (
+        <section className="card p-4">
+          <h2 className="font-medium text-paper">{t('gdpr.title')}</h2>
+          <p className="mt-1 text-sm text-muted">{t('gdpr.hint')}</p>
+          <div className="mt-3 flex flex-wrap gap-3">
+            <button onClick={() => void exportPersonData()} className="btn-ghost text-sm">
+              {t('gdpr.export')}
+            </button>
+            {person.status !== 'ANONYMIZED' && (
+              <button onClick={() => void anonymizePerson()} className="btn-ghost text-sm">
+                {t('gdpr.anonymize')}
+              </button>
+            )}
+            <button
+              onClick={() => void deletePerson()}
+              className="btn-ghost text-sm text-danger hover:text-paper"
+            >
+              {t('gdpr.delete')}
+            </button>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

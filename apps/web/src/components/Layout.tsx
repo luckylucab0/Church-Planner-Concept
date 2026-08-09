@@ -13,6 +13,7 @@ import {
   IconMusic,
   IconPeople,
   IconProfile,
+  IconRepeat,
   IconTeams,
 } from './icons';
 import { useSession } from '../features/auth/SessionContext';
@@ -37,6 +38,13 @@ const NAV: NavItem[] = [
   { to: '/people', labelKey: 'nav.people', en: 'People', icon: IconPeople },
   { to: '/availability', labelKey: 'nav.availability', en: 'Availability', icon: IconAvailability },
   { to: '/profile', labelKey: 'nav.profile', en: 'Profile', icon: IconProfile },
+  {
+    to: '/admin/service-types',
+    labelKey: 'serviceTypes.title',
+    en: 'Service types',
+    icon: IconRepeat,
+    adminOnly: true,
+  },
   {
     to: '/admin/import',
     labelKey: 'import.title',

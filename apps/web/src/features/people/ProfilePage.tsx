@@ -3,10 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 import SecuritySection from './SecuritySection';
 import { api } from '../../api/client';
+import { downloadJson } from '../../lib/download';
+import { useSession } from '../auth/SessionContext';
 
 interface Profile {
   firstName: string;
   lastName: string;
+  locale?: string;
   email?: string | null;
   phone?: string | null;
   address?: string | null;
@@ -25,20 +28,35 @@ interface Privacy {
   photoVisibleToMembers: boolean;
 }
 
+interface IcalStatus {
+  exists: boolean;
+  rotatedAt: string | null;
+}
+
 // Eigenes Profil: Kontaktdaten pflegen, Sichtbarkeit steuern (wer im
 // Team sieht was), eigene Daten als JSON exportieren (DSGVO).
 export default function ProfilePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { session, setLocale } = useSession();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [privacy, setPrivacy] = useState<Privacy | null>(null);
   const [saved, setSaved] = useState(false);
   const [icalUrl, setIcalUrl] = useState<string | null>(null);
+  const [icalStatus, setIcalStatus] = useState<IcalStatus | null>(null);
   const { hash } = useLocation();
 
   useEffect(() => {
     void api.get<Profile>('/me').then(setProfile);
     void api.get<Privacy>('/me/privacy').then(setPrivacy);
+    void api.get<IcalStatus>('/me/ical-token').then(setIcalStatus).catch(console.error);
   }, []);
+
+  // Sprache wirkt sofort auf die Oberfläche und dauerhaft auf die
+  // E-Mails (Person.locale) – der Session-State hält beides synchron.
+  async function changeLocale(locale: string) {
+    await api.patch('/me', { locale });
+    setLocale(locale);
+  }
 
   // Vom Avatar-Menü aus („Passwort ändern") direkt zur Sicherheits-
   // Sektion scrollen – erst, wenn die Seite fertig gerendert ist.
@@ -67,14 +85,7 @@ export default function ProfilePage() {
   }
 
   async function downloadExport() {
-    const data = await api.get<unknown>('/me/export');
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = 'serveflow-datenexport.json';
-    anchor.click();
-    URL.revokeObjectURL(url);
+    downloadJson(await api.get<unknown>('/me/export'), 'serveflow-datenexport.json');
   }
 
   if (!profile || !privacy) return <p className="text-muted">{t('common.loading')}</p>;
@@ -149,26 +160,56 @@ export default function ProfilePage() {
       <SecuritySection />
 
       <section className="card p-4">
+        <h2 className="font-semibold text-paper">{t('profile.languageTitle')}</h2>
+        <p className="mb-2 text-sm text-muted">{t('profile.languageHint')}</p>
+        <select
+          value={session?.locale ?? 'de'}
+          onChange={(e) => void changeLocale(e.target.value)}
+          aria-label={t('profile.languageTitle')}
+          className="input max-w-xs text-sm"
+        >
+          <option value="de">Deutsch</option>
+          <option value="en">English</option>
+        </select>
+      </section>
+
+      <section className="card p-4">
         <h2 className="font-semibold text-paper">{t('profile.icalTitle')}</h2>
         <p className="mb-2 text-sm text-muted">{t('profile.icalHint')}</p>
         {icalUrl ? (
-          <input
-            readOnly
-            value={icalUrl}
-            onFocus={(e) => e.target.select()}
-            className="input text-sm"
-          />
+          <>
+            <input
+              readOnly
+              value={icalUrl}
+              onFocus={(e) => e.target.select()}
+              className="input text-sm"
+            />
+            <p className="mt-1 text-xs text-faint">{t('profile.icalCopyHint')}</p>
+          </>
         ) : (
-          <button
-            onClick={() =>
-              void api
-                .post<{ url: string }>('/me/ical-token')
-                .then((response) => setIcalUrl(response.url))
-            }
-            className="btn-ghost text-sm"
-          >
-            {t('profile.icalGenerate')}
-          </button>
+          <>
+            {/* Ohne Status wüsste niemand, ob schon ein Feed läuft – die
+                URL selbst lässt sich nachträglich nicht mehr anzeigen. */}
+            {icalStatus?.exists && (
+              <p className="mb-2 text-sm text-secondary">
+                {t('profile.icalExists', {
+                  date: icalStatus.rotatedAt
+                    ? new Date(icalStatus.rotatedAt).toLocaleDateString(i18n.language)
+                    : '—',
+                })}
+              </p>
+            )}
+            <button
+              onClick={() =>
+                void api
+                  .post<{ url: string }>('/me/ical-token')
+                  .then((response) => setIcalUrl(response.url))
+              }
+              className="btn-ghost text-sm"
+            >
+              {icalStatus?.exists ? t('profile.icalRotate') : t('profile.icalGenerate')}
+            </button>
+          </>
         )}
       </section>
 

@@ -1,8 +1,8 @@
 # Feature-Vergleich: ServeFlow vs. Elvanto und Planning Center
 
-Stand: Juli 2026. Verglichen werden Elvanto (heute Teil von Tithe.ly ChMS) und
-Planning Center (Services + Produkt-Suite) mit dem aktuellen Stand von
-ServeFlow. Ziel: Lücken sichtbar machen und die [Roadmap](roadmap.md)
+Stand: August 2026. Verglichen werden Elvanto (heute Teil von Tithe.ly
+ChMS) und Planning Center (Services + Produkt-Suite) mit dem aktuellen Stand
+von ServeFlow. Ziel: Lücken sichtbar machen und die [Roadmap](roadmap.md)
 priorisieren – nicht jede Lücke ist ein Ziel (siehe „Bewusst außerhalb des
 Scopes").
 
@@ -21,20 +21,22 @@ Scopes").
 | Erinnerungen, iCal-Abo                              |    ✅     |   ✅    |       ✅        |
 | Ablaufplan mit Uhrzeiten, Liedern, CCLI, Druck      |    ✅     |   ✅    |       ✅        |
 | Liederdatenbank mit Arrangements                    |    ✅     |   ✅    |       ✅        |
+| Vertretung suchen (Swap & Replace) ohne Login       |    ✅     |   ✅    |       ✅        |
+| Selbst-Eintragung in freigegebene Dienste           |    ✅     |   ✅    |       ✅        |
+| Termine, Typen und Teams vollständig im Web pflegen |    ✅     |   ✅    |       ✅        |
+| Verschlüsselte Notizen (allgemein/seelsorgerlich)   |    ✅     |   ⚠️    |       ⚠️        |
 | Offene, dokumentierte REST-API                      |    ✅     |   ✅    |       ✅        |
-| Zweisprachig Deutsch/Englisch                       |    ✅     |   ⚠️    |       ❌        |
+| Zweisprachig Deutsch/Englisch, pro Person wählbar   |    ✅     |   ⚠️    |       ❌        |
 
 ## Lücken: Einteilung/Scheduling
 
-| Fehlende Funktion                            | Was die anderen machen                                                                                                                     | Einordnung für ServeFlow                                                     |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| **Swap & Replace**                           | Eingeteilte tauschen ihren Dienst selbst mit anderen oder fragen selbst eine Vertretung an; die Teamleitung wird nur informiert            | Größte Workflow-Lücke; baut komplett auf Assignments + Vorschlags-Engine auf |
-| **Auto-Einteilung**                          | PCO besetzt alle offenen Positionen per Klick (nach „zuletzt dran", Präferenzen, Blockouts); Absagen können automatisch neu besetzt werden | Scoring existiert bereits – fehlt nur „alle offenen Slots besetzen"-Aktion   |
-| **Selbst-Eintragung (Signup Sheets)**        | Mitglieder tragen sich selbst in offene Positionen ein                                                                                     | Gut geeignet für Kaffee/Aufbau-Dienste                                       |
-| **Plan-/Team-Vorlagen, „Vorwoche kopieren"** | Vorlagen mit Ablauf + Besetzung; Rotations-Templates                                                                                       | ServeFlow hat nur Positions-Templates pro Gottesdienst-Typ                   |
-| **Mehrere Zeiten pro Termin**                | Probe, Stellprobe, 1./2. Gottesdienst an einem Plan                                                                                        | Termine haben aktuell genau eine Start-/Endzeit                              |
-| **Matrix-Ansicht**                           | Viele Termine nebeneinander planen, Einladungen gesammelt versenden                                                                        | Relevant ab ~4 Diensten/Monat                                                |
-| **Präferenzen/Haushalte**                    | „Max. n× pro Monat", bevorzugte Zeit, Familien gemeinsam einteilen                                                                         | Braucht Familien-/Haushaltsmodell (s. u.)                                    |
+| Fehlende Funktion                            | Was die anderen machen                                                                                                                     | Einordnung für ServeFlow                                                               |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| **Auto-Einteilung**                          | PCO besetzt alle offenen Positionen per Klick (nach „zuletzt dran", Präferenzen, Blockouts); Absagen können automatisch neu besetzt werden | Scoring existiert bereits – fehlt nur „alle offenen Slots besetzen"-Aktion             |
+| **Plan-/Team-Vorlagen, „Vorwoche kopieren"** | Vorlagen mit Ablauf + Besetzung; Rotations-Templates                                                                                       | ServeFlow hat nur Positions-Templates pro Gottesdienst-Typ (im Admin-Bereich pflegbar) |
+| **Mehrere Zeiten pro Termin**                | Probe, Stellprobe, 1./2. Gottesdienst an einem Plan                                                                                        | Termine haben aktuell genau eine Start-/Endzeit                                        |
+| **Matrix-Ansicht**                           | Viele Termine nebeneinander planen, Einladungen gesammelt versenden                                                                        | Relevant ab ~4 Diensten/Monat                                                          |
+| **Präferenzen/Haushalte**                    | „Max. n× pro Monat", bevorzugte Zeit, Familien gemeinsam einteilen                                                                         | Braucht Familien-/Haushaltsmodell (s. u.)                                              |
 
 ## Lücken: Worship-Inhalte
 
@@ -78,14 +80,16 @@ Scopes").
 
 ## Priorisierungs-Empfehlung (Nutzen pro Aufwand)
 
-1. **Swap & Replace + Selbst-Eintragung** – schließt die größte
-   Workflow-Lücke, baut vollständig auf Vorhandenem auf
-2. **Plan-Vorlagen / „Vorwoche kopieren" + Probe-Zeiten**
-3. **Songtexte/Akkorde mit Transposition (ChordPro) + Lied-Historie**
-4. **Datei-Storage** (Noten, Anhänge, Personenfotos) – Grundlage für
+Erledigt: **Swap & Replace + Selbst-Eintragung** (Phase 2) sowie die
+Web-Oberflächen für Termine, Gottesdienst-Typen, Teams/Positionen, Notizen
+und Import – die APIs dafür gab es schon, es fehlten nur die Ansichten.
+
+1. **Plan-Vorlagen / „Vorwoche kopieren" + Probe-Zeiten**
+2. **Songtexte/Akkorde mit Transposition (ChordPro) + Lied-Historie**
+3. **Datei-Storage** (Noten, Anhänge, Personenfotos) – Grundlage für
    Medien-Features und Check-in-Etiketten
-5. **Auto-Einteilung**, später **Matrix-Ansicht** und **Live-Ansicht**
-6. Danach die großen Module: Check-in, Gruppen, Event-Anmeldung,
+4. **Auto-Einteilung**, später **Matrix-Ansicht** und **Live-Ansicht**
+5. Danach die großen Module: Check-in, Gruppen, Event-Anmeldung,
    Team-Kommunikation
 
 Quellen (abgerufen Juli 2026): [Planning Center Services](https://www.planningcenter.com/services),

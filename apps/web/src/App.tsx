@@ -18,6 +18,7 @@ import OpenSignups from './features/plans/OpenSignups';
 import PlansPage from './features/plans/PlansPage';
 import ReplacementPage from './features/respond/ReplacementPage';
 import RespondPage from './features/respond/RespondPage';
+import ServiceTypesPage from './features/scheduling/ServiceTypesPage';
 import SongsPage from './features/songs/SongsPage';
 import TeamsPage from './features/teams/TeamsPage';
 
@@ -146,6 +147,14 @@ export default function App() {
           element={
             <RequireAuth>
               <ProfilePage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin/service-types"
+          element={
+            <RequireAuth>
+              <ServiceTypesPage />
             </RequireAuth>
           }
         />
