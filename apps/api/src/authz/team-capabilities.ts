@@ -11,6 +11,12 @@ import { TeamCapability, TeamRole } from '@prisma/client';
 // DEPUTY = "Leiter ohne Personalhoheit": plant und teilt ein, verwaltet
 // aber keine Mitgliedschaften/Rollen. MEMBER/INTERN starten ohne
 // Verwaltungsrechte; Teams schalten gezielt frei.
+//
+// MANAGE_EVENTS ist die eine Ausnahme von der DEPUTY-Regel und startet für
+// ALLE konfigurierbaren Rollen aus: einen Gottesdienst anzulegen oder
+// abzusagen ist ein gemeindeweiter Akt, kein teaminterner, und das Recht
+// wirkt über hasCapabilityInAnyTeam auf alle Termine. Bestehende
+// Installationen ändern sich durch das Update damit nicht.
 export const TEAM_CAPABILITIES: TeamCapability[] = [
   'ASSIGN',
   'OPEN_SIGNUP',
@@ -22,6 +28,7 @@ export const TEAM_CAPABILITIES: TeamCapability[] = [
   'VIEW_DRAFTS',
   'EDIT_PLAN',
   'MANAGE_SONGS',
+  'MANAGE_EVENTS',
 ];
 
 export type ConfigurableTeamRole = Exclude<TeamRole, 'LEADER'>;
@@ -40,6 +47,7 @@ export const DEFAULT_MATRIX: Record<ConfigurableTeamRole, Record<TeamCapability,
     VIEW_DRAFTS: true,
     EDIT_PLAN: true,
     MANAGE_SONGS: true,
+    MANAGE_EVENTS: false,
   },
   MEMBER: {
     ASSIGN: false,
@@ -54,6 +62,7 @@ export const DEFAULT_MATRIX: Record<ConfigurableTeamRole, Record<TeamCapability,
     VIEW_DRAFTS: false,
     EDIT_PLAN: false,
     MANAGE_SONGS: false,
+    MANAGE_EVENTS: false,
   },
   INTERN: {
     ASSIGN: false,
@@ -66,6 +75,7 @@ export const DEFAULT_MATRIX: Record<ConfigurableTeamRole, Record<TeamCapability,
     VIEW_DRAFTS: false,
     EDIT_PLAN: false,
     MANAGE_SONGS: false,
+    MANAGE_EVENTS: false,
   },
 };
 

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -19,10 +20,25 @@ export class EventsService {
     private readonly audit: AuditService,
   ) {}
 
-  // Mitglieder sehen nur veröffentlichte Termine; wer plant (Capability
-  // VIEW_DRAFTS in irgendeinem Team), sieht auch Entwürfe (PLANNED).
+  // Termine anlegen/ändern darf, wer in irgendeinem Team MANAGE_EVENTS hat:
+  // ein Gottesdienst gehört keinem einzelnen Team, deshalb dieselbe
+  // teamübergreifende Prüfung wie bei EDIT_PLAN und MANAGE_SONGS.
+  // Nicht delegierbar bleiben Serien-Konfiguration und das harte Löschen –
+  // die hängen weiter am AdminGuard im Controller.
+  private async ensureCanManageEvents(user: AuthUser): Promise<void> {
+    if (await this.permissions.hasCapabilityInAnyTeam(user, 'MANAGE_EVENTS')) return;
+    throw new ForbiddenException('Dir fehlt das Recht, Termine zu verwalten');
+  }
+
+  // Mitglieder sehen nur veröffentlichte Termine; wer plant, sieht auch
+  // Entwürfe (PLANNED). MANAGE_EVENTS impliziert das: ein neu angelegter
+  // Termin entsteht als Entwurf, ohne diese Zeile wäre er für die anlegende
+  // Person sofort unsichtbar.
   private async visibleStatuses(user: AuthUser): Promise<EventStatus[]> {
-    if (await this.permissions.hasCapabilityInAnyTeam(user, 'VIEW_DRAFTS')) {
+    const canSeeDrafts =
+      (await this.permissions.hasCapabilityInAnyTeam(user, 'VIEW_DRAFTS')) ||
+      (await this.permissions.hasCapabilityInAnyTeam(user, 'MANAGE_EVENTS'));
+    if (canSeeDrafts) {
       return ['PLANNED', 'PUBLISHED', 'CANCELLED'];
     }
     return ['PUBLISHED'];
@@ -127,6 +143,8 @@ export class EventsService {
       status: event.status,
       // canEditPlan steuert nur die UI – setPlan() prüft serverseitig selbst
       canEditPlan: await this.permissions.hasCapabilityInAnyTeam(user, 'EDIT_PLAN'),
+      // dito: bearbeiten/veröffentlichen/absagen und Slots pflegen
+      canManageEvent: await this.permissions.hasCapabilityInAnyTeam(user, 'MANAGE_EVENTS'),
       planItems: event.planItems.map(mapPlanItem),
       slots: event.slots.map((slot) => {
         const canAssign = ledTeamIds.includes(slot.position.team.id);
@@ -164,6 +182,10 @@ export class EventsService {
   }
 
   async create(user: AuthUser, dto: CreateEventDto) {
+    await this.ensureCanManageEvents(user);
+    const startsAt = new Date(dto.startsAt);
+    const endsAt = new Date(dto.endsAt);
+    assertRange(startsAt, endsAt);
     // Slots optional aus dem Template des Typs übernehmen
     const template = dto.serviceTypeId
       ? await this.prisma.serviceTypePosition.findMany({
@@ -173,8 +195,8 @@ export class EventsService {
     const event = await this.prisma.event.create({
       data: {
         title: dto.title,
-        startsAt: new Date(dto.startsAt),
-        endsAt: new Date(dto.endsAt),
+        startsAt,
+        endsAt,
         location: dto.location,
         serviceTypeId: dto.serviceTypeId,
         slots: {
@@ -195,7 +217,15 @@ export class EventsService {
   }
 
   async update(user: AuthUser, eventId: string, dto: UpdateEventDto) {
-    await this.ensureExists(eventId);
+    // Rechte vor Existenz: sonst verrät ein 404 vs. 403, welche IDs es gibt
+    await this.ensureCanManageEvents(user);
+    const current = await this.ensureExists(eventId);
+    // Teil-Update gegen den gespeicherten Stand prüfen – ein PATCH, das nur
+    // startsAt schickt, darf den Termin nicht rückwärts laufen lassen
+    assertRange(
+      dto.startsAt ? new Date(dto.startsAt) : current.startsAt,
+      dto.endsAt ? new Date(dto.endsAt) : current.endsAt,
+    );
     const event = await this.prisma.event.update({
       where: { id: eventId },
       data: {
@@ -228,10 +258,27 @@ export class EventsService {
   // Slots ersetzen; bestehende Slots (inkl. Einteilungen) für Positionen,
   // die bleiben, werden nur im requiredCount angepasst statt neu erzeugt –
   // sonst gingen Zusagen beim Umplanen verloren.
-  async setSlots(eventId: string, dto: SetSlotsDto) {
+  async setSlots(user: AuthUser, eventId: string, dto: SetSlotsDto) {
+    await this.ensureCanManageEvents(user);
     await this.ensureExists(eventId);
     const existing = await this.prisma.eventPositionSlot.findMany({ where: { eventId } });
     const wantedByPosition = new Map(dto.items.map((item) => [item.positionId, item]));
+
+    // Ein entfernter Slot nimmt seine Einteilungen per Cascade mit. Das ist
+    // gewollt, darf aber nicht unbemerkt passieren: ohne force wird es
+    // abgelehnt, damit die UI erst nachfragen kann. 409 statt 403, sonst
+    // wäre es von einer fehlenden Berechtigung nicht zu unterscheiden.
+    const dropped = existing.filter((slot) => !wantedByPosition.has(slot.positionId));
+    if (!dto.force && dropped.length > 0) {
+      const affected = await this.prisma.assignment.count({
+        where: { slotId: { in: dropped.map((slot) => slot.id) }, status: { not: 'DECLINED' } },
+      });
+      if (affected > 0) {
+        throw new ConflictException(
+          `Für eine zu entfernende Position sind noch ${affected} Personen eingeteilt`,
+        );
+      }
+    }
 
     const operations: Prisma.PrismaPromise<unknown>[] = [];
     for (const slot of existing) {
@@ -256,6 +303,13 @@ export class EventsService {
       );
     }
     await this.prisma.$transaction(operations);
+    this.audit.log({
+      actorId: user.personId,
+      action: 'UPDATE',
+      entityType: 'Event',
+      entityId: eventId,
+      changedFields: ['slots'],
+    });
     return this.prisma.eventPositionSlot.findMany({
       where: { eventId },
       include: { position: true },
@@ -293,6 +347,7 @@ export class EventsService {
         data: dto.items.map((item, index) => ({
           eventId,
           sortOrder: index,
+          kind: item.kind ?? 'OTHER',
           title: item.title,
           durationMinutes: item.durationMinutes,
           songId: item.songId ?? null,
@@ -318,12 +373,21 @@ export class EventsService {
     return items.map(mapPlanItem);
   }
 
-  private async ensureExists(eventId: string): Promise<void> {
-    const exists = await this.prisma.event.findUnique({
+  private async ensureExists(eventId: string) {
+    const event = await this.prisma.event.findUnique({
       where: { id: eventId },
-      select: { id: true },
+      select: { id: true, startsAt: true, endsAt: true },
     });
-    if (!exists) throw new NotFoundException();
+    if (!event) throw new NotFoundException();
+    return event;
+  }
+}
+
+// Ohne diese Prüfung ließe sich ein Termin anlegen, der vor seinem Beginn
+// endet – die Ablauf-Uhrzeiten und der iCal-Export rechnen dann Unsinn.
+function assertRange(startsAt: Date, endsAt: Date): void {
+  if (endsAt <= startsAt) {
+    throw new BadRequestException('Das Ende muss nach dem Beginn liegen');
   }
 }
 
@@ -340,6 +404,7 @@ type PlanItemWithRelations = Prisma.ServicePlanItemGetPayload<{ include: typeof 
 function mapPlanItem(item: PlanItemWithRelations) {
   return {
     id: item.id,
+    kind: item.kind,
     title: item.title,
     durationMinutes: item.durationMinutes,
     notes: item.notes,

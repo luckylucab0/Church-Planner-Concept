@@ -267,6 +267,8 @@ export const de = {
     requiredCount: 'Anzahl',
     removeHint:
       'Entfernte Positionen verlieren ihre Einteilungen. Positionen, die bleiben, behalten sie.',
+    removeConfirm:
+      'Für entfernte Positionen sind noch {{count}} Personen eingeteilt. Ihre Einteilungen gehen dabei verloren. Trotzdem speichern?',
   },
   serviceTypes: {
     title: 'Gottesdienst-Typen',
@@ -328,6 +330,21 @@ export const de = {
     empty: 'Noch kein Ablauf geplant.',
     item: 'Programmpunkt',
     itemTitle: 'Titel',
+    kind: 'Art',
+    kinds: {
+      SONG: 'Lied',
+      SERMON: 'Predigt',
+      MODERATION: 'Moderation',
+      PRAYER: 'Gebet',
+      COMMUNION: 'Abendmahl',
+      ANNOUNCEMENTS: 'Abkündigungen',
+      OFFERING: 'Kollekte',
+      BLESSING: 'Segen',
+      BAPTISM: 'Taufe',
+      VIDEO: 'Video',
+      BREAK: 'Pause',
+      OTHER: 'Sonstiges',
+    },
     duration: 'Dauer',
     minutesShort: 'Min.',
     time: 'Uhrzeit',
@@ -417,7 +434,7 @@ export const de = {
     },
     permissionsTitle: 'Rechte der Rollen',
     permissionsHint:
-      'Lege fest, was Stellvertretung, Mitarbeit und Praktikum in diesem Team dürfen. Die Leitung hat immer alle Rechte.',
+      'Lege fest, was Stellvertretung, Mitarbeit und Praktikum in diesem Team dürfen. Die Leitung hat immer alle Rechte. Ablaufplan, Liederdatenbank und Termine gehören der ganzen Gemeinde – diese drei Rechte wirken deshalb über das Team hinaus.',
     permissionsSaved: 'Rechte gespeichert.',
     capabilities: {
       ASSIGN: 'Einteilen & Vorschläge',
@@ -430,6 +447,7 @@ export const de = {
       VIEW_DRAFTS: 'Termin-Entwürfe sehen',
       EDIT_PLAN: 'Ablaufplan bearbeiten',
       MANAGE_SONGS: 'Liederdatenbank pflegen',
+      MANAGE_EVENTS: 'Termine anlegen & verwalten',
     },
   },
   profile: {

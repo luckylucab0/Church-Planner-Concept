@@ -13,22 +13,13 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { TeamCapability, TeamRole } from '@prisma/client';
+// Eine Quelle für die Capability-Liste: sonst kann eine neue Capability in
+// der Matrix auftauchen, die das DTO als ungültig zurückweist.
+import { TEAM_CAPABILITIES } from '../../authz/team-capabilities';
 
 const TEAM_ROLES: TeamRole[] = ['LEADER', 'DEPUTY', 'MEMBER', 'INTERN'];
 // LEADER ist in der Matrix nicht konfigurierbar (implizit alles)
 const CONFIGURABLE_TEAM_ROLES: TeamRole[] = ['DEPUTY', 'MEMBER', 'INTERN'];
-const TEAM_CAPABILITY_VALUES: TeamCapability[] = [
-  'ASSIGN',
-  'OPEN_SIGNUP',
-  'SELF_SIGNUP',
-  'MANAGE_MEMBERS',
-  'MANAGE_POSITIONS',
-  'NOTES',
-  'VIEW_CONTACTS',
-  'VIEW_DRAFTS',
-  'EDIT_PLAN',
-  'MANAGE_SONGS',
-];
 
 export class CreateTeamDto {
   @ApiProperty({ example: 'Worship' })
@@ -69,8 +60,8 @@ export class PermissionEntryDto {
   @IsIn(CONFIGURABLE_TEAM_ROLES)
   role: 'DEPUTY' | 'MEMBER' | 'INTERN';
 
-  @ApiProperty({ enum: TEAM_CAPABILITY_VALUES })
-  @IsIn(TEAM_CAPABILITY_VALUES)
+  @ApiProperty({ enum: TEAM_CAPABILITIES })
+  @IsIn(TEAM_CAPABILITIES)
   capability: TeamCapability;
 
   @ApiProperty()

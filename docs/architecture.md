@@ -23,8 +23,43 @@
 
 ## Berechtigungsmodell
 
-Rollen: **Admin** (global, `UserAccount.globalRole`), **Teamleiter**
-(pro Team, `TeamMembership.isLeader`), **Mitglied** (Default).
+Zwei Ebenen:
+
+1. **Globale Rolle** auf dem Login-Konto: `UserAccount.globalRole` ist `ADMIN`
+   oder `MEMBER`. Sie steckt in der Redis-Session und wird vom `AdminGuard`
+   über `@RequireAdmin()` durchgesetzt.
+2. **Teamrolle pro Mitgliedschaft**: `TeamMembership.role` ist `LEADER`,
+   `DEPUTY`, `MEMBER` oder `INTERN` – bewusst keine globale Rolle, damit ein
+   kompromittiertes Leiter-Konto nie über das eigene Team hinausreicht. Was
+   die Rollen dürfen, steht in der **Rechtematrix** – der Tabelle
+   `TeamRolePermission` mit `teamId`, `role`, `capability` und `allowed`.
+
+Die Matrix arbeitet mit **Lazy Defaults**: eine fehlende Zeile bedeutet nicht
+„verboten", sondern „Code-Default" aus
+`apps/api/src/authz/team-capabilities.ts`. Neue Capabilities brauchen deshalb
+keine Datenmigration. `LEADER` wird nie gespeichert – die Rolle hat implizit
+alle Team-Rechte, damit sich ein Team nicht selbst aussperren kann. Wer die
+Matrix bearbeiten darf (Admin oder LEADER), kann sich daher auch keine Rechte
+selbst zuschanzen.
+
+**Teamübergreifende Capabilities.** Ablaufplan (`EDIT_PLAN`), Liederdatenbank
+(`MANAGE_SONGS`), Termin-Entwürfe (`VIEW_DRAFTS`) und Termine
+(`MANAGE_EVENTS`) gehören nicht einem Team, sondern der Gemeinde. Sie werden
+mit `hasCapabilityInAnyTeam` aufgelöst: wer das Recht in _einem_ Team hat, übt
+es überall aus. Damit lässt sich z. B. ein Team „Moderation" anlegen, dessen
+Mitglieder Gottesdienste planen, ohne Admin-Rechte auf Personendaten zu
+bekommen. Voreingestellt sind diese Rechte für `MANAGE_EVENTS` bei allen
+konfigurierbaren Rollen **aus**.
+
+**Was Admin bleibt.** Delegierbar ist das Planen einzelner Termine. Nicht
+delegierbar sind Operationen, die strukturell oder unumkehrbar sind:
+Personenverwaltung und Import, Teams anlegen/löschen, die Rolle `LEADER`
+vergeben, die Gottesdienst-Typen samt RRULE, Positions-Vorlage und
+Serien-Generierung (materialisiert bis zu 366 Tage auf einmal) sowie
+`DELETE /events/:id`, das Slots, Einteilungen und Ablaufplan per Cascade
+mitnimmt. Für alle anderen ist **Absagen** der vorgesehene Weg. Das Entfernen
+einer besetzten Position antwortet mit `409`, bis der Aufrufer sie mit
+`force` ausdrücklich bestätigt.
 
 Die globale Rolle vergeben Admins über `PATCH /people/:id/role`. Zwei Regeln
 sichern das ab: Die **eigene** Rolle lässt sich nicht ändern – dadurch bleibt
@@ -40,8 +75,13 @@ Durchsetzung ausschließlich serverseitig:
    Beziehung (gemeinsames Team? Teamleiter? PrivacySettings der Zielperson?).
    Unsichtbare Felder fehlen in der Response komplett (kein `null`).
 
-Details und Matrix: siehe [security.md](security.md) und die Policy-Tests in
-`apps/api/src/authz/`.
+Die `can*`-Felder in den API-Antworten (`canManageEvent`, `canEditPlan`,
+`canAssign`, …) und `canManageEvents` in `GET /auth/session` steuern nur, was
+die Oberfläche anbietet; jeder Endpunkt prüft unabhängig davon selbst.
+
+Details: [security.md](security.md), die Default-Matrix in
+`apps/api/src/authz/team-capabilities.ts` und die Policy-Tests in
+`apps/api/src/authz/` sowie `apps/api/test/team-roles.int-spec.ts`.
 
 ## Hintergrundjobs
 

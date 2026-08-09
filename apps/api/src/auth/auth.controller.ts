@@ -26,6 +26,7 @@ import {
   TotpDisableDto,
   TotpVerifyDto,
 } from './dto/auth.dto';
+import { PermissionsService } from '../authz/permissions.service';
 import { env } from '../common/config/env';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -36,6 +37,7 @@ export class AuthController {
     private readonly auth: AuthService,
     private readonly invites: InviteService,
     private readonly prisma: PrismaService,
+    private readonly permissions: PermissionsService,
   ) {}
 
   private setSessionCookie(reply: FastifyReply, token: string): void {
@@ -219,6 +221,11 @@ export class AuthController {
       lastName: person.lastName,
       locale: person.locale,
       ledTeamIds: leaderships.map((l) => l.teamId),
+      // Steuert nur Navigation und Buttons; jeder Endpoint prüft selbst.
+      // Bewusst hier statt in der Redis-Session berechnet: ein frisch
+      // gesetztes Häkchen greift so beim nächsten Laden, nicht erst beim
+      // nächsten Login.
+      canManageEvents: await this.permissions.hasCapabilityInAnyTeam(user, 'MANAGE_EVENTS'),
     };
   }
 }

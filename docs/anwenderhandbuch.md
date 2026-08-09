@@ -139,10 +139,18 @@ direkt im Termin pflegen:
 ![Ablauf-Editor](screenshots/12-ablauf-editor.png)
 
 - **Programmpunkte** hinzufügen, umbenennen, löschen und mit den Pfeilen ↑/↓
-  umsortieren; Dauer in Minuten je Punkt.
-- Jedem Punkt kannst du ein **Lied** aus der Liederdatenbank zuordnen (inkl.
-  Arrangement), eine **verantwortliche Person** und eine **Notiz** (z. B.
-  „Übergang direkt ins Gebet").
+  umsortieren; Dauer in Minuten je Punkt. Für Lied, Predigt, Moderation und
+  Gebet gibt es Schaltflächen zum direkten Anlegen.
+- Jeder Punkt hat eine **Art**: Lied, Predigt, Moderation, Gebet, Abendmahl,
+  Abkündigungen, Kollekte, Segen, Taufe, Video, Pause oder Sonstiges. Sie
+  bestimmt das Symbol im Ablauf und schlägt eine passende Dauer vor – sie
+  schränkt aber **nie** ein, was du in Titel oder Notiz schreibst. Ein
+  Gottesdienst besteht eben nicht nur aus Liedern, und ein Punkt braucht auch
+  keines: Die **Lied-Auswahl erscheint erst bei der Art „Lied"**. Hast du einem
+  Punkt schon ein Lied zugeordnet, bleibt die Auswahl sichtbar, auch wenn du
+  die Art wechselst – so geht nichts verloren.
+- Jedem Punkt kannst du außerdem eine **verantwortliche Person** und eine
+  **Notiz** (z. B. „Übergang direkt ins Gebet") geben.
 - Fehlt ein Lied, legst du es mit **„+ Lied anlegen"** an, ohne den Editor zu
   verlassen.
 - **Speichern** ersetzt den kompletten Ablauf – alle sehen sofort den neuen
@@ -362,6 +370,39 @@ Die **Leitung** hat immer alle Rechte im Team – sie ist bewusst nicht
 konfigurierbar, damit sich ein Team nicht selbst aussperren kann. Neue Teams
 anlegen sowie die Rolle **Leitung** vergeben oder entziehen kann nur ein
 Admin.
+
+Drei Rechte wirken **über das Team hinaus**, weil die Sache selbst der ganzen
+Gemeinde gehört und nicht einem Team: **Ablaufplan bearbeiten**,
+**Liederdatenbank pflegen** und **Termine anlegen & verwalten**. Wer eines
+davon in einem Team hat, übt es überall aus – der Ablaufplan eines
+Gottesdienstes entsteht schließlich teamübergreifend.
+
+### Wer soll Gottesdienste anlegen dürfen?
+
+Standardmäßig niemand außer Admins und Teamleitungen: das Recht **„Termine
+anlegen & verwalten"** ist für Stellvertretung, Mitarbeit und Praktikum
+voreingestellt **aus**. Nach einem Update ändert sich also nichts, bis du es
+bewusst vergibst.
+
+Wenn bei euch nicht die Teamleitungen den Programmablauf verantworten, sondern
+z. B. das Moderationsteam, das Sekretariat oder die Gemeindeleitung, brauchst
+du dafür **keine Admin-Rechte zu verteilen** – ein eigenes Team genügt:
+
+1. Als Admin unter **Teams** ein Team anlegen, z. B. „Moderation" oder
+   „Programm".
+2. Die betreffenden Personen als **Mitarbeit** aufnehmen.
+3. In der Rechtematrix bei **Mitarbeit** das Häkchen **„Termine anlegen &
+   verwalten"** setzen.
+
+Diese Personen können danach Termine anlegen, Titel/Zeit/Ort ändern,
+veröffentlichen, absagen und die benötigten Positionen anpassen – ohne Zugriff
+auf Personenverwaltung, Import oder die Serien-Konfiguration. Ein Termin
+**löschen** kann weiterhin nur ein Admin; für alle anderen ist **Absagen** der
+Weg, und der ist ohnehin der bessere: der Termin bleibt mit seiner Geschichte
+sichtbar, nur die Erinnerungen entfallen.
+
+Das Häkchen wirkt sofort für die API. Damit die Schaltflächen erscheinen, muss
+die betroffene Person die Seite einmal neu laden.
 
 ### Benutzer beantragen
 

@@ -183,6 +183,14 @@ describe('Teamrollen & Rechtematrix (integration)', () => {
     // Gemergte Sicht enthält die Defaults
     expect(asLeader.json().entries.DEPUTY.ASSIGN).toBe(true);
     expect(asLeader.json().entries.MEMBER.ASSIGN).toBe(false);
+    // Die Anzeigeliste und das Prisma-Enum dürfen nicht auseinanderlaufen –
+    // sonst böte die Matrix ein Recht an, das das DTO als ungültig abweist
+    expect(asLeader.json().capabilities).toContain('MANAGE_EVENTS');
+    // Termine verwalten wirkt teamübergreifend und startet deshalb für alle
+    // konfigurierbaren Rollen aus
+    for (const role of ['DEPUTY', 'MEMBER', 'INTERN']) {
+      expect(asLeader.json().entries[role].MANAGE_EVENTS).toBe(false);
+    }
 
     for (const cookie of [deputyCookie, memberCookie]) {
       const denied = await app.inject({
