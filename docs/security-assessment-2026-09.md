@@ -17,17 +17,17 @@ kein SSRF im Planning-Center-Import, ein per Datenbank-Trigger erzwungenes
 Append-only-Audit-Log und eine serverseitige Field-Level-Sichtbarkeit, die
 Kontaktdaten schon aus der Antwort entfernt statt sie nur auszublenden.
 
-Gefunden wurden **11 Schwachstellen**, überwiegend in der zweiten
+Gefunden wurden **12 Schwachstellen**, überwiegend in der zweiten
 Verteidigungslinie: Bruteforce-Schutz des zweiten Faktors, Entschärfung von
 Daten auf dem Weg nach draußen (CSV, iCal) und Absicherung gegen
-Fehlkonfiguration im Betrieb. **10 davon sind behoben**, eine ist bewusst als
+Fehlkonfiguration im Betrieb. **11 davon sind behoben**, eine ist bewusst als
 akzeptiertes Restrisiko dokumentiert.
 
 | Schweregrad | Gefunden | Behoben | Offen |
 | ----------- | -------- | ------- | ----- |
 | Hoch        | 2        | 2       | 0     |
 | Mittel      | 4        | 4       | 0     |
-| Niedrig     | 5        | 4       | 1     |
+| Niedrig     | 6        | 5       | 1     |
 
 Die drei wichtigsten Befunde:
 
@@ -377,6 +377,39 @@ Mechanismus statt eines nie implementierten Tokens.
 
 ---
 
+### SF-22 · Audit-Log ohne Herkunft — **Niedrig** — behoben
+
+`apps/api/src/audit/audit.service.ts`
+
+Von 60 `audit.log()`-Aufrufstellen übergaben nur 3 eine IP – die beiden
+Login-Aktionen und die Nutzung eines Backup-Codes. Bei allen übrigen Einträgen
+stand `NULL` in der Spalte, obwohl das Feld existiert: `VIEW`/`EXPORT` von
+Personendaten, `ANONYMIZE`, Rollenänderungen, Importe.
+
+Damit fehlte ausgerechnet dort die Herkunft, wo das Audit-Log seinen Zweck hat.
+Laut Threat Model (Angreifer 3) ist es die Maßnahme gegen ein kompromittiertes
+Teamleiter-Konto – ohne IP lässt sich aber nicht unterscheiden, ob ein Zugriff
+vom gewohnten Gerät kam oder von woanders. OWASP A09 (Logging Failures).
+
+**Behebung:** Ein globaler Interceptor legt die Client-IP pro Request in einen
+`AsyncLocalStorage`-Kontext (`src/audit/request-context.ts`), aus dem
+`AuditService.log()` sie ausliest, wenn kein expliziter Wert übergeben wurde.
+Alle 60 Aufrufstellen bleiben dadurch unverändert.
+
+Verworfene Alternativen: Ein `REQUEST`-Scope für den `AuditService` hätte über
+das `@Global()`-Modul auf praktisch den gesamten Provider-Graphen kaskadiert
+(13 Services injizieren ihn direkt); die IP durch alle Signaturen zu reichen,
+wären 60 Berührungspunkte, die bei jedem neuen Aufruf wieder vergessen werden
+können – und die tokenbasierten Routen (Einladung, Passwort-Reset, Vertretung)
+haben gar keinen `AuthUser`, an den man sie hängen könnte.
+
+Nebenbei behoben: `test/utils/create-test-app.ts` baute den `FastifyAdapter`
+ohne `trustProxy` und `bodyLimit` – die Datei soll laut eigenem Kommentar
+`main.ts` exakt spiegeln, tat es aber nicht. Genau solche Abweichungen lassen
+die Security-Schichten im Test ungeprüft.
+
+---
+
 ## Weitere Beobachtungen (kein Handlungsbedarf)
 
 - **iCal-Feed-Tokens laufen nie ab.** Bewusste Abwägung: Ein ablaufendes
@@ -386,8 +419,6 @@ Mechanismus statt eines nie implementierten Tokens.
   korrekt. Wäre die API je direkt erreichbar, ließe sich `X-Forwarded-For`
   fälschen und damit das IP-Rate-Limit umgehen. Im Compose-Stack ist der Port
   nicht veröffentlicht – bei abweichendem Deployment beachten.
-- **Audit-Log erfasst `ip` nur bei Login-Aktionen.** Andere Einträge könnten die
-  IP mitführen; das Feld existiert bereits.
 - **`suggestForSlot` erzeugt intern einen synthetischen ADMIN-Principal**
   (`assignments.service.ts`). Heute nur aus serverseitigen Abläufen erreichbar,
   die vorher selbst prüfen – aber eine Falle für den nächsten Aufrufer.

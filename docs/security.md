@@ -126,5 +126,5 @@ Bei jedem Review erneut prüfen – ein Haken gilt nur für den damals geprüfte
 - [ ] A06 Vulnerable Components – Dependabot-PRs gemergt, Trivy-Image-Scan grün? (laufend)
 - [x] A07 Auth Failures – Rate Limiting, Session-Invalidierung, Lockout auch für 2FA-Codes, TOTP-Replay-Schutz
 - [x] A08 Integrity Failures – alle Actions SHA-gepinnt, Images signiert (cosign)
-- [ ] A09 Logging Failures – Audit-Log für neue Personendaten-Zugriffe erweitert? (pro Feature prüfen; `ip` wird bisher nur bei Login-Aktionen erfasst)
+- [x] A09 Logging Failures – Audit-Log erfasst Akteur, Aktion, geänderte Feldnamen und Client-IP; bei neuen Personendaten-Zugriffen pro Feature ergänzen
 - [x] A10 SSRF – keine serverseitigen Requests auf Nutzer-URLs (PCO-Import: feste API-Basis-URL, Paginierungs-Links werden gegen diese geprüft)

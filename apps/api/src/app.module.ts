@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AssignmentsModule } from './assignments/assignments.module';
 import { AuditModule } from './audit/audit.module';
+import { RequestContextInterceptor } from './audit/request-context.interceptor';
 import { AuthModule } from './auth/auth.module';
 import { AvailabilityModule } from './availability/availability.module';
 import { CalendarModule } from './calendar/calendar.module';
@@ -56,6 +57,9 @@ import { TeamsModule } from './teams/teams.module';
     // 3. Session-Auth (secure by default, @Public() als Ausnahme)
     // 4. Admin-Check für @RequireAdmin()-Routen
     BootstrapAdminService,
+    // Vor den Guards: Der Request-Kontext (Client-IP fürs Audit-Log) muss
+    // stehen, bevor irgendetwas protokolliert wird.
+    { provide: APP_INTERCEPTOR, useClass: RequestContextInterceptor },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: OriginCheckGuard },
     { provide: APP_GUARD, useClass: SessionAuthGuard },

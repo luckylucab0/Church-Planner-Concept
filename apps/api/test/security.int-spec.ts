@@ -125,6 +125,49 @@ describe('Security-Regressionen (integration)', () => {
     });
   });
 
+  // --- SF-22: Audit-Log erfasst die Herkunft ----------------------
+  describe('Audit-Log haelt die Client-IP fest', () => {
+    // Eine auditierte Aktion ausloesen und den juengsten Eintrag dazu holen.
+    async function auditEntryForRename(headers: Record<string, string> = {}) {
+      const target = await prisma.person.create({
+        data: { firstName: 'Audit', lastName: uniq, email: `${uniq}-${Date.now()}@test.local` },
+      });
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/api/v1/people/${target.id}`,
+        headers: { cookie: adminCookie, ...headers },
+        payload: { firstName: 'Umbenannt' },
+      });
+      expect(response.statusCode).toBe(200);
+
+      // AuditService schreibt bewusst fire-and-forget – kurz nachfassen,
+      // bis der Eintrag da ist.
+      for (let i = 0; i < 20; i++) {
+        const entry = await prisma.auditLog.findFirst({
+          where: { entityType: 'Person', entityId: target.id, action: 'UPDATE' },
+          orderBy: { createdAt: 'desc' },
+        });
+        if (entry) return entry;
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      throw new Error('Kein Audit-Eintrag fuer die Aenderung gefunden');
+    }
+
+    it('schreibt die IP auch bei Aktionen ausserhalb des Logins', async () => {
+      // Vor dem Fix stand hier NULL: Nur LOGIN und LOGIN_FAILED uebergaben
+      // eine IP, alle uebrigen ~60 Aufrufstellen nicht.
+      const entry = await auditEntryForRename();
+      expect(entry.ip).toBe('127.0.0.1');
+    });
+
+    it('nimmt hinter dem Reverse Proxy die IP aus X-Forwarded-For', async () => {
+      // Produktiv steht Caddy davor; ohne trustProxy stuende hier die IP des
+      // Proxys statt der des Clients – und das Audit-Log waere wertlos.
+      const entry = await auditEntryForRename({ 'x-forwarded-for': '203.0.113.42' });
+      expect(entry.ip).toBe('203.0.113.42');
+    });
+  });
+
   // --- SF-06: Session-Cookie ist signiert -------------------------
   it('ein manipuliertes Session-Cookie wird an der Signatur erkannt', async () => {
     const value = adminCookie.slice('serveflow_session='.length);

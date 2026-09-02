@@ -21,7 +21,13 @@ export async function createTestApp(
   const builder = Test.createTestingModule({ imports: [AppModule] });
   configure?.(builder);
   const moduleRef = await builder.compile();
-  const app = moduleRef.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
+  // Adapter-Optionen exakt wie in main.ts: trustProxy bestimmt, welche
+  // Client-IP im Audit-Log landet, bodyLimit, ab wann Requests abgewiesen
+  // werden. Wichen sie ab, würde der Test genau das nicht prüfen, was
+  // produktiv gilt.
+  const app = moduleRef.createNestApplication<NestFastifyApplication>(
+    new FastifyAdapter({ trustProxy: true, bodyLimit: 6 * 1024 * 1024 }),
+  );
   app.setGlobalPrefix('api');
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
   // Mit Secret registrieren: Das Session-Cookie wird signiert ausgestellt,
