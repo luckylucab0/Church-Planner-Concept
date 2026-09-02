@@ -45,11 +45,11 @@ jobs:
       DATABASE_URL: postgresql://serveflow:serveflow@localhost:5432/serveflow_test
       REDIS_URL: redis://localhost:6379
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       # corepack installiert exakt die pnpm-Version aus package.json
       # ("packageManager") – dadurch brauchen wir keine Third-Party-Action.
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 22
       - run: corepack enable
@@ -90,8 +90,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 22
       - run: corepack enable
@@ -113,18 +113,25 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Build images
         run: |
           docker build -f apps/api/Dockerfile -t serveflow-api:e2e .
           docker build -f apps/web/Dockerfile -t serveflow-web:e2e .
       - name: Start full stack
         run: docker compose -f docker/docker-compose.e2e.yml up -d --wait
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 22
       - name: Run smoke test (Einteilung → Mail → Zusage → Plan)
         run: node scripts/e2e-smoke.mjs
+      # Sicherheits-Checks gegen dasselbe laufende System. SAFE=1 lässt alle
+      # schreibenden und kontobezogenen Prüfungen weg und testet nur, was
+      # ohne Anmeldung erreichbar ist: Swagger-Exposure, Security-Header und
+      # ob wirklich jede geschützte Route eine Session verlangt.
+      # Regressionen der Auth-Logik selbst deckt apps/api/test/security.int-spec.ts ab.
+      - name: Security-Checks (Exposure, Header, Auth-Bypass)
+        run: SAFE=1 BASE=http://localhost:8080 node scripts/security/pentest.mjs
       - name: Dump logs on failure
         if: failure()
         run: docker compose -f docker/docker-compose.e2e.yml logs --tail 200

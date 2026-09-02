@@ -24,7 +24,9 @@ export async function createTestApp(
   const app = moduleRef.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
   app.setGlobalPrefix('api');
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
-  await app.register(cookie);
+  // Mit Secret registrieren: Das Session-Cookie wird signiert ausgestellt,
+  // ohne Secret könnte der Guard die Signatur hier nicht prüfen.
+  await app.register(cookie, { secret: env.COOKIE_SECRET });
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
   );

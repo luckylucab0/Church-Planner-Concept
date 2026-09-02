@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -98,7 +99,10 @@ export class EventsController {
   @Get()
   @ApiOperation({ summary: 'Termine im Zeitraum (Mitglieder: nur veröffentlichte)' })
   list(@CurrentUser() user: AuthUser, @Query('from') from?: string, @Query('to') to?: string) {
-    return this.events.list(user, from ? new Date(from) : undefined, to ? new Date(to) : undefined);
+    // Ohne Prüfung landet ein "Invalid Date" in der Prisma-Query und
+    // erzeugt einen HTTP 500 – ein Tippfehler im Query-String ist aber ein
+    // Client-Fehler und gehört mit 400 beantwortet.
+    return this.events.list(user, parseDateParam(from, 'from'), parseDateParam(to, 'to'));
   }
 
   @Get(':id')
@@ -161,4 +165,16 @@ export class EventsController {
   ) {
     return this.events.setPlan(user, id, dto);
   }
+}
+
+// Wandelt einen optionalen Datums-Query-Parameter in ein Date um und lehnt
+// unparsbare Werte mit 400 ab, statt ein "Invalid Date" in die Datenbank-
+// Query durchzureichen (dort endete es als HTTP 500).
+function parseDateParam(value: string | undefined, name: string): Date | undefined {
+  if (!value) return undefined;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    throw new BadRequestException(`Ungültiges Datum im Parameter "${name}": ${value}`);
+  }
+  return date;
 }

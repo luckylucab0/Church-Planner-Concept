@@ -28,7 +28,16 @@
 		X-Frame-Options "DENY"
 		Referrer-Policy "same-origin"
 		# CSP: SPA lädt nur eigene Assets; API liefert ohnehin nur JSON.
-		Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'"
+		#
+		# frame-ancestors ersetzt X-Frame-Options in modernen Browsern (die
+		# den alten Header dann ignorieren) – ohne die Direktive schützt gegen
+		# Clickjacking nur noch der Legacy-Header.
+		# base-uri verhindert, dass ein eingeschleustes <base>-Tag alle
+		# relativen URLs der Seite umlenkt; form-action verhindert das
+		# Umbiegen von Formular-Zielen; object-src schließt Plugin-Inhalte aus.
+		Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+		# Browser-Features, die ServeFlow nicht braucht, gar nicht erst erlauben.
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
 		-Server
 	}
 

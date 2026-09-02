@@ -87,10 +87,16 @@ Fastify-App ab.
 mkdir -p /opt/serveflow && cd /opt/serveflow
 curl -O https://raw.githubusercontent.com/luckylucab0/ICF-Planner-Concept/main/docker/docker-compose.yml
 curl -o .env https://raw.githubusercontent.com/luckylucab0/ICF-Planner-Concept/main/.env.example
-nano .env    # DOMAIN, Secrets (openssl rand -base64 32), SMTP, SEED_ADMIN_*
+nano .env    # DOMAIN, APP_URL, Secrets (openssl rand -base64 32), REDIS_PASSWORD, SMTP, SEED_ADMIN_*
 docker compose up -d
 ```
 
+- `APP_URL` muss die öffentliche https-URL sein (z. B. `https://serveflow.example.org`).
+  Sie bestimmt CORS-Herkunft, CSRF-Prüfung und alle Links in E-Mails – die API
+  startet in Produktion nicht, wenn sie fehlt oder kein https ist.
+- Die API prüft beim Start außerdem `COOKIE_SECRET` (≥ 32 Zeichen) und
+  `FIELD_ENCRYPTION_KEY` (32 Byte base64). Fehlkonfiguration verhindert den
+  Start, statt erst im Betrieb als HTTP 500 aufzufallen.
 - Caddy holt automatisch ein Let's-Encrypt-Zertifikat für `DOMAIN` (Ports 80+443 offen lassen).
 - Optionaler WAF am Edge: Wer eine eigene CrowdSec-Instanz betreibt, kann Caddy per
   `CROWDSEC_LAPI_URL`, `CROWDSEC_API_KEY` und `CROWDSEC_APPSEC_URL` an deren
@@ -144,6 +150,8 @@ Siehe [`.env.example`](.env.example) – jede Variable ist dort kommentiert.
 - Argon2id-Passwort-Hashing, TOTP-2FA, kurzlebige Single-Use-Tokens für Zu-/Absagen,
   applikationsseitig verschlüsselte Notizfelder (AES-256-GCM)
 - Threat Model und OWASP-Checkliste: [docs/security.md](docs/security.md)
+- Security Assessment & Pentest (September 2026): [docs/security-assessment-2026-09.md](docs/security-assessment-2026-09.md)
+- Wiederholbare Sicherheitstests: [scripts/security/](scripts/security/README.md)
 - Backup-Konzept (verschlüsselt, `pg_dump` + `age`): [docs/backup-restore.md](docs/backup-restore.md)
 
 ### Empfohlene GitHub-Repo-Einstellungen (Betreiber des Quell-Repos)

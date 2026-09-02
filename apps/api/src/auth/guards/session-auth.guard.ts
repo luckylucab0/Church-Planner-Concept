@@ -23,7 +23,13 @@ export class SessionAuthGuard implements CanActivate {
     ]);
 
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
-    const token = request.cookies?.[SESSION_COOKIE];
+    // Das Session-Cookie ist mit COOKIE_SECRET signiert (siehe
+    // AuthController.setSessionCookie). unsignCookie prüft die Signatur;
+    // ein manipulierter Wert wird hier verworfen, ohne dass Redis überhaupt
+    // befragt wird.
+    const rawCookie = request.cookies?.[SESSION_COOKIE];
+    const unsigned = rawCookie ? request.unsignCookie(rawCookie) : null;
+    const token = unsigned?.valid ? (unsigned.value ?? undefined) : undefined;
 
     // Session auch auf @Public()-Routen anhängen, wenn vorhanden –
     // z. B. zeigt die Respond-Seite eingeloggten Nutzern mehr Kontext
