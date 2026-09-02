@@ -5,7 +5,7 @@
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { Test } from '@nestjs/testing';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import cookie from '@fastify/cookie';
 import { AppModule } from '../../src/app.module';
 import { env } from '../../src/common/config/env';
@@ -39,6 +39,30 @@ export async function createTestApp(
   await app.init();
   await app.getHttpAdapter().getInstance().ready();
   return app;
+}
+
+// Wartet auf einen Audit-Eintrag, statt ihn sofort abzufragen.
+//
+// AuditService.log() schreibt bewusst fire-and-forget (ein Audit-Fehler darf
+// den fachlichen Request nicht abbrechen). Die HTTP-Antwort kann deshalb
+// zurückkommen, BEVOR der INSERT durch ist. Wer direkt danach abfragt, hat
+// ein Rennen am Hals, das meistens – aber eben nicht immer – gut ausgeht;
+// unter Last kippt es und der Test wird flaky.
+export async function waitForAuditEntry(
+  where: Prisma.AuditLogWhereInput,
+  { attempts = 40, delayMs = 50 }: { attempts?: number; delayMs?: number } = {},
+) {
+  for (let i = 0; i < attempts; i++) {
+    const entry = await testPrisma.auditLog.findFirst({
+      where,
+      orderBy: { createdAt: 'desc' },
+    });
+    if (entry) return entry;
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+  throw new Error(
+    `Kein Audit-Eintrag nach ${(attempts * delayMs) / 1000}s für: ${JSON.stringify(where)}`,
+  );
 }
 
 // Session-Cookie aus einer Login-Response extrahieren

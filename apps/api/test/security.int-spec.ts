@@ -8,7 +8,12 @@
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
 import * as argon2 from 'argon2';
 import { authenticator } from 'otplib';
-import { createTestApp, sessionCookieFrom, testPrisma as prisma } from './utils/create-test-app';
+import {
+  createTestApp,
+  sessionCookieFrom,
+  testPrisma as prisma,
+  waitForAuditEntry,
+} from './utils/create-test-app';
 
 const uniq = `sec-${Date.now()}`;
 const email = `${uniq}@test.local`;
@@ -83,13 +88,33 @@ describe('Security-Regressionen (integration)', () => {
         url: '/api/v1/auth/2fa/setup',
         headers: { cookie },
       });
+      expect(setup.statusCode).toBe(201);
       totpSecret = setup.json().secret;
-      await app.inject({
+
+      // Erst der zweite Anlauf, falls zwischen Erzeugen und Pruefen des Codes
+      // das 30-s-Zeitfenster gewechselt hat.
+      let verify = await app.inject({
         method: 'POST',
         url: '/api/v1/auth/2fa/verify',
         headers: { cookie },
         payload: { code: authenticator.generate(totpSecret) },
       });
+      if (verify.statusCode !== 204) {
+        verify = await app.inject({
+          method: 'POST',
+          url: '/api/v1/auth/2fa/verify',
+          headers: { cookie },
+          payload: { code: authenticator.generate(totpSecret) },
+        });
+      }
+
+      // Diese Zusicherung ist der Kern: Ohne aktives 2FA ignoriert der Login
+      // den totpCode und antwortet mit 200 statt 401. Ein still
+      // fehlgeschlagenes Setup wuerde die folgenden Tests also das Falsche
+      // pruefen lassen – und zwar als scheinbar echten Fehlschlag.
+      expect(verify.statusCode).toBe(204);
+      const account = await prisma.userAccount.findUniqueOrThrow({ where: { id: accountId } });
+      expect(account.totpEnabled).toBe(true);
     });
 
     beforeEach(async () => {
@@ -140,17 +165,13 @@ describe('Security-Regressionen (integration)', () => {
       });
       expect(response.statusCode).toBe(200);
 
-      // AuditService schreibt bewusst fire-and-forget – kurz nachfassen,
+      // AuditService schreibt bewusst fire-and-forget – der Helfer wartet,
       // bis der Eintrag da ist.
-      for (let i = 0; i < 20; i++) {
-        const entry = await prisma.auditLog.findFirst({
-          where: { entityType: 'Person', entityId: target.id, action: 'UPDATE' },
-          orderBy: { createdAt: 'desc' },
-        });
-        if (entry) return entry;
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      }
-      throw new Error('Kein Audit-Eintrag fuer die Aenderung gefunden');
+      return waitForAuditEntry({
+        entityType: 'Person',
+        entityId: target.id,
+        action: 'UPDATE',
+      });
     }
 
     it('schreibt die IP auch bei Aktionen ausserhalb des Logins', async () => {
