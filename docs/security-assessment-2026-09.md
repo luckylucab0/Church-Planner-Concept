@@ -425,7 +425,19 @@ die Security-Schichten im Test ungeprüft.
 - **Rechte wie `MANAGE_EVENTS` gelten instanzweit**, nicht pro Team: Wer ein
   Team leitet, kann Termine aller Teams bearbeiten. So dokumentiert und gewollt,
   aber die breiteste Rechtefläche unterhalb von Admin.
-- **`pnpm audit`** meldete keine offenen Schwachstellen oberhalb `high`.
+- **Abhängigkeits-Advisories:** Zum Zeitpunkt der Erstprüfung meldete `pnpm audit` nichts
+  oberhalb `high`. Während der Bearbeitung dieses Assessments stellte sich heraus, dass der
+  Security-Workflow auf `main` seit dem 17.08.2026 rot lief — in der Zwischenzeit
+  veröffentlichte Advisories, unabhängig von den hier beschriebenen Befunden. Betroffen
+  waren `fast-uri` (vier SSRF-/Host-Confusion-Lücken über zwei Fastify-Pfade), `nanoid`,
+  `deepmerge-ts` (auch im API-Image) sowie im kompilierten Caddy-Binary
+  `golang.org/x/crypto` (CVE-2026-56854, Critical) und `google.golang.org/grpc`. Alle sind
+  über `pnpm.overrides` bzw. die `xcaddy --replace`-Pins angehoben; `pnpm audit
+--audit-level high` läuft wieder sauber durch.
+
+  **Lehre für den Betrieb:** Der wöchentliche Security-Lauf schlug drei Mal in Folge fehl,
+  ohne dass es auffiel. Ein fehlschlagender Scheduled-Run sollte benachrichtigen — sonst
+  ist die Pipeline zwar vorhanden, aber wirkungslos.
 
 ---
 

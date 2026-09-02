@@ -31,17 +31,24 @@ RUN pnpm --filter @serveflow/shared build && pnpm --filter @serveflow/web build
 # caddy v2.11.3) – bei einem Caddy-Versionssprung den Pin mitprüfen.
 FROM --platform=$BUILDPLATFORM caddy:2-builder AS caddy-builder
 ARG TARGETOS TARGETARCH
-# Die beiden --replace heben transitive Abhängigkeiten mit bekannten CVEs
-# (x/text: CVE-2026-56852, grpc: GHSA-hrxh-6v49-42gf) auf die gefixten
-# Patch-Versionen – ohne sie schlägt der Trivy-Image-Scan an. Beim Bump
-# des Modul-Pins prüfen, ob die Replaces noch nötig sind, und sie sonst
-# entfernen (ein Replace erzwingt die Version auch, wenn Upstream längst
-# neuer ist).
+# Die --replace heben transitive Abhängigkeiten mit bekannten CVEs auf die
+# gefixten Versionen – ohne sie schlägt der Trivy-Image-Scan an:
+#   x/text   CVE-2026-56852
+#   grpc     GHSA-hrxh-6v49-42gf, CVE-2026-84304
+#   x/crypto CVE-2026-56854 (Critical): Auth-Bypass in x/crypto/ssh, weil
+#            Source-Address-Restriktionen nicht durchgesetzt werden. Caddy
+#            betreibt hier keinen SSH-Server, der Code ist also kaum
+#            erreichbar – der Bump kostet aber nur eine Zeile, während eine
+#            Trivy-Ausnahme dauerhaft gepflegt werden müsste.
+# Beim Bump des Modul-Pins prüfen, ob die Replaces noch nötig sind, und sie
+# sonst entfernen (ein Replace erzwingt die Version auch, wenn Upstream
+# längst neuer ist).
 RUN GOOS=$TARGETOS GOARCH=$TARGETARCH xcaddy build \
   --with github.com/hslatman/caddy-crowdsec-bouncer/http@v0.14.1 \
   --with github.com/hslatman/caddy-crowdsec-bouncer/appsec@v0.14.1 \
   --replace golang.org/x/text=golang.org/x/text@v0.39.0 \
-  --replace google.golang.org/grpc=google.golang.org/grpc@v1.82.1
+  --replace golang.org/x/crypto=golang.org/x/crypto@v0.55.0 \
+  --replace google.golang.org/grpc=google.golang.org/grpc@v1.83.1
 
 FROM caddy:2-alpine
 COPY docker/caddy/Caddyfile /etc/caddy/Caddyfile
