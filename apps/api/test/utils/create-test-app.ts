@@ -5,7 +5,7 @@
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { Test } from '@nestjs/testing';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import cookie from '@fastify/cookie';
 import { AppModule } from '../../src/app.module';
 import { env } from '../../src/common/config/env';
@@ -21,16 +21,48 @@ export async function createTestApp(
   const builder = Test.createTestingModule({ imports: [AppModule] });
   configure?.(builder);
   const moduleRef = await builder.compile();
-  const app = moduleRef.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
+  // Adapter-Optionen exakt wie in main.ts: trustProxy bestimmt, welche
+  // Client-IP im Audit-Log landet, bodyLimit, ab wann Requests abgewiesen
+  // werden. Wichen sie ab, würde der Test genau das nicht prüfen, was
+  // produktiv gilt.
+  const app = moduleRef.createNestApplication<NestFastifyApplication>(
+    new FastifyAdapter({ trustProxy: true, bodyLimit: 6 * 1024 * 1024 }),
+  );
   app.setGlobalPrefix('api');
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
-  await app.register(cookie);
+  // Mit Secret registrieren: Das Session-Cookie wird signiert ausgestellt,
+  // ohne Secret könnte der Guard die Signatur hier nicht prüfen.
+  await app.register(cookie, { secret: env.COOKIE_SECRET });
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
   );
   await app.init();
   await app.getHttpAdapter().getInstance().ready();
   return app;
+}
+
+// Wartet auf einen Audit-Eintrag, statt ihn sofort abzufragen.
+//
+// AuditService.log() schreibt bewusst fire-and-forget (ein Audit-Fehler darf
+// den fachlichen Request nicht abbrechen). Die HTTP-Antwort kann deshalb
+// zurückkommen, BEVOR der INSERT durch ist. Wer direkt danach abfragt, hat
+// ein Rennen am Hals, das meistens – aber eben nicht immer – gut ausgeht;
+// unter Last kippt es und der Test wird flaky.
+export async function waitForAuditEntry(
+  where: Prisma.AuditLogWhereInput,
+  { attempts = 40, delayMs = 50 }: { attempts?: number; delayMs?: number } = {},
+) {
+  for (let i = 0; i < attempts; i++) {
+    const entry = await testPrisma.auditLog.findFirst({
+      where,
+      orderBy: { createdAt: 'desc' },
+    });
+    if (entry) return entry;
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+  throw new Error(
+    `Kein Audit-Eintrag nach ${(attempts * delayMs) / 1000}s für: ${JSON.stringify(where)}`,
+  );
 }
 
 // Session-Cookie aus einer Login-Response extrahieren

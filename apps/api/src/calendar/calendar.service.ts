@@ -69,8 +69,8 @@ export class CalendarService {
       );
     }
     lines.push('END:VCALENDAR');
-    // RFC 5545 verlangt CRLF-Zeilenenden
-    return lines.join('\r\n') + '\r\n';
+    // RFC 5545 verlangt CRLF-Zeilenenden und Faltung ab 75 Oktett
+    return lines.map(foldIcsLine).join('\r\n') + '\r\n';
   }
 }
 
@@ -81,10 +81,53 @@ function formatUtc(date: Date): string {
     .replace(/\.\d{3}/, '');
 }
 
-// Kommas, Semikolons und Zeilenumbrüche müssen in iCal escaped werden
+// Kommas, Semikolons und Zeilenumbrüche müssen in iCal escaped werden.
+//
+// Wichtig: Auch ein EINZELNES \r muss entfernt werden. Zeilen eines
+// iCal-Dokuments werden per CRLF getrennt; ein rohes CR mitten in einem
+// Wert lassen viele Parser trotzdem als Zeilenende durchgehen. Ein
+// Terminort wie "Saal\rX-EVIL:1" erzeugte dadurch eine eigenständige
+// iCal-Property im Kalender aller Eingeteilten. Ebenso werden übrige
+// Steuerzeichen verworfen – RFC 5545 lässt sie in Textwerten nicht zu.
 function escapeIcs(value: string): string {
-  return value
-    .replace(/\\/g, '\\\\')
-    .replace(/[,;]/g, (c) => `\\${c}`)
-    .replace(/\n/g, '\\n');
+  return (
+    value
+      .replace(/\r\n?/g, '\n') // CR und CRLF auf LF normalisieren
+      // Übrige Steuerzeichen entfernen. Bewusst per Code-Point-Prüfung statt
+      // per Regex-Zeichenklasse: Steuerzeichen in einem regulären Ausdruck
+      // sind unlesbar, und ESLint verbietet sie zu Recht (no-control-regex).
+      .split('')
+      .filter((char) => {
+        const code = char.charCodeAt(0);
+        return char === '\n' || (code >= 0x20 && code !== 0x7f);
+      })
+      .join('')
+      .replace(/\\/g, '\\\\')
+      .replace(/[,;]/g, (c) => `\\${c}`)
+      .replace(/\n/g, '\\n')
+  );
+}
+
+// RFC 5545 begrenzt Zeilen auf 75 Oktett; längere Zeilen werden gefaltet
+// (Umbruch + führendes Leerzeichen). Ohne Faltung lehnen strenge Parser
+// das Dokument ab oder schneiden Werte ab. Gezählt wird in Bytes, nicht in
+// Zeichen – Umlaute belegen in UTF-8 mehrere Oktett.
+function foldIcsLine(line: string): string {
+  const bytes = Buffer.from(line, 'utf8');
+  if (bytes.length <= 75) return line;
+
+  const parts: string[] = [];
+  let start = 0;
+  // Erste Zeile 75 Oktett, Folgezeilen 74 (das führende Leerzeichen zählt mit).
+  let limit = 75;
+  while (start < bytes.length) {
+    let end = Math.min(start + limit, bytes.length);
+    // Nicht mitten in einem UTF-8-Zeichen trennen: Fortsetzungsbytes
+    // beginnen mit 0b10xxxxxx.
+    while (end > start && end < bytes.length && (bytes[end] & 0xc0) === 0x80) end--;
+    parts.push(bytes.subarray(start, end).toString('utf8'));
+    start = end;
+    limit = 74;
+  }
+  return parts.join('\r\n ');
 }

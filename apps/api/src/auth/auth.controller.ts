@@ -47,6 +47,10 @@ export class AuthController {
       sameSite: 'lax', // CSRF-Grundschutz, ergänzt durch OriginCheckGuard
       path: '/',
       maxAge: env.SESSION_TTL_HOURS * 3600,
+      // Signiert mit COOKIE_SECRET: Ohne die Signatur wäre das Secret zwar
+      // konfiguriert, aber wirkungslos. Manipulierte oder fremd erzeugte
+      // Cookie-Werte werden dadurch schon vor dem Redis-Lookup verworfen.
+      signed: true,
     });
   }
 

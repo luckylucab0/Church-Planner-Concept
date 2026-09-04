@@ -13,7 +13,12 @@ async function bootstrap(): Promise<void> {
     AppModule,
     // trustProxy: die API läuft immer hinter Caddy – nur so stimmen
     // Client-IPs im Audit-Log und Rate Limiting
-    new FastifyAdapter({ trustProxy: true }),
+    //
+    // bodyLimit: muss über der größten DTO-Grenze liegen. Die Import-DTOs
+    // erlauben 5 MB Inhalt; mit Fastifys Default (1 MiB) würde ein laut
+    // Doku zulässiger Import mit 413 abgewiesen, bevor die Validierung
+    // überhaupt läuft. 6 MB lassen Platz für den JSON-Overhead.
+    new FastifyAdapter({ trustProxy: true, bodyLimit: 6 * 1024 * 1024 }),
   );
 
   app.setGlobalPrefix('api');
@@ -36,17 +41,26 @@ async function bootstrap(): Promise<void> {
     new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
   );
 
-  const openApiConfig = new DocumentBuilder()
-    .setTitle('ServeFlow API')
-    .setDescription(
-      'REST-API für Diensteinteilung und Gottesdienstplanung. ' +
-        'Das Web-Frontend konsumiert ausschließlich diese API.',
-    )
-    .setVersion('1')
-    .addCookieAuth('serveflow_session')
-    .build();
-  const document = SwaggerModule.createDocument(app, openApiConfig);
-  SwaggerModule.setup('api/docs', app, document);
+  // Swagger nur außerhalb der Produktion.
+  //
+  // SwaggerModule.setup registriert die Route direkt am HTTP-Adapter und
+  // umgeht damit sämtliche Nest-Guards – @Public() ist dafür nicht nötig,
+  // SessionAuthGuard greift hier schlicht nicht. In Produktion wäre die
+  // vollständige API-Oberfläche samt aller DTO-Felder dadurch anonym
+  // abrufbar und damit eine fertige Landkarte für Angreifer.
+  if (env.NODE_ENV !== 'production') {
+    const openApiConfig = new DocumentBuilder()
+      .setTitle('ServeFlow API')
+      .setDescription(
+        'REST-API für Diensteinteilung und Gottesdienstplanung. ' +
+          'Das Web-Frontend konsumiert ausschließlich diese API.',
+      )
+      .setVersion('1')
+      .addCookieAuth('serveflow_session')
+      .build();
+    const document = SwaggerModule.createDocument(app, openApiConfig);
+    SwaggerModule.setup('api/docs', app, document);
+  }
 
   await app.listen({ port: env.API_PORT, host: '0.0.0.0' });
 }
