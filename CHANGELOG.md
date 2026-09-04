@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.12.1](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.12.0...v0.12.1) (2026-09-04)
+
+
+### Bugfixes
+
+* **audit:** Client-IP bei allen auditierten Aktionen festhalten ([ee3d773](https://github.com/luckylucab0/Church-Planner-Concept/commit/ee3d7739941f96481e473566c4c199303f0a6199))
+* **deps:** Sicherheits-Advisories in Abhaengigkeiten und Caddy-Binary schliessen ([13f3920](https://github.com/luckylucab0/Church-Planner-Concept/commit/13f39204d70ced47e86b04b52753d21f8cf114d2))
+* **security:** Befunde aus dem Security-Assessment beheben ([5940328](https://github.com/luckylucab0/Church-Planner-Concept/commit/5940328bbee21ed5bc5f5b0616b19e01ae5223f5))
+* **security:** Befunde aus Security-Assessment und Pentest beheben ([218341f](https://github.com/luckylucab0/Church-Planner-Concept/commit/218341f63fabe0065a42d6a291b1adbce0652489))
+
 ## [0.12.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.11.0...v0.12.0) (2026-08-09)
 
 
