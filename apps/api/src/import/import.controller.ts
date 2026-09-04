@@ -5,6 +5,7 @@ import { ImportService } from './import.service';
 import { PcoApiClient } from './pco-api.client';
 import { ColumnMapping } from './types';
 import { AuthUser } from '../auth/auth.types';
+import { sanitizeCsvCell } from '../common/csv-safe';
 import { CurrentUser, RequireAdmin } from '../auth/decorators';
 
 export class CreateImportDto {
@@ -103,11 +104,14 @@ export class ImportController {
   }
 }
 
-// Mini-CSV-Serialisierung für den API→Pipeline-Übergang
+// Mini-CSV-Serialisierung für den API→Pipeline-Übergang.
+// Die Werte stammen aus der Planning-Center-API, laufen also durch dieselbe
+// Pipeline wie ein CSV-Upload und können im Fehlerreport wieder auftauchen –
+// deshalb werden Formel-Präfixe auch hier entschärft.
 function toCsv(rows: Record<string, string>[]): string {
   if (rows.length === 0) return 'First Name,Last Name\n';
   const headers = Object.keys(rows[0]);
-  const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
+  const escape = (value: string) => `"${sanitizeCsvCell(value).replace(/"/g, '""')}"`;
   return [
     headers.map(escape).join(','),
     ...rows.map((row) => headers.map((header) => escape(row[header] ?? '')).join(',')),

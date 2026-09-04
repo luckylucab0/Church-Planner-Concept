@@ -72,20 +72,7 @@ export class AuthService {
 
     const passwordOk = await argon2.verify(account.passwordHash, password).catch(() => false);
     if (!passwordOk) {
-      // Exponentieller Backoff: 2^(n - Schwelle) Sekunden, gedeckelt –
-      // bremst Brute Force zusätzlich zum Rate Limiting
-      const failedCount = account.failedLoginCount + 1;
-      const lockSeconds =
-        failedCount >= LOCKOUT_THRESHOLD
-          ? Math.min(2 ** (failedCount - LOCKOUT_THRESHOLD + 1), LOCKOUT_MAX_SECONDS)
-          : 0;
-      await this.prisma.userAccount.update({
-        where: { id: account.id },
-        data: {
-          failedLoginCount: failedCount,
-          lockedUntil: lockSeconds > 0 ? new Date(Date.now() + lockSeconds * 1000) : null,
-        },
-      });
+      await this.countFailedAttempt(account.id, account.failedLoginCount);
       return fail();
     }
 
@@ -102,10 +89,25 @@ export class AuthService {
           !account.totpSecretEncrypted ||
           !this.totp.verify(totpCode, account.totpSecretEncrypted)
         ) {
+          // Auch der zweite Faktor zählt zum Lockout. Ohne das wäre er nur
+          // durch das IP-Rate-Limit geschützt: Wer das Passwort bereits
+          // kennt (Leak, Phishing), könnte TOTP-Codes unbegrenzt raten,
+          // solange er die Anfragen auf genügend IPs verteilt.
+          await this.countFailedAttempt(account.id, account.failedLoginCount);
+          return fail();
+        }
+        // Replay-Schutz: Ein TOTP-Code ist ±1 Zeitfenster gültig (bis zu
+        // 90 s). Ohne diese Sperre lässt sich ein einmal abgefangener Code
+        // (Phishing-Proxy, Schulterblick) innerhalb dieser Zeit erneut
+        // einlösen. Der Code wird deshalb nach erfolgreicher Nutzung für
+        // die Dauer seines Gültigkeitsfensters gesperrt.
+        if (!(await this.sessions.consumeTotpCode(account.id, totpCode))) {
+          await this.countFailedAttempt(account.id, account.failedLoginCount);
           return fail();
         }
       } else {
         if (!(await this.backupCodes.consume(account.id, totpCode))) {
+          await this.countFailedAttempt(account.id, account.failedLoginCount);
           return fail();
         }
         this.audit.log({
@@ -138,6 +140,25 @@ export class AuthService {
       ip,
     });
     return { sessionToken, user };
+  }
+
+  // Zählt einen Fehlversuch und sperrt das Konto ab der Schwelle mit
+  // exponentiellem Backoff: 2^(n - Schwelle + 1) Sekunden, gedeckelt.
+  // Bremst Brute Force zusätzlich zum IP-basierten Rate Limiting – und
+  // greift bewusst für BEIDE Faktoren (Passwort und 2FA-Code).
+  private async countFailedAttempt(accountId: string, currentFailedCount: number): Promise<void> {
+    const failedCount = currentFailedCount + 1;
+    const lockSeconds =
+      failedCount >= LOCKOUT_THRESHOLD
+        ? Math.min(2 ** (failedCount - LOCKOUT_THRESHOLD + 1), LOCKOUT_MAX_SECONDS)
+        : 0;
+    await this.prisma.userAccount.update({
+      where: { id: accountId },
+      data: {
+        failedLoginCount: failedCount,
+        lockedUntil: lockSeconds > 0 ? new Date(Date.now() + lockSeconds * 1000) : null,
+      },
+    });
   }
 
   async logout(sessionToken: string): Promise<void> {
@@ -349,7 +370,19 @@ export class AuthService {
       where: { tokenHash: hashToken(token) },
       include: { person: { include: { account: true } } },
     });
-    if (!record || record.usedAt || record.expiresAt < new Date() || !record.person.account) {
+    // purpose wird mitgeprüft: Ein Token soll ausschließlich für den Zweck
+    // gelten, für den es ausgestellt wurde. Ohne diese Bedingung würde hier
+    // auch ein INVITE-Token akzeptiert – heute nicht ausnutzbar (Einladungen
+    // gibt es nur für Personen OHNE Konto, und der Reset verlangt ein Konto),
+    // aber die beiden Bedingungen dürfen sich nicht gegenseitig absichern
+    // müssen.
+    if (
+      !record ||
+      record.purpose !== 'PASSWORD_RESET' ||
+      record.usedAt ||
+      record.expiresAt < new Date() ||
+      !record.person.account
+    ) {
       throw new UnauthorizedException({ message: 'auth.invalidResetToken' });
     }
     const accountId = record.person.account.id;

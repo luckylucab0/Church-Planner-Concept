@@ -70,7 +70,13 @@ export const env = {
     .filter((d) => !Number.isNaN(d) && d > 0),
 } as const;
 
-// Produktions-Guard gegen die dev-Defaults aus .env.example
+// Produktions-Guard: Fehlkonfiguration MUSS den Start verhindern.
+//
+// Warum streng: Ohne diese Prüfungen startet die API mit einem unbrauchbaren
+// FIELD_ENCRYPTION_KEY fehlerfrei und liefert erst beim ersten Zugriff auf ein
+// verschlüsseltes Feld (2FA-Setup, Notiz) einen HTTP 500 – also erst dann,
+// wenn eine echte Person die Funktion nutzt. Ein Konfigurationsfehler soll
+// beim Deployment auffallen, nicht Wochen später im Betrieb.
 if (env.NODE_ENV === 'production') {
   for (const [key, value] of [
     ['COOKIE_SECRET', env.COOKIE_SECRET],
@@ -79,5 +85,30 @@ if (env.NODE_ENV === 'production') {
     if (value.startsWith('CHANGE_ME')) {
       throw new Error(`${key} enthält noch den Platzhalter aus .env.example`);
     }
+  }
+
+  // Muss zu dem passen, was field-crypto erwartet (AES-256 = 32 Byte).
+  if (Buffer.from(env.FIELD_ENCRYPTION_KEY, 'base64').length !== 32) {
+    throw new Error(
+      'FIELD_ENCRYPTION_KEY muss 32 Bytes base64-codiert sein (openssl rand -base64 32)',
+    );
+  }
+
+  // 32 Zeichen entsprechen dem in .env.example empfohlenen `openssl rand -base64 32`.
+  if (env.COOKIE_SECRET.length < 32) {
+    throw new Error('COOKIE_SECRET muss mindestens 32 Zeichen lang sein (openssl rand -base64 32)');
+  }
+
+  // APP_URL bestimmt CORS-Origin, CSRF-Origin und alle Links in Mails.
+  // Zeigt sie auf eine echte Domain, muss sie https sein – sonst wären
+  // Session-Cookies (Secure) unbrauchbar und Mail-Links unverschlüsselt.
+  // Ausnahme localhost: Der E2E-Stack fährt dieselben Produktions-Images
+  // bewusst ohne TLS hoch (docker/docker-compose.e2e.yml).
+  const appUrl = new URL(env.APP_URL);
+  const isLocal = ['localhost', '127.0.0.1', '::1'].includes(appUrl.hostname);
+  if (appUrl.protocol !== 'https:' && !isLocal) {
+    throw new Error(
+      `APP_URL muss in Produktion eine https-URL sein (aktuell: ${env.APP_URL}) – sie bestimmt CORS, CSRF-Origin und die Links in allen Mails`,
+    );
   }
 }

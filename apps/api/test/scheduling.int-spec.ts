@@ -2,7 +2,12 @@
 // Sichtbarkeit von Terminen (Mitglieder sehen nur Veröffentlichtes).
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
 import * as argon2 from 'argon2';
-import { createTestApp, sessionCookieFrom, testPrisma as prisma } from './utils/create-test-app';
+import {
+  createTestApp,
+  sessionCookieFrom,
+  testPrisma as prisma,
+  waitForAuditEntry,
+} from './utils/create-test-app';
 
 const uniq = `sched-${Date.now()}`;
 const password = 'test-passwort-123!';
@@ -408,12 +413,15 @@ describe('Scheduling API (integration)', () => {
     expect(forced.statusCode).toBe(200);
     expect(await prisma.eventPositionSlot.count({ where: { eventId } })).toBe(0);
 
-    // und schreibt einen Audit-Eintrag – bis hierher fehlte er ganz
-    const audit = await prisma.auditLog.findFirst({
-      where: { entityType: 'Event', entityId: eventId, action: 'UPDATE' },
-      orderBy: { createdAt: 'desc' },
+    // und schreibt einen Audit-Eintrag – bis hierher fehlte er ganz.
+    // waitForAuditEntry statt findFirst: Der Eintrag wird fire-and-forget
+    // geschrieben und ist beim Eintreffen der Antwort evtl. noch nicht da.
+    const audit = await waitForAuditEntry({
+      entityType: 'Event',
+      entityId: eventId,
+      action: 'UPDATE',
     });
-    expect(audit?.changedFields).toContain('slots');
+    expect(audit.changedFields).toContain('slots');
   });
 
   it('meldet das Recht in der Session (canManageEvents)', async () => {

@@ -48,7 +48,13 @@ export function decryptField(stored: Buffer | Uint8Array): string {
   const iv = data.subarray(1, 1 + IV_LENGTH);
   const authTag = data.subarray(data.length - TAG_LENGTH);
   const ciphertext = data.subarray(1 + IV_LENGTH, data.length - TAG_LENGTH);
-  const decipher = createDecipheriv('aes-256-gcm', keyFor(version), iv);
+  // authTagLength explizit: Ohne Angabe akzeptiert Node auch verkürzte
+  // Auth-Tags (4–16 Byte). Ein verkürztes Tag schwächt die Integritäts-
+  // garantie von GCM erheblich, weil es sich entsprechend leichter raten
+  // lässt. Wir schreiben immer 16 Byte – also auch nur 16 akzeptieren.
+  const decipher = createDecipheriv('aes-256-gcm', keyFor(version), iv, {
+    authTagLength: TAG_LENGTH,
+  });
   decipher.setAuthTag(authTag);
   // GCM authentifiziert: manipulierte Ciphertexte werfen hier statt
   // stillschweigend Müll zurückzugeben

@@ -5,6 +5,7 @@ import { stringify } from 'csv-stringify/sync';
 import { parseBirthday, suggestMapping } from './mapping';
 import { ColumnMapping, ImportPersonRecord, RowPlan, TARGET_FIELDS } from './types';
 import { AuditService } from '../audit/audit.service';
+import { sanitizeCsvRow } from '../common/csv-safe';
 import { AuthUser } from '../auth/auth.types';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -192,12 +193,16 @@ export class ImportService {
       where: { jobId, outcome: { in: ['ERROR', 'SKIPPED'] } },
       orderBy: { rowNumber: 'asc' },
     });
+    // rawData sind die unveränderten Zellen aus der hochgeladenen Datei.
+    // Sie landen hier in einer CSV, die eine Admin-Person herunterlädt und
+    // typischerweise in Excel öffnet – deshalb müssen Formel-Präfixe
+    // entschärft werden (siehe common/csv-safe.ts).
     return stringify(
       rows.map((row) => ({
         rowNumber: row.rowNumber,
         outcome: row.outcome,
         error: row.errorMessage ?? '',
-        ...(row.rawData as Record<string, string>),
+        ...sanitizeCsvRow(row.rawData as Record<string, unknown>),
       })),
       { header: true },
     );

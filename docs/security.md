@@ -8,17 +8,17 @@ Dieses Dokument beschreibt das Threat Model und die daraus abgeleiteten Maßnahm
 
 ### Angreifer 1: Externer Angreifer (kein Konto)
 
-| Vektor                               | Maßnahme                                                                                                                                  |
-| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| Credential Stuffing / Brute Force    | Argon2id-Hashing, Rate Limiting auf `/auth/*`, exponentieller Lockout-Backoff, generische Fehlermeldungen („E-Mail oder Passwort falsch") |
-| Brute-Force auf Respond-/iCal-Tokens | 128-Bit-Zufallstokens (crypto.randomBytes), nur SHA-256-Hash in der DB, TTL + Single-Use, Rate Limiting auf `/respond/*`                  |
-| SQL-Injection                        | Prisma-Parametrisierung, keine Raw-Queries mit String-Konkatenation                                                                       |
-| XSS / Clickjacking                   | React-Escaping, CSP + Security-Header (Caddy + Helmet), `X-Frame-Options: DENY`                                                           |
-| MitM                                 | TLS-only (Caddy mit Auto-HTTPS), HSTS, Cookies `Secure` + `HttpOnly` + `SameSite=Lax`                                                     |
-| CSRF                                 | SameSite-Cookies + Double-Submit-Token für zustandsändernde Requests                                                                      |
-| Geleakte Backups                     | Backups werden mit `age` verschlüsselt (siehe backup-restore.md)                                                                          |
-| Automatisierte Web-Exploits/Scanner  | Optional CrowdSec AppSec (WAF) direkt in Caddy: prüft jede Anfrage vor dem Routing, Block → 403 (siehe unten)                             |
-| Mass Assignment                      | DTO-Validierung mit `whitelist: true, forbidNonWhitelisted: true`                                                                         |
+| Vektor                               | Maßnahme                                                                                                                                    |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Credential Stuffing / Brute Force    | Argon2id-Hashing, Rate Limiting auf `/auth/*`, exponentieller Lockout-Backoff (gilt auch für falsche 2FA-Codes), generische Fehlermeldungen |
+| Brute-Force auf Respond-/iCal-Tokens | 128-Bit-Zufallstokens (crypto.randomBytes), nur SHA-256-Hash in der DB, TTL + Single-Use, Rate Limiting auf `/respond/*`                    |
+| SQL-Injection                        | Prisma-Parametrisierung, keine Raw-Queries mit String-Konkatenation                                                                         |
+| XSS / Clickjacking                   | React-Escaping, CSP inkl. `frame-ancestors 'none'`, `base-uri`, `form-action`, `object-src` (Caddy) + Helmet, `X-Frame-Options: DENY`       |
+| MitM                                 | TLS-only (Caddy mit Auto-HTTPS), HSTS, Cookies `Secure` + `HttpOnly` + `SameSite=Lax`                                                       |
+| CSRF                                 | `SameSite=Lax`-Cookies + serverseitiger Origin-Check (`OriginCheckGuard`) für alle zustandsändernden Requests; signiertes Session-Cookie    |
+| Geleakte Backups                     | Backups werden mit `age` verschlüsselt (siehe backup-restore.md)                                                                            |
+| Automatisierte Web-Exploits/Scanner  | Optional CrowdSec AppSec (WAF) direkt in Caddy: prüft jede Anfrage vor dem Routing, Block → 403 (siehe unten)                               |
+| Mass Assignment                      | DTO-Validierung mit `whitelist: true, forbidNonWhitelisted: true`                                                                           |
 
 ### Angreifer 2: Neugieriges Mitglied (gültiger Login, Rolle MEMBER)
 
@@ -83,15 +83,48 @@ unverschlüsselt, weil sie gefiltert/gesucht/exportiert werden müssen – ihr S
 erfolgt über RBAC, Field-Level-Filtering und verschlüsselte Backups.
 Festplatten-/DB-Verschlüsselung ist zusätzlich Betreiber-Verantwortung.
 
+## Startzeit-Prüfungen der Konfiguration
+
+Mit `NODE_ENV=production` verweigert die API den Start, wenn:
+
+- `COOKIE_SECRET` oder `FIELD_ENCRYPTION_KEY` noch den `CHANGE_ME`-Platzhalter tragen,
+- `FIELD_ENCRYPTION_KEY` nicht exakt 32 Byte base64 ist,
+- `COOKIE_SECRET` kürzer als 32 Zeichen ist,
+- `APP_URL` auf eine echte Domain ohne `https://` zeigt (localhost ist erlaubt,
+  weil der E2E-Stack dieselben Images bewusst ohne TLS fährt).
+
+**Warum fail-fast:** Zuvor startete die API mit einem unbrauchbaren
+Verschlüsselungs-Key fehlerfrei und lieferte erst beim ersten Zugriff auf ein
+verschlüsseltes Feld (2FA-Einrichtung, Notiz) einen HTTP 500 – also erst dann,
+wenn eine echte Person die Funktion nutzen wollte.
+
+## Sicherheitstests
+
+Zwei sich ergänzende Ebenen:
+
+- **`apps/api/test/security.int-spec.ts`** – Regressionstests zu den Befunden des
+  Assessments (2FA-Lockout, TOTP-Replay, Token-Purpose, CSV-Injection,
+  iCal-Injection, Cookie-Signatur, Datumsvalidierung). Laufen in der normalen
+  Testsuite mit.
+- **`scripts/security/pentest.mjs`** – aktiver Test gegen eine laufende Instanz.
+  `SAFE=1` beschränkt ihn auf lesende Checks (Exposure, Header, Auth-Bypass) und
+  ist damit auch gegen eine Produktivinstanz gefahrlos; in dieser Form läuft er
+  im CI-Job `e2e`. Details: [`scripts/security/README.md`](../scripts/security/README.md).
+
+Vollständiger Bericht: [security-assessment-2026-09.md](security-assessment-2026-09.md)
+
 ## OWASP Top 10 Checkliste (bei jedem Review abhaken)
 
-- [ ] A01 Broken Access Control – Negativtests pro Rolle vorhanden und grün?
-- [ ] A02 Cryptographic Failures – argon2id, AES-256-GCM, TLS-only, keine eigenen Krypto-Konstrukte?
-- [ ] A03 Injection – nur Prisma-Queries, DTO-Validierung aktiv?
-- [ ] A04 Insecure Design – Threat Model für neue Features aktualisiert?
-- [ ] A05 Security Misconfiguration – Security-Header, keine Default-Credentials, Trivy-Config-Scan grün?
-- [ ] A06 Vulnerable Components – Dependabot-PRs gemergt, Trivy-Image-Scan grün?
-- [ ] A07 Auth Failures – Rate Limiting, Session-Invalidierung, 2FA funktionsfähig?
-- [ ] A08 Integrity Failures – Actions SHA-gepinnt, Images signiert (cosign)?
-- [ ] A09 Logging Failures – Audit-Log für neue Personendaten-Zugriffe erweitert?
-- [ ] A10 SSRF – keine serverseitigen Requests auf Nutzer-URLs (PCO-Import: nur feste API-Basis-URL)?
+Stand des Assessments vom September 2026 (siehe security-assessment-2026-09.md).
+Bei jedem Review erneut prüfen – ein Haken gilt nur für den damals geprüften Stand.
+
+- [x] A01 Broken Access Control – Negativtests pro Rolle vorhanden und grün (teams/team-roles/people/scheduling int-specs, Pentest-Rollenmatrix)
+- [x] A02 Cryptographic Failures – argon2id, AES-256-GCM mit fixer Auth-Tag-Länge, TLS-only, keine eigenen Krypto-Konstrukte
+- [x] A03 Injection – nur parametrisierte Prisma-Queries, DTO-Validierung aktiv, CSV-Formel-Injection entschärft, iCal-Escaping inkl. CR
+- [x] A04 Insecure Design – Threat Model in diesem Dokument aktuell
+- [x] A05 Security Misconfiguration – Security-Header inkl. CSP-Direktiven, Swagger in Produktion aus, Secrets werden beim Start validiert, Container ohne Zusatzrechte
+- [ ] A06 Vulnerable Components – Dependabot-PRs gemergt, Trivy-Image-Scan grün? (laufend)
+- [x] A07 Auth Failures – Rate Limiting, Session-Invalidierung, Lockout auch für 2FA-Codes, TOTP-Replay-Schutz
+- [x] A08 Integrity Failures – alle Actions SHA-gepinnt, Images signiert (cosign)
+- [x] A09 Logging Failures – Audit-Log erfasst Akteur, Aktion, geänderte Feldnamen und Client-IP; bei neuen Personendaten-Zugriffen pro Feature ergänzen
+- [x] A10 SSRF – keine serverseitigen Requests auf Nutzer-URLs (PCO-Import: feste API-Basis-URL, Paginierungs-Links werden gegen diese geprüft)

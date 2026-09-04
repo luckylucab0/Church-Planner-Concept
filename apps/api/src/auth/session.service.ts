@@ -16,6 +16,10 @@ export interface SessionData {
   createdAt: string;
 }
 
+// Ein TOTP-Code ist bei ±1 Zeitfenster (30 s) höchstens 90 s gültig – so
+// lange muss die Einmal-Sperre gegen Replay mindestens halten.
+const TOTP_REPLAY_TTL_SECONDS = 90;
+
 // Sessions in Redis statt JWT: sofortige Revocation (kompromittierte
 // Konten, Passwort-Reset), kein Token-Material im Browser-Storage.
 // Key: session:<sha256(token)> – auch Redis-Dumps verraten keine Cookies.
@@ -68,6 +72,22 @@ export class SessionService {
       await this.redis.del(...hashes.map((h) => this.sessionKey(h)));
     }
     await this.redis.del(this.accountKey(accountId));
+  }
+
+  // Verbraucht einen TOTP-Code einmalig (Replay-Schutz).
+  //
+  // Liefert true, wenn der Code für dieses Konto noch nicht verwendet wurde,
+  // und sperrt ihn dann für 90 Sekunden – die maximale Gültigkeitsdauer bei
+  // ±1 Zeitfenster. Ohne das ließe sich ein abgefangener Code innerhalb
+  // seines Fensters ein zweites Mal einlösen.
+  //
+  // SET NX ist atomar: zwei parallele Logins mit demselben Code können nicht
+  // beide gewinnen. Nur der Hash des Codes wird gespeichert, damit ein
+  // Redis-Dump keine gültigen Codes preisgibt.
+  async consumeTotpCode(accountId: string, code: string): Promise<boolean> {
+    const key = `totp-used:${accountId}:${hashToken(code)}`;
+    const result = await this.redis.set(key, '1', 'EX', TOTP_REPLAY_TTL_SECONDS, 'NX');
+    return result === 'OK';
   }
 
   // Passwortwechsel durch die Person selbst: alle ANDEREN Geräte abmelden,
