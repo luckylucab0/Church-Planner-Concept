@@ -34,7 +34,9 @@ ARG TARGETOS TARGETARCH
 # Die --replace heben transitive Abhängigkeiten mit bekannten CVEs auf die
 # gefixten Versionen – ohne sie schlägt der Trivy-Image-Scan an:
 #   x/text   CVE-2026-56852
-#   grpc     GHSA-hrxh-6v49-42gf, CVE-2026-84304
+#   grpc     GHSA-hrxh-6v49-42gf, CVE-2026-84304 sowie CVE-2026-84445: der
+#            xDS-Server stürzt bei fehlendem :authority-/Host-Header ab.
+#            Gefixt in 1.83.2 - Patch-Bump auf derselben Minor-Linie.
 #   x/crypto CVE-2026-56854 (Critical): Auth-Bypass in x/crypto/ssh, weil
 #            Source-Address-Restriktionen nicht durchgesetzt werden. Caddy
 #            betreibt hier keinen SSH-Server, der Code ist also kaum
@@ -48,7 +50,7 @@ RUN GOOS=$TARGETOS GOARCH=$TARGETARCH xcaddy build \
   --with github.com/hslatman/caddy-crowdsec-bouncer/appsec@v0.14.1 \
   --replace golang.org/x/text=golang.org/x/text@v0.39.0 \
   --replace golang.org/x/crypto=golang.org/x/crypto@v0.55.0 \
-  --replace google.golang.org/grpc=google.golang.org/grpc@v1.83.1
+  --replace google.golang.org/grpc=google.golang.org/grpc@v1.83.2
 
 FROM caddy:2-alpine
 COPY docker/caddy/Caddyfile /etc/caddy/Caddyfile
