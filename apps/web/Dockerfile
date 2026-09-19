@@ -8,7 +8,7 @@
 # CROWDSEC_*-Variablen gesetzt sind – die AppSec-Prüfung (WAF) jeder
 # Anfrage durch eine CrowdSec-Instanz.
 
-FROM node:22-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /repo
 RUN corepack enable
 

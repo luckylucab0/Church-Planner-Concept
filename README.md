@@ -59,7 +59,7 @@ Alle Komponenten laufen per Docker Compose auf einem einzelnen Linux-Server
 
 ## Quickstart (lokale Entwicklung)
 
-Voraussetzungen: Node ≥ 22, pnpm ≥ 10, Docker.
+Voraussetzungen: Node ≥ 24, pnpm ≥ 10, Docker.
 
 ```bash
 git clone <repo-url> && cd serveflow
