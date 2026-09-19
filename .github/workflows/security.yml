@@ -82,7 +82,12 @@ jobs:
   # die Dependencies des Web-Bundles (React & Co.) tauchen dort gar nicht auf,
   # weil nur das fertige Bundle ausgeliefert wird. Dieser Job schließt die
   # Lücke und läuft auf demselben Wochenrhythmus.
-  # Ausnahmen: pnpm.auditConfig.ignoreGhsas in der package.json (mit Begründung).
+  # Ausnahmen: pnpm.auditConfig.ignoreGhsas in der package.json. JSON trägt
+  # keine Kommentare, deshalb gilt: Begründung in die Commit-Message, und bei
+  # jedem Dependency-Update gegenprüfen, ob der Eintrag noch etwas unterdrückt
+  # (Liste leeren, Audit laufen lassen). Ein Eintrag, der nichts mehr
+  # ausblendet, schaltet sonst still ein künftiges Advisory derselben ID stumm.
+  # Aktuell ist die Liste leer – alle Advisories sind tatsächlich behoben.
   audit:
     runs-on: ubuntu-latest
     timeout-minutes: 10
