@@ -51,7 +51,7 @@ jobs:
       # ("packageManager") – dadurch brauchen wir keine Third-Party-Action.
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: 22
+          node-version: 24
       - run: corepack enable
 
       - name: Install dependencies
@@ -93,7 +93,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: 22
+          node-version: 24
       - run: corepack enable
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -122,7 +122,7 @@ jobs:
         run: docker compose -f docker/docker-compose.e2e.yml up -d --wait
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
-          node-version: 22
+          node-version: 24
       - name: Run smoke test (Einteilung → Mail → Zusage → Plan)
         run: node scripts/e2e-smoke.mjs
       # Sicherheits-Checks gegen dasselbe laufende System. SAFE=1 lässt alle
