@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.2](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.12.1...v0.12.2) (2026-09-19)
+
+
+### Bugfixes
+
+* **deps:** Advisories schliessen und alle Pakete im Range aktualisieren ([b73f216](https://github.com/luckylucab0/Church-Planner-Concept/commit/b73f2163e7242f00323643ba70c34e62bdb1a743))
+* **docker:** grpc-Pin im Caddy-Binary auf 1.83.2 heben (CVE-2026-84445) ([e1ca145](https://github.com/luckylucab0/Church-Planner-Concept/commit/e1ca145f6961c9ee25c915e373a31517c10fc32e))
+
 ## [0.12.1](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.12.0...v0.12.1) (2026-09-04)
 
 
