@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.12.2...v0.13.0) (2026-09-19)
+
+
+### Features
+
+* **deps:** NestJS 12 und Node 24 als Projektbasis ([55be6d8](https://github.com/luckylucab0/Church-Planner-Concept/commit/55be6d8bf2d8816ce1404c2539a1b62ebf353b9f))
+
 ## [0.12.2](https://github.com/luckylucab0/Church-Planner-Concept/compare/v0.12.1...v0.12.2) (2026-09-19)
 
 
