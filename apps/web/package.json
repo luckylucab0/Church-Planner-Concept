@@ -15,11 +15,11 @@
   },
   "dependencies": {
     "@serveflow/shared": "workspace:*",
-    "i18next": "^26.4.2",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
-    "react-i18next": "^17.0.14",
-    "react-router-dom": "^7.18.4"
+    "i18next": "^26.5.12",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-i18next": "^17.1.9",
+    "react-router-dom": "^7.18.5"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
@@ -28,6 +28,6 @@
     "@vitejs/plugin-react": "^4.7.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3",
-    "vite": "^6.4.3"
+    "vite": "^6.4.5"
   }
 }
